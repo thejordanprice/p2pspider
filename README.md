@@ -10,7 +10,6 @@ Daemon that scrapes the DHT swarm and an express bootstrapped front-end connecte
 
 [index]: https://i.imgur.com/ltJng3W.png "index page"
 [search]: https://i.imgur.com/oAlu63z.png "search page"
-[single]: https://i.imgur.com/yFJpDuT.png "single view"
 
 ## Dependencies
 
