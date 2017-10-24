@@ -1,0 +1,21 @@
+html
+    include includes/header.pug
+    body
+        include includes/navbar.pug
+        .container
+            each item in results
+                .card(style='width: 40rem;')
+                    .card-body
+                        h4.card-title= item.name
+                        h6.card-subtitle.mb-2.text-muted= item.infohash
+                        pre.card-text= item.files || 'files: unknown'
+                        .btn-group
+                            a.btn.btn-default.card-link(href='/infohash?q=' + item.infohash) Details
+                            a.btn.btn-default.card-link(href=item.magneturi) Magnet URI
+
+            br
+            a(href='/') Back
+
+            br
+            br
+            include includes/footer.pug

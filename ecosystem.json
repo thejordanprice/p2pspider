@@ -1,0 +1,19 @@
+{
+  "apps" : [{
+    //
+    "name"      : "webserver",
+    "script"    : "bin/webserver.js",
+    "watch"     : true,
+    "instances" : 1,
+    "exec_mode" : "cluster",
+    "max_memory_restart": "150M"
+  },{
+    //
+    "name"       : "daemon",
+    "script"     : "bin/daemon.js",
+    "watch"      : true,
+    "instances"  : 1,
+    "exec_mode"  : "cluster",
+    "max_memory_restart": "150M"
+  }]
+}

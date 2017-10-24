@@ -1,0 +1,13 @@
+html
+    include includes/header.pug
+    body
+        include includes/navbar.pug
+        .container
+            div(style='text-align:center')
+                br
+                h2= count + ' magnets...'
+                br
+                p This is a database of magnet URI's that have been spotted in the wild
+                | on the DHT swarm via the bittorrent protocol.
+
+            include includes/footer.pug

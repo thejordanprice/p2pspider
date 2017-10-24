@@ -1,0 +1,20 @@
+html
+    include includes/header.pug
+    body
+        include includes/navbar.pug
+        .container
+            each item in result
+                .card
+                    .card-header
+                        h2= item.name
+                    .card-body
+                        p.card-text= 'Infohash: ' + item.infohash
+                        p.card-text= 'Fetched At: ' + item.timestring
+                        pre= item.files || 'files: unknown atm...'
+                        a.btn.btn-default.card-link(href=item.magneturi) Magnet
+            br
+            a(href='/') Back
+
+            br
+            br
+            include includes/footer.pug
