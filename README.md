@@ -6,7 +6,6 @@ Daemon that scrapes the DHT swarm and an express bootstrapped front-end connecte
 
 ![Screenshot][index]
 ![Screenshot][search]
-![Screenshot][single]
 
 [index]: https://i.imgur.com/ltJng3W.png "index page"
 [search]: https://i.imgur.com/oAlu63z.png "search page"
