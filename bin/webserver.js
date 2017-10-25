@@ -97,13 +97,11 @@ app.get('/', function (req, res) {
 });
 
 app.get('/latest', function (req, res) {
-  Magnet.find({}, function(err,results){
-    parseResults(results, function(results){
-      res.render(
-        'search',
-        { title: site_title, results: results }
-      );
-    });
+  Magnet.find({}, function(err,results) {
+    res.render(
+      'search',
+      { title: site_title, results: results }
+    );
   }).limit(25).sort({ 'fetchedAt': -1 });
 });
 
@@ -118,12 +116,10 @@ app.get('/infohash', function(req,res){
   } else {
     // find search query
     Magnet.find({infohash: infohash}, function(err,results){
-      parseResults(results, function(results){
-        res.render(
-          'single',
-          { title: site_title, result: results }
-        );
-      });
+      res.render(
+        'single',
+        { title: site_title, result: results }
+      );
     }).limit(25).sort({ 'fetchedAt': -1 });
   };
 });
@@ -148,12 +144,10 @@ app.get('/search', function(req,res){
     } else {
       // find search query
       Magnet.find({name: searchqueryregex}, function(err,results){
-        parseResults(results, function(results){
-          res.render(
-            'search',
-            { title: site_title, results: results }
-          );
-        });
+        res.render(
+          'search',
+          { title: site_title, results: results }
+        );
       });
     };
   };
