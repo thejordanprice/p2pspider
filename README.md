@@ -11,7 +11,7 @@ This can index over 1 million magnets per 24/hr on 2GB of RAM and around 2MB/s c
 ![Screenshot][index]
 ![Screenshot][search]
 
-[index]: https://i.imgur.com/ltJng3W.png "index page"
+[index]: https://i.imgur.com/dEix8Mo.png "index page"
 [search]: https://i.imgur.com/oAlu63z.png "search page"
 
 ### Getting Started
