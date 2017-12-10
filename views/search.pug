@@ -8,10 +8,10 @@ html
                     .card-body
                         h4.card-title= item.name
                         h6.card-subtitle.mb-2.text-muted= item.infohash
-                        pre.card-text= item.files || 'files: unknown'
+                        pre.card-text= item.toObject().files || 'files: unknown'
                         .btn-group
                             a.btn.btn-default.card-link(href='/infohash?q=' + item.infohash) Details
-                            a.btn.btn-default.card-link(href=item.magneturi) Magnet URI
+                            a.btn.btn-default.card-link(href=item.magnet) Magnet URI
 
             br
             a(href='/') Back
