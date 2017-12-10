@@ -11,7 +11,7 @@ var site_title = 'Tordex v1.2';
  */
 var mongoose = require('mongoose');
 var mongoDB = 'mongodb://127.0.0.1/magnetdb';
-mongoose.connect(mongoDB);
+mongoose.connection.openUri(mongoDB);
 
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
