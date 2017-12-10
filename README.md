@@ -1,5 +1,11 @@
 # p2pspider
 
+[![GitHub issues](https://img.shields.io/github/issues/thejordanprice/p2pspider.svg)](https://github.com/thejordanprice/p2pspider/issues)
+[![GitHub stars](https://img.shields.io/github/stars/thejordanprice/p2pspider.svg)](https://github.com/thejordanprice/p2pspider/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/thejordanprice/p2pspider.svg)](https://github.com/thejordanprice/p2pspider/network)
+[![GitHub license](https://img.shields.io/github/license/thejordanprice/p2pspider.svg)](https://github.com/thejordanprice/p2pspider/blob/master/LICENSE)
+[![Twitter](https://img.shields.io/twitter/url/https/github.com/thejordanprice/p2pspider.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2Fthejordanprice%2Fp2pspider)
+
 Daemon that scrapes the DHT swarm and an express bootstrapped front-end connected to the same mongodb to create an automated magnet db with search.
 
 ### Intro
