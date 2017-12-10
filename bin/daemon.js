@@ -5,7 +5,7 @@
  */
 var mongoose = require('mongoose');
 var mongoDB = 'mongodb://127.0.0.1/magnetdb';
-mongoose.connect(mongoDB);
+mongoose.connection.openUri(mongoDB);
 
 var db = mongoose.connection;
 
