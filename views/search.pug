@@ -4,14 +4,17 @@ html
         include includes/navbar.pug
         .container
             each item in results
-                .card(style='width: 40rem;')
-                    .card-body
-                        h4.card-title= item.name
-                        h6.card-subtitle.mb-2.text-muted= item.infohash
-                        pre.card-text= item.toObject().files || 'files: unknown'
-                        .btn-group
-                            a.btn.btn-default.card-link(href='/infohash?q=' + item.infohash) Details
-                            a.btn.btn-default.card-link(href=item.magnet) Magnet URI
+                .container
+                    .card(style='')
+                        .card-body
+                            h4.card-title= item.name
+                            h6.card-subtitle.mb-2= 'Infohash: ' + item.infohash
+                            - var filestring = item.toObject().files;
+                            - var formatstring = filestring.split(',').join('\n')
+                            pre= formatstring || 'files: unknown atm...'
+                            .btn-group
+                                a.btn.btn-default.card-link(href='/infohash?q=' + item.infohash) Details
+                                a.btn.btn-default.card-link(href=item.magnet) Magnet URI
 
             br
             a(href='/') Back

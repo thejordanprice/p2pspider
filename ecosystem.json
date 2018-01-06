@@ -4,7 +4,7 @@
     "name"      : "webserver",
     "script"    : "bin/webserver.js",
     "watch"     : true,
-    "instances" : 2,
+    "instances" : 1,
     "exec_mode" : "cluster",
     "max_memory_restart": "100M"
   },{
@@ -12,7 +12,7 @@
     "name"       : "daemon",
     "script"     : "bin/daemon.js",
     "watch"      : true,
-    "instances"  : 6,
+    "instances"  : 1,
     "exec_mode"  : "cluster",
     "max_memory_restart": "125M"
   }]

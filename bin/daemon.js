@@ -4,6 +4,7 @@
  * Mongoose / MongoDB
  */
 var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 var mongoDB = 'mongodb://127.0.0.1/magnetdb';
 mongoose.connection.openUri(mongoDB);
 
@@ -64,11 +65,11 @@ p2p.on('metadata', function (metadata, rinfo) {
         });
     }
 
-    if(fixfiles == '') {
-        fixfiles = 1;
-    }
+//    if(fixfiles == '') {
+//        fixfiles = 1;
+//    }
 
-    data.files = fixfiles;
+    data.files = fixfiles.sort();
     data.fetchedAt = new Date().getTime();
 
     // Prep mongoose model.
