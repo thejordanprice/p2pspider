@@ -10,8 +10,8 @@ html
                             h4.card-title= item.name
                             h6.card-subtitle.mb-2= 'Infohash: ' + item.infohash
                             - var filestring = item.toObject().files;
-                            - var formatstring = filestring.split(',').join('\n')
-                            pre= formatstring || 'files: unknown atm...'
+                            - var formatstring = filestring.split(',').join('\n');
+                            pre= formatstring || item.name
                             .btn-group
                                 a.btn.btn-default.card-link(href='/infohash?q=' + item.infohash) Details
                                 a.btn.btn-default.card-link(href=item.magnet) Magnet URI

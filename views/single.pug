@@ -11,8 +11,8 @@ html
                         p.card-text= 'Infohash: ' + item.infohash
                         p.card-text= 'Fetched At: ' + new Date(item.fetchedAt)
                         - var filestring = item.toObject().files;
-                        - var formatstring = filestring.split(',').join('\n')
-                        pre= formatstring || 'files: unknown atm...'
+                        - var formatstring = filestring.split(',').join('\n');
+                        pre= formatstring || item.name
                         a.btn.btn-default.card-link(href=item.magnet) Magnet
             br
             a(href='/') Back
