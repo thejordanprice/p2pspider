@@ -11,6 +11,7 @@ html
                             h6.card-subtitle.mb-2= 'Infohash: ' + item.infohash
                             - var filestring = item.toObject().files;
                             - var formatstring = filestring.split(',').join('\n');
+                            - if (formatstring.length > 100) {formatstring = formatstring.substring(0,100)};
                             pre= formatstring || item.name
                             .btn-group
                                 a.btn.btn-default.card-link(href='/infohash?q=' + item.infohash) Details
