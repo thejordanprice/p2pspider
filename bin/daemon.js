@@ -3,14 +3,16 @@
 /**
  * Mongoose / MongoDB
  */
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-var mongoDB = 'mongodb://127.0.0.1/magnetdb';
+const mongoDB = 'mongodb://127.0.0.1/magnetdb';
 mongoose.connection.openUri(mongoDB);
+const db = mongoose.connection;
 
-var db = mongoose.connection;
-
-var magnetSchema = mongoose.Schema({
+/**
+ * Mongoose Schema
+ */
+const magnetSchema = mongoose.Schema({
   name: String,
   infohash: {type: String, index: true},
   magnet: String,
@@ -18,14 +20,29 @@ var magnetSchema = mongoose.Schema({
   fetchedAt: Number
 });
 
-var Magnet = mongoose.model('Magnet', magnetSchema, "magnetdb");
+/**
+ * Mongoose Model
+ */
+const Magnet = mongoose.model('Magnet', magnetSchema, "magnetdb");
+
+/**
+ * Redis
+ */
+const redis = require("redis")
+const client = redis.createClient();
+
+// Log redis errors if any.
+client.on("error", (err) => {
+    console.log("Error " + err);
+});
+
 
 /**
  * P2PSpider Configuration
  */
-var P2PSpider = require('../lib');
+const P2PSpider = require('../lib');
 
-var p2p = P2PSpider({
+const p2p = P2PSpider({
     nodesMaxSize: 250,
     maxConnections: 500,
     timeout: 1000
@@ -34,10 +51,11 @@ var p2p = P2PSpider({
 /**
  * Check if torrent is in DB already.
  */
-p2p.ignore(function (infohash, rinfo, callback) {
+p2p.ignore((infohash, rinfo, callback) => {
     // rinfo is interesting.
-    Magnet.find({infohash : infohash}, function (err, result) {
-        if (result.length) {
+    client.exists('hashes:' + infohash, (err, reply) => {
+        if (reply) {
+            console.log('Ignored: ' + infohash);
             callback(true);
         } else {
             callback(false);
@@ -48,32 +66,29 @@ p2p.ignore(function (infohash, rinfo, callback) {
 /**
  * The nitty gritty.
  */
-p2p.on('metadata', function (metadata, rinfo) {
+p2p.on('metadata', (metadata, rinfo) => {
 
     // On metadata.
-    var data = {};
+    let data = {};
     data.magnet = metadata.magnet;
     data.infohash = metadata.infohash;
     data.name = metadata.info.name ? metadata.info.name.toString() : '';
     data.files = 1;
 
-    var fixfiles = new Array();
+    let fixfiles = new Array();
     if(metadata.info.files) {
-        var files = metadata.info.files;
-        files.forEach(function(item) {
+        let files = metadata.info.files;
+        files.forEach((item) => {
             fixfiles.push(item.path);
         });
-    }
+    };
 
-//    if(fixfiles == '') {
-//        fixfiles = 1;
-//    }
-
+    // Organize some of the data
     data.files = fixfiles.sort();
     data.fetchedAt = new Date().getTime();
 
     // Prep mongoose model.
-    var magnet = new Magnet({
+    let magnet = new Magnet({
         name: data.name,
         infohash: data.infohash,
         magnet: data.magnet,
@@ -81,9 +96,12 @@ p2p.on('metadata', function (metadata, rinfo) {
         fetchedAt: data.fetchedAt
     });
 
+    // Insert infohash to redis and to expire.
+    client.set('hashes:'+ magnet.infohash, magnet.infohash, 'EX', 60 * 60 * 24);
+
     // Save the model to DB.
-    magnet.save(function(err){
-        if(err) throw err;
+    magnet.save((err) => {
+        if (err) throw err;
         console.log('Added: ' + data.name);
     });
 

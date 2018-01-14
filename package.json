@@ -1,14 +1,14 @@
 {
   "name": "p2pspider",
-  "description": "DHT Spider + BitTorrent Client = P2P Spider",
+  "description": "DHT Spider + BitTorrent Client + Web Front-end = P2P Magnet Search",
   "version": "0.1.0",
   "author": {
-    "name": "Fuck-You-GFW"
+    "name": "thejordanprice"
   },
-  "repository": "https://github.com/Fuck-You-GFW/p2pspider",
+  "repository": "https://github.com/thejordanprice/p2pspider",
   "main": "lib/index.js",
   "bugs": {
-    "url": "https://github.com/Fuck-You-GFW/p2pspider/issues"
+    "url": "https://github.com/thejordanprice/p2pspider/issues"
   },
   "scripts": {},
   "dependencies": {
@@ -19,7 +19,8 @@
     "mongoose": "^4.10.4",
     "path": "^0.12.7",
     "pm2": "^2.4.6",
-    "pug": "^2.0.0-rc.1"
+    "pug": "^2.0.0-rc.1",
+    "redis": "^2.8.0"
   },
   "keywords": [
     "torrent",
