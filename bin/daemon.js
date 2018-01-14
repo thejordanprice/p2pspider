@@ -100,7 +100,7 @@ p2p.on('metadata', (metadata, rinfo) => {
     client.set('hashes:'+ magnet.infohash, magnet.infohash, 'EX', 60 * 60 * 24);
 
     // Check if it is already in the DB.
-    Magnet.find({infohash : magnet.infohash}, function (err, result) {
+    Magnet.find({infohash : magnet.infohash}, (err, result) => {
         if (!result.length) {
             // Save the model to DB.
             magnet.save((err) => {
