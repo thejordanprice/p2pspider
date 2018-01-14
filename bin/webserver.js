@@ -88,10 +88,12 @@ if (app.get('env') === 'development') {
  */
 app.get('/', (req, res) => {
   Magnet.count({}, (err, count) => {
+    // format number with commas
+    let localecount = count.toLocaleString();
     // render home page
     res.render(
       'index',
-      { title: site_title, count: count }
+      { title: site_title, count: localecount }
     );
   });
 });
