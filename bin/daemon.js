@@ -99,11 +99,17 @@ p2p.on('metadata', (metadata, rinfo) => {
     // Insert infohash to redis and to expire.
     client.set('hashes:'+ magnet.infohash, magnet.infohash, 'EX', 60 * 60 * 24);
 
-    // Save the model to DB.
-    magnet.save((err) => {
-        if (err) throw err;
-        console.log('Added: ' + data.name);
+    // Check if it is already in the DB.
+    Magnet.find({infohash : magnet.infohash}, function (err, result) {
+        if (!result.length) {
+            // Save the model to DB.
+            magnet.save((err) => {
+                if (err) throw err;
+                console.log('Added: ' + data.name);
+            });
+        }
     });
+
 
 });
 
