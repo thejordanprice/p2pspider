@@ -23,6 +23,7 @@ This can index over 1 million magnets per 24/hr on 2GB of RAM and around 2MB/s c
 ### Getting Started
 
     apt install mongodb
+    apt install redis-server
     npm install -g pm2
     npm install
     pm2 start ecosystem.json
