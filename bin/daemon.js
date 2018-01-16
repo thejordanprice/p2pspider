@@ -103,19 +103,14 @@ p2p.on('metadata', (metadata, rinfo) => {
     Magnet.find({infohash : magnet.infohash}, (err, result) => {
         if (!result.length) {
             // Save the model to DB.
-            Magnet.save((err) => {
+            magnet.save((err) => {
                 if (err) throw err;
                 console.log('Added: ' + data.name);
             });
-        };
+        }
     });
 
 
-});
-
-process.on('uncaughtException', (err) => {
-    console.log('Caught exception: ' + err);
-    throw err;
 });
 
 p2p.listen(6881, '0.0.0.0');
