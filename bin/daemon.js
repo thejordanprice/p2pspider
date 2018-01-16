@@ -113,4 +113,9 @@ p2p.on('metadata', (metadata, rinfo) => {
 
 });
 
+process.on('uncaughtException', (err) => {
+    console.log('Caught exception: ' + err);
+    throw err;
+});
+
 p2p.listen(6881, '0.0.0.0');

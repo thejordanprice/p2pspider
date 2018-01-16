@@ -1,6 +1,6 @@
 $(() => {
     let socket = io();
-    socket.on('count', function(msg){
+    socket.on('count', (msg) => {
         $('#counter').html(msg + " magnets...");     
     });
 });

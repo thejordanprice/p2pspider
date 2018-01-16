@@ -167,8 +167,9 @@ io.on('connection', (socket) => {
   });
 });
 
-let lastcount = 0;
+
 setInterval(() => {
+  let lastcount = 0;
   // grab how many connected sockets
   let connected=Object.keys(io.sockets.connected).length;
 
