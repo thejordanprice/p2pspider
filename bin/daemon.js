@@ -103,11 +103,11 @@ p2p.on('metadata', (metadata, rinfo) => {
     Magnet.find({infohash : magnet.infohash}, (err, result) => {
         if (!result.length) {
             // Save the model to DB.
-            magnet.save((err) => {
+            Magnet.save((err) => {
                 if (err) throw err;
                 console.log('Added: ' + data.name);
             });
-        }
+        };
     });
 
 
