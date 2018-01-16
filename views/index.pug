@@ -2,18 +2,18 @@ html
     include includes/header.pug
     body
         script.
-            $.ajax('/api/count', {
-                success: (data) => { 
-                    $('#counter').html(data + " magnets..."); 
-                }
-            });
-
-            setInterval(() => {
+            const updateCount = () => {
                 $.ajax('/api/count', {
                     success: (data) => { 
                         $('#counter').html(data + " magnets..."); 
                     }
                 });
+            };
+
+            updateCount();
+
+            setInterval(() => {
+                updateCount();
             }, 5000);
 
 
