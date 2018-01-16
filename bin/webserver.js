@@ -155,6 +155,15 @@ app.get('/search', (req,res) => {
   };
 });
 
+app.get('/api/count', (req, res) => {
+  Magnet.count({}, (err, count) => {
+    // format number with commas
+    let localecount = count.toLocaleString();
+    // send the count
+    res.send(localecount);
+  });
+});
+
 /**
  * Start Express
  */
