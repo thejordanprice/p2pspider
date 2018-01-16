@@ -64,11 +64,13 @@ const parseResults = (results, callback) => {
 };
 
 /**
- * Express / Web App
+ * Express / Socket.io / Web App
  */
 const express = require('express');
 const path = require('path');
 const app = express();
+const server = require('http').createServer(app);  
+const io = require('socket.io')(server);
 
 app.set('view engine', 'pug');
 app.use('/public', express.static(path.join(__dirname + '/public')));
@@ -155,9 +157,36 @@ app.get('/search', (req,res) => {
   };
 });
 
+// socket.io initial broadcast
+io.on('connection', (socket) => { 
+  Magnet.count({}, (err, count) => {
+    // format number with commas
+    let localecount = count.toLocaleString();
+    // send with socket
+    io.to(socket.id).emit('count', localecount);
+  });
+});
+
+let lastcount = 0;
+setInterval(() => {
+  // grab how many connected sockets
+  let connected=Object.keys(io.sockets.connected).length;
+
+  Magnet.count({}, (err, count) => {
+    if ((count > lastcount) && (connected > 0)) {
+      // format number with commas
+      let localecount = count.toLocaleString();
+      //broadcast the new magnets count
+      io.emit('count', localecount);
+      lastcount=count;
+    };
+  });
+
+}, 5000);
+
 /**
  * Start Express
  */
-app.listen(8080, () => {
+server.listen(8080, () => {
   console.log('Webserver is listening on port 8080!');
 });
