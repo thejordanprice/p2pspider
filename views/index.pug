@@ -5,14 +5,18 @@ html
             const updateCount = () => {
                 $.ajax('/api/count', {
                     success: (data) => { 
-                        $('#counter').html(data + " magnets..."); 
+                        $('#counter').html(data + " magnets...");
+                    },
+                    error: () => {
+                        clearInterval(timer);
+                        $('#counter').html("Server not responding...");
                     }
                 });
             };
 
             updateCount();
 
-            setInterval(() => {
+            const timer = setInterval(() => {
                 updateCount();
             }, 5000);
 
