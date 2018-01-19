@@ -75,7 +75,7 @@ app.use('/public', express.static(path.join(__dirname + '/public')));
 
 app.use((req, res, next) => {
   res.locals.ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  console.log('FROM: ' + res.locals.ip + ' ON: ' + req.originalUrl);
+  console.log('\x1b[36m%s\x1b[0m', 'FROM: ' + res.locals.ip + ' ON: ' + req.originalUrl);
   next();
 });
 
