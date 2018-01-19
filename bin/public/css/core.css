@@ -1,0 +1,20 @@
+/*
+  Flexible footer.
+*/
+html {
+    position: relative;
+    min-height: 100%;
+}
+body {
+    padding-top: 75px;
+    margin-bottom: 60px;
+}
+footer {
+    position: absolute;
+    bottom: 0;
+    height: 60px;
+}
+
+/*
+  Add the rest of css that is missing.
+*/
