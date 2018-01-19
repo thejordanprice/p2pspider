@@ -55,7 +55,6 @@ p2p.ignore((infohash, rinfo, callback) => {
     // rinfo is interesting.
     client.exists('hashes:' + infohash, (err, reply) => {
         if (reply) {
-            console.log('Ignored: ' + infohash);
             callback(true);
         } else {
             callback(false);
