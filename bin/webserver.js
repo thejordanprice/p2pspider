@@ -107,6 +107,16 @@ app.get('/latest', (req, res) => {
   }).limit(25).sort({ 'fetchedAt': -1 });
 });
 
+app.get('/statistics', (req, res) => {
+  db.db.stats({scale: 1024}, (err, stats) => {
+    console.log(stats);
+    res.render(
+      'statistics',
+      { title: site_title, statistics: stats }
+    );
+  });
+});
+
 app.get('/infohash', (req,res) => {
   var infohash = new RegExp(req.query.q, 'i');
   if(req.query.q.length !== 40) {

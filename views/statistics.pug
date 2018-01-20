@@ -1,0 +1,15 @@
+html
+    include includes/header.pug
+    body
+        include includes/navbar.pug
+        .container
+            h4="Database: " + statistics.db
+            h5="Collections: " + statistics.collections
+            h5="Objects: " + statistics.objects
+            h5="Avg. Size: " + statistics.avgObjSize + " kb"
+            h5="Data Size: " + statistics.dataSize + " kb"
+            h5="Storage Size: " + statistics.storageSize
+            h5="Indexes: " + statistics.indexes
+            h5="Index Size: " + statistics.indexSize
+            h5="Filesystem Used: " + statistics.fsUsedSize + " kb"
+            h5="Filesystem Total: " + statistics.fsTotalSize + " kb"
