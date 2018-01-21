@@ -32,35 +32,19 @@ const Magnet = mongoose.model('Magnet', magnetSchema, "magnetdb");
  **/
 // db.dropDatabase();
 
-/*
- * Parser to add more metadata into the array before passing it into pug.
- * This needs to be moved but its here for temporary.
+
+/**
+ * Setting the trackers.
+ * Very handy repo below.
+ * https://github.com/ngosang/trackerslist
  */
-const parseResults = (results, callback) => {
-  let trackers = +
-  '&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969' +
+const trackers = () => {
+  let string = '&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969' +
   '&tr=udp%3A%2F%2Fzer0day.ch%3A1337' +
   '&tr=udp%3A%2F%2Fopen.demonii.com%3A1337' +
   '&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969 ' +
   '&tr=udp%3A%2F%2Fexodus.desync.com%3A6969';
-  let newResults = new Array();
-  for (item in results) {
-    let thing = results[item];
-    let data = [];
-    data = {
-      _id: thing._id,
-      name: thing.name,
-      infohash: thing.infohash,
-      magnet: thing.magnet,
-      files: thing.files,
-      fetchedAt: thing.fetchedAt,
-      trackers: trackers,
-      timestring: new Date(thing.fetchedAt),
-      magneturi: thing.magnet + '&dn=' + thing.name + trackers,
-    };
-    newResults.push(data);
-  };
-  callback(newResults);
+  return string;
 };
 
 /**
@@ -102,7 +86,7 @@ app.get('/latest', (req, res) => {
   Magnet.find({}, (err,results) => {
     res.render(
       'search',
-      { title: site_title, results: results }
+      { title: site_title, results: results, trackers: trackers() }
     );
   }).limit(25).sort({ 'fetchedAt': -1 });
 });
@@ -130,7 +114,7 @@ app.get('/infohash', (req,res) => {
     Magnet.find({infohash: infohash}, (err,results) => {
       res.render(
         'single',
-        { title: site_title, result: results }
+        { title: site_title, result: results, trackers: trackers() }
       );
     }).limit(25).sort({ 'fetchedAt': -1 });
   };
@@ -158,7 +142,7 @@ app.get('/search', (req,res) => {
       Magnet.find({name: searchqueryregex}, (err,results) => {
         res.render(
           'search',
-          { title: site_title, results: results }
+          { title: site_title, results: results, trackers: trackers() }
         );
       });
     };

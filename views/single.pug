@@ -13,7 +13,7 @@ html
                         - var filestring = item.toObject().files;
                         - var formatstring = filestring.split(',').join('\n');
                         pre= formatstring || item.name
-                        a.btn.btn-default.card-link(href=item.magnet) Magnet
+                        a.btn.btn-default.card-link(href=item.magnet + trackers) Magnet
             br
             a(href='/') Back
 

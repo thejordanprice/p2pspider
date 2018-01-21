@@ -15,7 +15,7 @@ html
                             pre= formatstring || item.name
                             .btn-group
                                 a.btn.btn-default.card-link(href='/infohash?q=' + item.infohash) Details
-                                a.btn.btn-default.card-link(href=item.magnet) Magnet URI
+                                a.btn.btn-default.card-link(href=item.magnet + trackers) Magnet URI
 
             br
             a(href='/') Back
