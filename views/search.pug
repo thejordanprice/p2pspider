@@ -3,22 +3,44 @@ html
     body
         include includes/navbar.pug
         .container
-            each item in results
-                .container
-                    .card(style='')
-                        .card-body
-                            h4.card-title= item.name
-                            h6.card-subtitle.mb-2= 'Infohash: ' + item.infohash
-                            - var filestring = item.toObject().files;
-                            - var formatstring = filestring.split(',').join('\n');
-                            - if (formatstring.length > 100) {formatstring = formatstring.substring(0,100)};
-                            pre= formatstring || item.name
-                            .btn-group
-                                a.btn.btn-default.card-link(href='/infohash?q=' + item.infohash) Details
-                                a.btn.btn-default.card-link(href=item.magnet + trackers) Magnet URI
+            if pagesdebug
+                pre=pagesdebug
+
+            if pages
+                div.container.text-center
+                    if pages.query
+                        h4="Query: " + pages.query
+                        p="Results: " + pages.results
+                    if pages.current != 0
+                        a.btn.btn-primary.pull-left(href='/search?q=' + pages.query + '&p=' + pages.previous) Previous Page
+                    if pages.available >= pages.next
+                        a.btn.btn-primary.pull-right(href='/search?q=' + pages.query + '&p=' + pages.next) Next Page
 
             br
-            a(href='/') Back
+            br
+
+            if results
+                each item in results
+                    .container
+                        .card
+                            .card-body
+                                h4.card-title= item.name
+                                h6.card-subtitle.mb-2= 'Infohash: ' + item.infohash
+                                - var filestring = item.toObject().files;
+                                - var formatstring = filestring.split(',').join('\n');
+                                - if (formatstring.length > 100) {formatstring = formatstring.substring(0,100)};
+                                pre= formatstring || item.name
+                                a.btn.btn-primary.pull-left(href='/infohash?q=' + item.infohash) Details
+                                a.btn.btn-primary.pull-right(href=item.magnet + trackers) Magnet URI
+                    br
+
+            br
+            if pages
+                div.container.text-center
+                    if pages.current != 0
+                        a.btn.btn-primary.pull-left(href='/search?q=' + pages.query + '&p=' + pages.previous) Previous Page
+                    if pages.available >= pages.next
+                        a.btn.btn-primary.pull-right(href='/search?q=' + pages.query + '&p=' + pages.next) Next Page
 
             br
             br

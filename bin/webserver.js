@@ -10,6 +10,7 @@ const site_title = 'Tordex v1.2';
  * Mongoose / MongoDB
  */
 const mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 const mongoDB = 'mongodb://127.0.0.1/magnetdb';
 mongoose.connection.openUri(mongoDB);
 const db = mongoose.connection;
@@ -120,8 +121,6 @@ app.get('/infohash', (req,res) => {
   };
 });
 
-
-
 app.get('/search', (req,res) => {
   if(!req.query.q) {
     // display search page
@@ -135,15 +134,35 @@ app.get('/search', (req,res) => {
       // display error
       res.render(
         'error',
-        { title: site_title, error: "Type a longer search query." }
+        { title: site_title, error: "You must type a longer search query." }
       );
     } else {
       // find search query
-      Magnet.find({name: searchqueryregex}, (err,results) => {
-        res.render(
-          'search',
-          { title: site_title, results: results, trackers: trackers() }
-        );
+      const options = {
+        page: req.query.p || 0,
+        limit: 10
+      };
+      // count total, then start pagination
+      Magnet.count({name: searchqueryregex}, (err, count) => {
+        Magnet.find({name: searchqueryregex}) 
+        .skip(options.page * options.limit)
+        .limit(options.limit)
+        .exec((err, results) => {
+          // a little organizing for page variables
+          let pages = {};
+          pages.query = searchqueryregex.toString().split('/')[1];
+          pages.results = count;
+          pages.available = Math.ceil((count / options.limit) - 1);
+          pages.current = parseInt(options.page);
+          pages.previous = pages.current - 1;
+          pages.next = pages.current + 1;
+          // render our paginated feed of magnets
+          // pagesdebug is handy for debugging.
+          res.render(
+            'search',
+            { title: site_title, results: results, trackers: trackers(), /* pagesdebug: JSON.stringify(pages, null, 2),*/ pages: pages}
+          );
+        });
       });
     };
   };

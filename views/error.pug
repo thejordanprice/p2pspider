@@ -4,6 +4,7 @@ html
     include includes/navbar.pug
     .container
 
-      p= error
+      .alert.alert-danger(role='alert')
+        p=error
 
       include includes/footer.pug
