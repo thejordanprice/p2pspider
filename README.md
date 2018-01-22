@@ -10,13 +10,13 @@ Daemon that scrapes the DHT swarm and an express bootstrapped front-end connecte
 
 ### Intro
 
-This can index over 1 million magnets per 24/hr on 2GB of RAM and around 2MB/s connection. It is a RAM/CPU hog though, it will consume 100% of the CPU and the RAM if allowed and can be controlled via the 'ecosystem.json' file. On a 2GB RAM it is suggested to use 8 instances of the daemon and 2 of the webserver; all limited at 175MB.
+This can index over 1 million magnets per 24/hr on 2GB of RAM and around 2MB/s connection. It is a RAM/CPU hog though, it will consume 100% of the CPU and the RAM if allowed and can be controlled via the 'ecosystem.json' file. On 2GB RAM it is suggested to use 8 instances of the daemon and 2 of the webserver; all limited at 175MB.
 
 ###### Screenshots
 
 ![Screenshot][index]
 
-[index]: https://i.imgur.com/wgwGEiz.gif "index page"
+[index]: https://i.imgur.com/tXdoy2I.png "index page"
 
 ### Getting Started
 
@@ -26,6 +26,20 @@ This can index over 1 million magnets per 24/hr on 2GB of RAM and around 2MB/s c
     npm install
     pm2 start ecosystem.json
     pm2 monit
+    
+### Configuration
+
+**You will need to have a port open on the outside and defined, by default it is 6881.**
+
+Some minor configuration and tweaks can be done, depending on the hardware and connection you are connected to; you may want to experiment with some of these settings. In the bin/daemon.js file you can find a block of code that looks like this below.
+
+    const p2p = P2PSpider({
+        nodesMaxSize: 250,
+        maxConnections: 500,
+        timeout: 1000
+    });
+
+It isn't reccomended changing the nodesMaxSize or the maxConnections, but timeout seems to be a possibility to get your indexing to go faster. It may require a little bit more RAM with a higher timeout though, the highest we would reccomend at the time is 5000ms.
 
 ### Protocols
 
@@ -33,9 +47,7 @@ This can index over 1 million magnets per 24/hr on 2GB of RAM and around 2MB/s c
 
 ### Notes
 
-Cluster mode will not and will never work on Windows... With other OSs we can get multiple instances listening on the same UDP port.
-
-You will need to have a port open on the outside and defined, by default it is 6881.
+Cluster mode will not and will never work on Windows... With other OSs we can get multiple instances listening on the same UDP port. For the more technical folks, Windows doesn't allow us to get down to the lower levels of our system like Linux and various others do. We simply cannot touch things at the hardware level while using that operating system.
 
 ### Notice
 
