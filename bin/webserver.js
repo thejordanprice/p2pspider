@@ -94,7 +94,6 @@ app.get('/latest', (req, res) => {
 
 app.get('/statistics', (req, res) => {
   db.db.stats({scale: 1048576}, (err, stats) => {
-    console.log(stats);
     res.render(
       'statistics',
       { title: site_title, statistics: stats }
