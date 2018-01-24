@@ -54,9 +54,23 @@ const trackers = () => {
 const express = require('express');
 const path = require('path');
 const app = express();
+var basicAuth = require('express-basic-auth');
 
 app.set('view engine', 'pug');
 app.use('/public', express.static(path.join(__dirname + '/public')));
+
+/**
+ * Basic Auth
+ * You can comment this section out to disable it.
+ */
+app.use(basicAuth({
+  users: {
+    'username': 'password',
+    'username': 'password',
+  },
+  challenge: true,
+  realm: 'Secret Place'
+}));
 
 app.use((req, res, next) => {
   res.locals.ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
