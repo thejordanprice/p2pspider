@@ -54,7 +54,7 @@ const trackers = () => {
 const express = require('express');
 const path = require('path');
 const app = express();
-var basicAuth = require('express-basic-auth');
+const basicAuth = require('express-basic-auth');
 
 app.set('view engine', 'pug');
 app.use('/public', express.static(path.join(__dirname + '/public')));
