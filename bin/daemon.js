@@ -9,6 +9,9 @@ const mongoDB = 'mongodb://127.0.0.1/magnetdb';
 mongoose.connection.openUri(mongoDB);
 const db = mongoose.connection;
 
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => { console.log('MongoDB has connected.'); });
+
 /**
  * Mongoose Schema
  */
