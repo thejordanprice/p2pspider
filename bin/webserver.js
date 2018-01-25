@@ -62,6 +62,7 @@ app.use('/public', express.static(path.join(__dirname + '/public')));
 /**
  * Basic Auth
  * You can comment this section out to disable it.
+ * Or use nginx/apache rules... Whichever you prefer.
  */
 app.use(basicAuth({
   users: {
@@ -72,6 +73,9 @@ app.use(basicAuth({
   realm: 'Secret Place'
 }));
 
+/**
+ * Console log IP's requesting info and url.
+ */
 app.use((req, res, next) => {
   res.locals.ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   console.log('\x1b[36m%s\x1b[0m', 'FROM: ' + res.locals.ip + ' ON: ' + req.originalUrl);
@@ -97,6 +101,7 @@ app.get('/', (req, res) => {
   });
 });
 
+// Latest page.
 app.get('/latest', (req, res) => {
   Magnet.find({}, (err,results) => {
     res.render(
@@ -106,6 +111,7 @@ app.get('/latest', (req, res) => {
   }).limit(25).sort({ 'fetchedAt': -1 });
 });
 
+// Statistics page.
 app.get('/statistics', (req, res) => {
   db.db.stats({scale: 1048576}, (err, stats) => {
     res.render(
@@ -115,8 +121,10 @@ app.get('/statistics', (req, res) => {
   });
 });
 
+// Individual magnet page.
 app.get('/infohash', (req,res) => {
   var infohash = new RegExp(req.query.q, 'i');
+  // It its not the right length.
   if(req.query.q.length !== 40) {
     // display error
     res.render(
@@ -134,15 +142,17 @@ app.get('/infohash', (req,res) => {
   };
 });
 
+// The actual search query block.
 app.get('/search', (req,res) => {
   if(!req.query.q) {
-    // display search page
+    // display search page if nothing queried.
     res.render(
       'searchform',
       { title: site_title }
     );
   } else {
     var searchqueryregex = new RegExp(req.query.q, 'i');
+    // wasn't long enough query.
     if(req.query.q.length < 3) {
       // display error
       res.render(
@@ -150,7 +160,7 @@ app.get('/search', (req,res) => {
         { title: site_title, error: "You must type a longer search query." }
       );
     } else {
-      // find search query
+      // find actual search query
       const options = {
         page: req.query.p || 0,
         limit: 10
@@ -170,10 +180,9 @@ app.get('/search', (req,res) => {
           pages.previous = pages.current - 1;
           pages.next = pages.current + 1;
           // render our paginated feed of magnets
-          // pagesdebug is handy for debugging.
           res.render(
             'search',
-            { title: site_title, results: results, trackers: trackers(), /* pagesdebug: JSON.stringify(pages, null, 2),*/ pages: pages}
+            { title: site_title, results: results, trackers: trackers(), pages: pages}
           );
         });
       });

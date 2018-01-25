@@ -41,6 +41,19 @@ Some minor configuration and tweaks can be done, depending on the hardware and c
 
 It isn't reccomended changing the nodesMaxSize or the maxConnections, but timeout seems to be a possibility to get your indexing to go faster. It may require a little bit more RAM with a higher timeout though, the highest we would reccomend at the time is 5000ms.
 
+**Would like to keep the information private easily?**
+
+I have added a section of code to bin/webserver.js that will add basic authentication with mutliple users possible by default. It looks like this below. If you would like to remove this feature, you can either change challenge to false, or just comment out the entire block.
+
+    app.use(basicAuth({
+    users: {
+        'username': 'password',
+        'username': 'password',
+    },
+    challenge: true,
+    realm: 'Secret Place'
+    }));
+
 ### Protocols
 
 [bep_0005](http://www.bittorrent.org/beps/bep_0005.html), [bep_0003](http://www.bittorrent.org/beps/bep_0003.html), [bep_0010](http://www.bittorrent.org/beps/bep_0010.html), [bep_0009](http://www.bittorrent.org/beps/bep_0009.html)
