@@ -64,6 +64,9 @@ app.use('/public', express.static(path.join(__dirname + '/public')));
  * You can comment this section out to disable it.
  * Or use nginx/apache rules... Whichever you prefer.
  */
+
+/**
+ * Commented out by default now.
 app.use(basicAuth({
   users: {
     'username': 'password',
@@ -72,6 +75,7 @@ app.use(basicAuth({
   challenge: true,
   realm: 'Secret Place'
 }));
+**/
 
 /**
  * Console log IP's requesting info and url.
