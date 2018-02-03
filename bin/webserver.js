@@ -138,7 +138,10 @@ app.get('/infohash', (req,res) => {
         'single',
         { title: site_title, result: results, trackers: trackers() }
       );
-    }).limit(25).sort({ 'fetchedAt': -1 });
+    })
+    .lean()
+    .limit(25)
+    .sort({ 'fetchedAt': -1 })
   };
 });
 
@@ -170,6 +173,7 @@ app.get('/search', (req,res) => {
         Magnet.find({name: searchqueryregex}) 
         .skip(options.page * options.limit)
         .limit(options.limit)
+        .lean()
         .exec((err, results) => {
           // a little organizing for page variables
           let pages = {};
@@ -196,7 +200,7 @@ app.get('/api/count', (req, res) => {
     let localecount = count.toLocaleString();
     // send the count
     res.send(localecount);
-  });
+  }).lean();
 });
 
 /**

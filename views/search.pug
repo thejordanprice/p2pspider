@@ -26,7 +26,7 @@ html
                             .card-body
                                 h4.card-title= item.name
                                 h6.card-subtitle.mb-2= 'Infohash: ' + item.infohash
-                                - var filestring = item.toObject().files;
+                                - var filestring = item.files;
                                 - var formatstring = filestring.split(',').join('\n');
                                 - if (formatstring.length > 100) {formatstring = formatstring.substring(0,100)};
                                 pre= formatstring || item.name

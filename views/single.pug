@@ -6,11 +6,11 @@ html
             each item in result
                 .card
                     .card-header
-                        h4= item.name
+                        h4=item.name
                     .card-body
                         p.card-text= 'Infohash: ' + item.infohash
                         p.card-text= 'Fetched At: ' + new Date(item.fetchedAt)
-                        - var filestring = item.toObject().files;
+                        - var filestring = item.files;
                         - var formatstring = filestring.split(',').join('\n');
                         pre= formatstring || item.name
                         a.btn.btn-primary(href=item.magnet + trackers) Magnet URI
