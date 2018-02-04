@@ -173,6 +173,7 @@ app.get('/search', (req,res) => {
         limit: 10
       };
       // count total, then start pagination
+      let start = new Date().valueOf();
       Magnet.count({name: searchqueryregex}, (err, count) => {
         Magnet.find({name: searchqueryregex}) 
         .skip(options.page * options.limit)
@@ -187,10 +188,12 @@ app.get('/search', (req,res) => {
           pages.current = parseInt(options.page);
           pages.previous = pages.current - 1;
           pages.next = pages.current + 1;
+          let stop = new Date().valueOf();
+          let timer = (stop - start)
           // render our paginated feed of magnets
           res.render(
             'search',
-            { title: site_title, results: results, trackers: trackers(), pages: pages}
+            { title: site_title, results: results, trackers: trackers(), pages: pages, timer: timer}
           );
         });
       });
