@@ -16,7 +16,7 @@ db.once('open', () => { console.log('MongoDB has connected.'); });
  * Mongoose Schema
  */
 const magnetSchema = mongoose.Schema({
-  name: String,
+  name: {type: String, index: true},
   infohash: {type: String, index: true},
   magnet: String,
   files: String,
