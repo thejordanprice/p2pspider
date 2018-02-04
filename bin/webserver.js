@@ -112,7 +112,10 @@ app.get('/latest', (req, res) => {
       'search',
       { title: site_title, results: results, trackers: trackers() }
     );
-  }).limit(25).sort({ 'fetchedAt': -1 });
+  })
+  .lean()
+  .limit(25)
+  .sort({ 'fetchedAt': -1 });
 });
 
 // Statistics page.
