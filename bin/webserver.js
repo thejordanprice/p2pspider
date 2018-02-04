@@ -7,27 +7,6 @@
 const site_title = 'Tordex v1.2';
 
 /**
- * Mongoose / MongoDB
- */
-const mongoose = require('mongoose');
-mongoose.Promise = global.Promise;
-const mongoDB = 'mongodb://127.0.0.1/magnetdb';
-mongoose.connection.openUri(mongoDB);
-const db = mongoose.connection;
-
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', () => { console.log('MongoDB has connected.'); });
-
-const magnetSchema = mongoose.Schema({
-  name: String,
-  infohash: {type: String, index: true},
-  magnet: String,
-  fetchedAt: Number
-});
-
-const Magnet = mongoose.model('Magnet', magnetSchema, "magnetdb");
-
-/**
  *  Just in case.
  *  db.dropDatabase();
  **/
@@ -47,6 +26,27 @@ const trackers = () => {
   '&tr=udp%3A%2F%2Fexodus.desync.com%3A6969';
   return string;
 };
+
+/**
+ * Mongoose / MongoDB
+ */
+const mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
+const mongoDB = 'mongodb://127.0.0.1/magnetdb';
+mongoose.connection.openUri(mongoDB);
+const db = mongoose.connection;
+
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => { console.log('MongoDB has connected.'); });
+
+const magnetSchema = mongoose.Schema({
+  name: String,
+  infohash: {type: String, index: true},
+  magnet: String,
+  fetchedAt: Number
+});
+
+const Magnet = mongoose.model('Magnet', magnetSchema, "magnetdb");
 
 /**
  * Express / Web App
