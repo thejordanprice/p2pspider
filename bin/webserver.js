@@ -175,31 +175,61 @@ app.get('/search', (req,res) => {
         page: req.query.p || 0,
         limit: 10
       };
-      // count total, then start pagination
-      let start = new Date().valueOf();
-      Magnet.count({name: searchqueryregex}, (err, count) => {
-        Magnet.find({name: searchqueryregex}) 
-        .skip(options.page * options.limit)
-        .limit(options.limit)
-        .lean()
-        .exec((err, results) => {
-          // a little organizing for page variables
-          let pages = {};
-          pages.query = searchqueryregex.toString().split('/')[1];
-          pages.results = count;
-          pages.available = Math.ceil((count / options.limit) - 1);
-          pages.current = parseInt(options.page);
-          pages.previous = pages.current - 1;
-          pages.next = pages.current + 1;
-          let stop = new Date().valueOf();
-          let timer = (stop - start)
-          // render our paginated feed of magnets
-          res.render(
-            'search',
-            { title: site_title, results: results, trackers: trackers(), pages: pages, timer: timer}
-          );
+      // if its an infohash
+      if(req.query.q.length === 40) {
+        // count total, then start pagination
+        let start = new Date().valueOf();
+        Magnet.count({infohash: searchqueryregex}, (err, count) => {
+          Magnet.find({infohash: searchqueryregex}) 
+          .skip(options.page * options.limit)
+          .limit(options.limit)
+          .lean()
+          .exec((err, results) => {
+            // a little organizing for page variables
+            let pages = {};
+            pages.query = searchqueryregex.toString().split('/')[1];
+            pages.results = count;
+            pages.available = Math.ceil((count / options.limit) - 1);
+            pages.current = parseInt(options.page);
+            pages.previous = pages.current - 1;
+            pages.next = pages.current + 1;
+            let stop = new Date().valueOf();
+            let timer = (stop - start)
+            // render our paginated feed of magnets
+            res.render(
+              'search',
+              { title: site_title, results: results, trackers: trackers(), pages: pages, timer: timer}
+            );
+          });
         });
-      });
+      } else {
+        // if its just a search string
+        // count total, then start pagination
+        let start = new Date().valueOf();
+        Magnet.count({name: searchqueryregex}, (err, count) => {
+          Magnet.find({name: searchqueryregex}) 
+          .skip(options.page * options.limit)
+          .limit(options.limit)
+          .lean()
+          .exec((err, results) => {
+            // a little organizing for page variables
+            let pages = {};
+            pages.query = searchqueryregex.toString().split('/')[1];
+            pages.results = count;
+            pages.available = Math.ceil((count / options.limit) - 1);
+            pages.current = parseInt(options.page);
+            pages.previous = pages.current - 1;
+            pages.next = pages.current + 1;
+            let stop = new Date().valueOf();
+            let timer = (stop - start)
+            // render our paginated feed of magnets
+            res.render(
+              'search',
+              { title: site_title, results: results, trackers: trackers(), pages: pages, timer: timer}
+            );
+          });
+        });
+      };
     };
   };
 });
