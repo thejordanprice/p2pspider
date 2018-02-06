@@ -147,8 +147,7 @@ app.get('/infohash', (req, res) => {
       );
     })
     .lean()
-    .limit(25)
-    .sort({ 'fetchedAt': -1 })
+    .limit(1)
   };
 });
 
