@@ -107,7 +107,7 @@ app.get('/', (req, res) => {
 
 // Latest page.
 app.get('/latest', (req, res) => {
-  Magnet.find({}, (err,results) => {
+  Magnet.find({}, [], {$sort:[['fetchedAt',-1]]}, (err,results) => {
     res.render(
       'search',
       { title: site_title, results: results, trackers: trackers() }
@@ -115,7 +115,6 @@ app.get('/latest', (req, res) => {
   })
   .lean()
   .limit(25)
-  .sort({ 'fetchedAt': -1 });
 });
 
 // Statistics page.
@@ -161,7 +160,7 @@ app.get('/search', (req,res) => {
       { title: site_title }
     );
   } else {
-    var searchqueryregex = new RegExp(req.query.q, 'i');
+    let searchqueryregex = new RegExp(req.query.q, 'i');
     // wasn't long enough query.
     if(req.query.q.length < 3) {
       // display error
