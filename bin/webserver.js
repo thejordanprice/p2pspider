@@ -4,7 +4,7 @@
  * Web Server
  */
 
-const site_title = 'Tordex v1.2';
+const site_title = 'Tordex';
 
 /**
  *  Just in case.
@@ -107,7 +107,7 @@ app.get('/', (req, res) => {
 
 // Latest page.
 app.get('/latest', (req, res) => {
-  Magnet.find({}, [], {$sort:[['fetchedAt',-1]]}, (err,results) => {
+  Magnet.find({}, (err, results) => {
     res.render(
       'search',
       { title: site_title, results: results, trackers: trackers() }
@@ -115,6 +115,7 @@ app.get('/latest', (req, res) => {
   })
   .lean()
   .limit(25)
+  .sort({ 'fetchedAt': -1 });
 });
 
 // Statistics page.
@@ -128,7 +129,7 @@ app.get('/statistics', (req, res) => {
 });
 
 // Individual magnet page.
-app.get('/infohash', (req,res) => {
+app.get('/infohash', (req, res) => {
   var infohash = new RegExp(req.query.q, 'i');
   // It its not the right length.
   if(req.query.q.length !== 40) {
@@ -152,7 +153,7 @@ app.get('/infohash', (req,res) => {
 });
 
 // The actual search query block.
-app.get('/search', (req,res) => {
+app.get('/search', (req, res) => {
   if(!req.query.q) {
     // display search page if nothing queried.
     res.render(
