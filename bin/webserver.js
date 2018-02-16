@@ -204,7 +204,7 @@ app.get('/search', (req, res) => {
             for (let result in results) {
               let magnet = results[result].magnet + trackers();
               webtorrentHealth(magnet).then((data) => {
-                healt = data;
+                health = data;
               }).catch(console.error.bind(console))
             }
             // a little organizing for page variables
