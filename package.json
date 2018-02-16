@@ -20,7 +20,8 @@
     "path": "^0.12.7",
     "pm2": "^2.4.6",
     "pug": "^2.0.0-rc.1",
-    "redis": "^2.8.0"
+    "redis": "^2.8.0",
+    "webtorrent-health": "^1.1.1"
   },
   "keywords": [
     "torrent",

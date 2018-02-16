@@ -14,7 +14,15 @@ html
                         - var formatstring = filestring.split(',').join('\n');
                         pre= formatstring || item.name
                         a.btn.btn-primary(href=item.magnet + trackers) Magnet URI
+            br
+            br
 
+            if health
+                p="Seeds: " + health.seeds
+                p="Peers: " + health.peers
+            br
+
+            h5= "Query Time: " + timer + "ms"
             br
             br
             include includes/footer.pug

@@ -19,11 +19,12 @@ const site_title = 'Tordex';
  * https://github.com/ngosang/trackerslist
  */
 const trackers = () => {
-  let string = '&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969' +
-  '&tr=udp%3A%2F%2Fzer0day.ch%3A1337' +
-  '&tr=udp%3A%2F%2Fopen.demonii.com%3A1337' +
-  '&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969 ' +
-  '&tr=udp%3A%2F%2Fexodus.desync.com%3A6969';
+  let string = '&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969 ' +
+  '&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337'+
+  '&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337' +
+  '&tr=udp%3A%2F%2Ftracker.skyts.net%3A6969' +
+  '&tr=udp%3A%2F%2Ftracker.safe.moe%3A6969' +
+  '&tr=udp%3A%2F%2Ftracker.piratepublic.com%3A1337';
   return string;
 };
 
@@ -107,10 +108,13 @@ app.get('/', (req, res) => {
 
 // Latest page.
 app.get('/latest', (req, res) => {
+  let start = new Date().valueOf();
   Magnet.find({}, (err, results) => {
+    let stop = new Date().valueOf();
+    let timer = (stop - start);
     res.render(
       'search',
-      { title: site_title, results: results, trackers: trackers() }
+      { title: site_title, results: results, trackers: trackers(), timer: timer }
     );
   })
   .lean()
@@ -128,9 +132,12 @@ app.get('/statistics', (req, res) => {
   });
 });
 
+const webtorrentHealth = require('webtorrent-health');
+
 // Individual magnet page.
 app.get('/infohash', (req, res) => {
-  var infohash = new RegExp(req.query.q, 'i');
+  let start = new Date().valueOf();
+  let infohash = new RegExp(req.query.q, 'i');
   // It its not the right length.
   if(req.query.q.length !== 40) {
     // display error
@@ -141,10 +148,19 @@ app.get('/infohash', (req, res) => {
   } else {
     // find search query
     Magnet.find({infohash: infohash}, (err,results) => {
-      res.render(
-        'single',
-        { title: site_title, result: results, trackers: trackers() }
-      );
+      let stop = new Date().valueOf();
+      let timer = (stop - start);
+      let health = [];
+
+      for (let result in results) {
+        let magnet = results[result].magnet + trackers();
+        webtorrentHealth(magnet).then((data) => {
+          res.render(
+            'single',
+            { title: site_title, result: results, trackers: trackers(), timer: timer, health: data }
+          );
+        }).catch(console.error.bind(console))
+      }
     })
     .lean()
     .limit(1)
@@ -184,6 +200,13 @@ app.get('/search', (req, res) => {
           .limit(options.limit)
           .lean()
           .exec((err, results) => {
+            let health = [];
+            for (let result in results) {
+              let magnet = results[result].magnet + trackers();
+              webtorrentHealth(magnet).then((data) => {
+                healt = data;
+              }).catch(console.error.bind(console))
+            }
             // a little organizing for page variables
             let pages = {};
             pages.query = searchqueryregex.toString().split('/')[1];
@@ -193,11 +216,11 @@ app.get('/search', (req, res) => {
             pages.previous = pages.current - 1;
             pages.next = pages.current + 1;
             let stop = new Date().valueOf();
-            let timer = (stop - start)
+            let timer = (stop - start);
             // render our paginated feed of magnets
             res.render(
               'search',
-              { title: site_title, results: results, trackers: trackers(), pages: pages, timer: timer}
+              { title: site_title, results: results, trackers: trackers(), pages: pages, timer: timer, health: data}
             );
           });
         });
@@ -220,7 +243,7 @@ app.get('/search', (req, res) => {
             pages.previous = pages.current - 1;
             pages.next = pages.current + 1;
             let stop = new Date().valueOf();
-            let timer = (stop - start)
+            let timer = (stop - start);
             // render our paginated feed of magnets
             res.render(
               'search',

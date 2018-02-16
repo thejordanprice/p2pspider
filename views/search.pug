@@ -10,12 +10,15 @@ html
                 div.container.text-center
                     if pages.query
                         h4="Query: " + pages.query
-                        p="Query Time: " + timer + "ms"
                         p="Results: " + pages.results
                     if pages.current != 0
                         a.btn.btn-primary.pull-left(href='/search?q=' + pages.query + '&p=' + pages.previous) Previous Page
                     if pages.available >= pages.next
                         a.btn.btn-primary.pull-right(href='/search?q=' + pages.query + '&p=' + pages.next) Next Page
+
+            if timer
+                .container.text-center
+                    p= "Query Time: " + timer + "ms"
 
             br
             br
