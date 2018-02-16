@@ -56,6 +56,7 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const basicAuth = require('express-basic-auth');
+const webtorrentHealth = require('webtorrent-health');
 
 app.set('view engine', 'pug');
 app.use('/public', express.static(path.join(__dirname + '/public')));
@@ -131,8 +132,6 @@ app.get('/statistics', (req, res) => {
     );
   });
 });
-
-const webtorrentHealth = require('webtorrent-health');
 
 // Individual magnet page.
 app.get('/infohash', (req, res) => {
