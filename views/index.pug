@@ -2,24 +2,21 @@ html
     include includes/header.pug
     body
         script.
-            const updateCount = () => {
-                $.ajax('/api/count', {
-                    success: (data) => { 
-                        $('#counter').html(data + " magnets...");
-                    },
-                    error: () => {
-                        clearInterval(timer);
-                        $('#counter').html("Server not responding...");
-                    }
-                });
+            const ws = new WebSocket("#{wsServerAddress}");
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                $('#counter').html(data.count + " magnets...");
             };
 
-            updateCount();
+            ws.onopen = () => {
+                console.log('WebSocket connection established.');
+            };
 
-            const timer = setInterval(() => {
-                updateCount();
-            }, 5000);
-
+            ws.onerror = (error) => {
+                console.error('WebSocket Error:', error);
+                $('#counter').html("Server not responding...");
+            };
 
         include includes/navbar.pug
         .container
