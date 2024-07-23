@@ -51,7 +51,6 @@ wss.on('connection', async ws => {
   console.log('WebSocket connection established');
   ws.on('message', message => console.log('Received:', message));
 
-  // Update counter immediately on new connection
   try {
     const count = await Magnet.countDocuments({});
     if (ws.readyState === WebSocket.OPEN) {
@@ -75,7 +74,6 @@ const updateCounter = async () => {
   }
 };
 
-// Update counter every 5 seconds
 setInterval(updateCounter, 5000);
 
 // Start server
