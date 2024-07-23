@@ -10,9 +10,9 @@ html
                     .card-body
                         p.card-text= 'Infohash: ' + item.infohash
                         p.card-text= 'Fetched At: ' + new Date(item.fetchedAt)
-                        - var filestring = item.files;
-                        - var formatstring = filestring.split(',').join('\n');
-                        pre= formatstring || item.name
+                        // - var filestring = item.files;
+                        // - var formatstring = filestring.split(',').join('\n');
+                        // pre= formatstring || item.name
                         a.btn.btn-primary(href=item.magnet + trackers) Magnet URI
             br
             br

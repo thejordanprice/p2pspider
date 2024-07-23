@@ -15,13 +15,11 @@
     "bencode": "^0.7.0",
     "bitfield": "^1.1.2",
     "express": "^4.15.3",
-    "express-basic-auth": "^1.1.1",
-    "mongoose": "^4.10.4",
+    "mongoose": "^8.5.1",
     "path": "^0.12.7",
-    "pm2": "^2.4.6",
-    "pug": "^2.0.0-rc.1",
-    "redis": "^2.8.0",
-    "webtorrent-health": "^1.1.1"
+    "pm2": "^5.4.2",
+    "pug": "^3.0.3",
+    "redis": "^4.6.15"
   },
   "keywords": [
     "torrent",
