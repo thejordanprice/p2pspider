@@ -23,7 +23,33 @@ const Magnet = mongoose.model('Magnet', magnetSchema);
 
 // Redis configuration
 const redisClient = redis.createClient();
-redisClient.on('error', err => console.error('Redis error:', err));
+
+redisClient.on('error', err => {
+  console.error('Redis error:', err);
+});
+
+redisClient.on('end', () => {
+  console.log('Redis client disconnected');
+  // Reconnect logic here
+  reconnectRedisClient();
+});
+
+const reconnectRedisClient = () => {
+  console.log('Attempting to reconnect to Redis...');
+  // Try to reconnect every 5 seconds
+  setTimeout(() => {
+    redisClient.connect().catch(err => {
+      console.error('Redis reconnection error:', err);
+      reconnectRedisClient(); // Retry if connection fails
+    });
+  }, 5000);
+};
+
+// Ensure Redis client is connected
+redisClient.connect().catch(err => {
+  console.error('Error connecting to Redis:', err);
+  reconnectRedisClient(); // Retry if initial connection fails
+});
 
 // P2PSpider Configuration
 const p2p = P2PSpider({
@@ -34,10 +60,14 @@ const p2p = P2PSpider({
 
 // Check if torrent is in DB already
 p2p.ignore((infohash, rinfo, callback) => {
-  redisClient.exists(`hashes:${infohash}`, (err, reply) => {
-    if (err) return callback(err);
-    callback(Boolean(reply));
-  });
+  if (redisClient.isOpen) {
+    redisClient.exists(`hashes:${infohash}`, (err, reply) => {
+      if (err) return callback(err);
+      callback(Boolean(reply));
+    });
+  } else {
+    callback(new Error('Redis client is not connected'));
+  }
 });
 
 // Handle metadata event
