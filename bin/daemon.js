@@ -1,118 +1,66 @@
 'use strict';
 
-/**
- * Mongoose / MongoDB
- */
 const mongoose = require('mongoose');
-mongoose.Promise = global.Promise;
-const mongoDB = 'mongodb://127.0.0.1/magnetdb';
-mongoose.connection.openUri(mongoDB);
-const db = mongoose.connection;
-
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', () => { console.log('MongoDB has connected.'); });
-
-/**
- * Mongoose Schema
- */
-const magnetSchema = mongoose.Schema({
-  name: {type: String, index: true},
-  infohash: {type: String, index: true},
-  magnet: String,
-  files: String,
-  fetchedAt: Number
-});
-
-/**
- * Mongoose Model
- */
-const Magnet = mongoose.model('Magnet', magnetSchema, "magnetdb");
-
-/**
- * Redis
- */
-const redis = require("redis")
-const client = redis.createClient();
-
-// Log redis errors if any.
-client.on("error", (err) => {
-    console.log("Error " + err);
-});
-
-
-/**
- * P2PSpider Configuration
- */
+const redis = require('redis');
 const P2PSpider = require('../lib');
 
+// MongoDB configuration
+const mongoDB = 'mongodb://127.0.0.1/magnetdb';
+mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB has connected.'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+// Define Mongoose Schema and Model
+const magnetSchema = new mongoose.Schema({
+  name: { type: String, index: true },
+  infohash: { type: String, index: true },
+  magnet: String,
+  files: [String],
+  fetchedAt: { type: Number, default: Date.now }
+});
+
+const Magnet = mongoose.model('Magnet', magnetSchema);
+
+// Redis configuration
+const redisClient = redis.createClient();
+redisClient.on('error', err => console.error('Redis error:', err));
+
+// P2PSpider Configuration
 const p2p = P2PSpider({
-    nodesMaxSize: 250,
-    maxConnections: 500,
-    timeout: 1000
+  nodesMaxSize: 250,
+  maxConnections: 500,
+  timeout: 1000
 });
 
-/**
- * Check if torrent is in DB already.
- */
+// Check if torrent is in DB already
 p2p.ignore((infohash, rinfo, callback) => {
-    // rinfo is interesting.
-    client.exists('hashes:' + infohash, (err, reply) => {
-        if (reply) {
-            callback(true);
-        } else {
-            callback(false);
-        };
-    });
+  redisClient.exists(`hashes:${infohash}`, (err, reply) => {
+    if (err) return callback(err);
+    callback(Boolean(reply));
+  });
 });
 
-/**
- * The nitty gritty.
- */
-p2p.on('metadata', (metadata, rinfo) => {
+// Handle metadata event
+p2p.on('metadata', async (metadata, rinfo) => {
+  try {
+    const { magnet, infohash, info } = metadata;
+    const name = info.name ? info.name.toString() : '';
+    const files = (info.files || []).map(item => item.path).sort();
+    const fetchedAt = Date.now();
 
-    // On metadata.
-    let data = {};
-    data.magnet = metadata.magnet;
-    data.infohash = metadata.infohash;
-    data.name = metadata.info.name ? metadata.info.name.toString() : '';
-    data.files = 1;
+    const existingMagnet = await Magnet.findOne({ infohash }).exec();
 
-    let fixfiles = new Array();
-    if(metadata.info.files) {
-        let files = metadata.info.files;
-        files.forEach((item) => {
-            fixfiles.push(item.path);
-        });
-    };
-
-    // Organize some of the data
-    data.files = fixfiles.sort();
-    data.fetchedAt = new Date().getTime();
-
-    // Prep mongoose model.
-    let magnet = new Magnet({
-        name: data.name,
-        infohash: data.infohash,
-        magnet: data.magnet,
-        files: data.files,
-        fetchedAt: data.fetchedAt
-    });
-
-    // Insert infohash to redis and to expire.
-    client.set('hashes:'+ magnet.infohash, magnet.infohash, 'EX', 60 * 60 * 24);
-
-    // Check if it is already in the DB.
-    Magnet.find({infohash : magnet.infohash}, (err, result) => {
-        if (!result.length) {
-            // Save the model to DB.
-            magnet.save((err) => {
-                if (err) throw err;
-                console.log('Added: ' + data.name);
-            });
-        }
-    });
-
-
+    if (!existingMagnet) {
+      const magnetDoc = new Magnet({ name, infohash, magnet, files, fetchedAt });
+      await magnetDoc.save();
+      console.log('Added:', name);
+      
+      redisClient.set(`hashes:${infohash}`, infohash, 'EX', 60 * 60 * 24);
+    }
+  } catch (err) {
+    console.error('Error handling metadata:', err);
+  }
 });
 
+// Start listening for connections
 p2p.listen(6881, '0.0.0.0');
