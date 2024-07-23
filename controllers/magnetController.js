@@ -62,20 +62,14 @@ exports.infohash = async (req, res) => {
       return res.render('error', { title: 'Tordex', error: 'No results found.' });
     }
 
-    // console.log(results);
-
     const [result] = results;
     const magnet = result.magnet + getTrackers();
-    const healthData = false;
-
-    console.log(result)
 
     res.render('infohash', {
       title: 'Tordex',
       result,
       trackers: getTrackers(),
-      timer,
-      health: healthData
+      timer
     });
   } catch (err) {
     console.error('Error fetching infohash:', err);
@@ -99,6 +93,8 @@ exports.search = async (req, res) => {
   const regex = new RegExp(query, 'i');
   const countQuery = query.length === 40 ? { infohash: regex } : { name: regex };
 
+  const startTime = Date.now();
+
   try {
     const count = await Magnet.countDocuments(countQuery);
     const results = await Magnet.find(countQuery)
@@ -106,14 +102,10 @@ exports.search = async (req, res) => {
       .limit(limit)
       .lean();
 
-    const healthPromises = results.map(result => {
-      const magnet = result.magnet + getTrackers();
-      return false;
-    });
+    const endTime = Date.now();
 
-    const healthData = await Promise.all(healthPromises);
     const pages = {
-      query: query.split('/')[1],
+      query: query || '',
       results: count,
       available: Math.ceil(count / limit) - 1,
       current: page,
@@ -123,11 +115,10 @@ exports.search = async (req, res) => {
 
     res.render('search', {
       title: 'Tordex',
-      results: healthData.map(data => data.result),
+      results: results,
       trackers: getTrackers(),
       pages,
-      timer: Date.now() - page,
-      health: healthData.map(data => data.data)
+      timer: endTime - startTime
     });
   } catch (err) {
     console.error('Error during search:', err);
