@@ -1,272 +1,201 @@
 'use strict';
 
-/**
- * Web Server
- */
-
-const site_title = 'Tordex';
-
-/**
- *  Just in case.
- *  db.dropDatabase();
- **/
-// db.dropDatabase();
-
-
-/**
- * Setting the trackers.
- * Very handy repo below.
- * https://github.com/ngosang/trackerslist
- */
-const trackers = () => {
-  let string = '&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969 ' +
-  '&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337'+
-  '&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337' +
-  '&tr=udp%3A%2F%2Ftracker.skyts.net%3A6969' +
-  '&tr=udp%3A%2F%2Ftracker.safe.moe%3A6969' +
-  '&tr=udp%3A%2F%2Ftracker.piratepublic.com%3A1337';
-  return string;
-};
-
-/**
- * Mongoose / MongoDB
- */
-const mongoose = require('mongoose');
-mongoose.Promise = global.Promise;
-const mongoDB = 'mongodb://127.0.0.1/magnetdb';
-mongoose.connection.openUri(mongoDB);
-const db = mongoose.connection;
-
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', () => { console.log('MongoDB has connected.'); });
-
-const magnetSchema = mongoose.Schema({
-  name: {type: String, index: true},
-  infohash: {type: String, index: true},
-  magnet: String,
-  fetchedAt: Number
-});
-
-const Magnet = mongoose.model('Magnet', magnetSchema, "magnetdb");
-
-/**
- * Express / Web App
- */
 const express = require('express');
 const path = require('path');
-const app = express();
+const mongoose = require('mongoose');
 const basicAuth = require('express-basic-auth');
 const webtorrentHealth = require('webtorrent-health');
 
+// Configurations
+const SITE_TITLE = 'Tordex';
+const MONGO_URI = 'mongodb://127.0.0.1/magnetdb';
+const PORT = 8080;
+
+// Connect to MongoDB
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB has connected.'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+// Define Mongoose Schema and Model
+const magnetSchema = new mongoose.Schema({
+  name: { type: String, index: true },
+  infohash: { type: String, index: true },
+  magnet: String,
+  fetchedAt: { type: Number, default: Date.now }
+});
+
+const Magnet = mongoose.model('Magnet', magnetSchema);
+
+// Initialize Express app
+const app = express();
+
+// Static file serving
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
+// Set view engine
 app.set('view engine', 'pug');
-app.use('/public', express.static(path.join(__dirname + '/public')));
 
-/**
- * Basic Auth
- * You can comment this section out to disable it.
- * Or use nginx/apache rules... Whichever you prefer.
- */
+// Basic Auth (commented out by default)
+// app.use(basicAuth({
+//   users: { 'username': 'password' },
+//   challenge: true,
+//   realm: 'Secret Place'
+// }));
 
-/**
- * Commented out by default now.
-app.use(basicAuth({
-  users: {
-    'username': 'password',
-    'username': 'password',
-  },
-  challenge: true,
-  realm: 'Secret Place'
-}));
-**/
-
-/**
- * Console log IP's requesting info and url.
- */
+// Middleware to log IP addresses and URLs
 app.use((req, res, next) => {
-  res.locals.ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  console.log('\x1b[36m%s\x1b[0m', 'FROM: ' + res.locals.ip + ' ON: ' + req.originalUrl);
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  console.log('\x1b[36m%s\x1b[0m', `FROM: ${ip} ON: ${req.originalUrl}`);
+  res.locals.ip = ip;
   next();
 });
 
+// Development settings
 if (app.get('env') === 'development') {
   app.locals.pretty = true;
-};
+}
 
-/**
- * Routing / Pages
- */
-app.get('/', (req, res) => {
-  Magnet.count({}, (err, count) => {
-    // format number with commas
-    let localecount = count.toLocaleString();
-    // render home page
-    res.render(
-      'index',
-      { title: site_title, count: localecount }
-    );
-  });
+// Utility function for trackers
+const getTrackers = () => (
+  '&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969' +
+  '&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337' +
+  '&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337' +
+  '&tr=udp%3A%2F%2Ftracker.skyts.net%3A6969' +
+  '&tr=udp%3A%2F%2Ftracker.safe.moe%3A6969' +
+  '&tr=udp%3A%2F%2Ftracker.piratepublic.com%3A1337'
+);
+
+// Route handlers
+app.get('/', async (req, res) => {
+  try {
+    const count = await Magnet.countDocuments({});
+    res.render('index', { title: SITE_TITLE, count: count.toLocaleString() });
+  } catch (err) {
+    console.error('Error fetching count:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-// Latest page.
-app.get('/latest', (req, res) => {
-  let start = new Date().valueOf();
-  Magnet.find({}, (err, results) => {
-    let stop = new Date().valueOf();
-    let timer = (stop - start);
-    res.render(
-      'search',
-      { title: site_title, results: results, trackers: trackers(), timer: timer }
-    );
-  })
-  .lean()
-  .limit(25)
-  .sort({ 'fetchedAt': -1 });
+app.get('/latest', async (req, res) => {
+  const start = Date.now();
+  try {
+    const results = await Magnet.find({})
+      .sort({ fetchedAt: -1 })
+      .limit(25)
+      .lean();
+    const timer = Date.now() - start;
+    res.render('search', { title: SITE_TITLE, results, trackers: getTrackers(), timer });
+  } catch (err) {
+    console.error('Error fetching latest:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-// Statistics page.
-app.get('/statistics', (req, res) => {
-  db.db.stats({scale: 1048576}, (err, stats) => {
-    res.render(
-      'statistics',
-      { title: site_title, statistics: stats }
-    );
-  });
+app.get('/statistics', async (req, res) => {
+  try {
+    const stats = await mongoose.connection.db.stats({ scale: 1048576 });
+    res.render('statistics', { title: SITE_TITLE, statistics: stats });
+  } catch (err) {
+    console.error('Error fetching statistics:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-// Individual magnet page.
-app.get('/infohash', (req, res) => {
-  let start = new Date().valueOf();
-  let infohash = new RegExp(req.query.q, 'i');
-  // It its not the right length.
-  if(req.query.q.length !== 40) {
-    // display error
-    res.render(
-      'error',
-      { title: site_title, error: "Incorrect infohash length." }
-    );
-  } else {
-    // find search query
-    Magnet.find({infohash: infohash}, (err,results) => {
-      let stop = new Date().valueOf();
-      let timer = (stop - start);
-      let health = [];
+app.get('/infohash', async (req, res) => {
+  const start = Date.now();
+  const infohash = req.query.q;
+  
+  if (infohash.length !== 40) {
+    return res.render('error', { title: SITE_TITLE, error: 'Incorrect infohash length.' });
+  }
 
-      for (let result in results) {
-        let magnet = results[result].magnet + trackers();
-        webtorrentHealth(magnet).then((data) => {
-          res.render(
-            'single',
-            { title: site_title, result: results, trackers: trackers(), timer: timer, health: data }
-          );
-        }).catch(console.error.bind(console))
-      }
-    })
-    .lean()
-    .limit(1)
-  };
+  try {
+    const results = await Magnet.find({ infohash: new RegExp(infohash, 'i') }).lean().limit(1);
+    const timer = Date.now() - start;
+    const healthPromises = results.map(result => {
+      const magnet = result.magnet + getTrackers();
+      return webtorrentHealth(magnet).then(data => ({ result, data }));
+    });
+
+    const healthData = await Promise.all(healthPromises);
+    const [firstResult] = healthData;
+    
+    res.render('single', {
+      title: SITE_TITLE,
+      result: firstResult.result,
+      trackers: getTrackers(),
+      timer,
+      health: firstResult.data
+    });
+  } catch (err) {
+    console.error('Error fetching infohash:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-// The actual search query block.
-app.get('/search', (req, res) => {
-  if(!req.query.q) {
-    // display search page if nothing queried.
-    res.render(
-      'searchform',
-      { title: site_title }
-    );
-  } else {
-    let searchqueryregex = new RegExp(req.query.q, 'i');
-    // wasn't long enough query.
-    if(req.query.q.length < 3) {
-      // display error
-      res.render(
-        'error',
-        { title: site_title, error: "You must type a longer search query." }
-      );
-    } else {
-      // find actual search query
-      const options = {
-        page: req.query.p || 0,
-        limit: 10
-      };
-      // if its an infohash
-      if(req.query.q.length === 40) {
-        // count total, then start pagination
-        let start = new Date().valueOf();
-        Magnet.count({infohash: searchqueryregex}, (err, count) => {
-          Magnet.find({infohash: searchqueryregex}) 
-          .skip(options.page * options.limit)
-          .limit(options.limit)
-          .lean()
-          .exec((err, results) => {
-            let health = [];
-            for (let result in results) {
-              let magnet = results[result].magnet + trackers();
-              webtorrentHealth(magnet).then((data) => {
-                health = data;
-              }).catch(console.error.bind(console))
-            }
-            // a little organizing for page variables
-            let pages = {};
-            pages.query = searchqueryregex.toString().split('/')[1];
-            pages.results = count;
-            pages.available = Math.ceil((count / options.limit) - 1);
-            pages.current = parseInt(options.page);
-            pages.previous = pages.current - 1;
-            pages.next = pages.current + 1;
-            let stop = new Date().valueOf();
-            let timer = (stop - start);
-            // render our paginated feed of magnets
-            res.render(
-              'search',
-              { title: site_title, results: results, trackers: trackers(), pages: pages, timer: timer, health: data}
-            );
-          });
-        });
-      } else {
-        // if its just a search string
-        // count total, then start pagination
-        let start = new Date().valueOf();
-        Magnet.count({name: searchqueryregex}, (err, count) => {
-          Magnet.find({name: searchqueryregex}) 
-          .skip(options.page * options.limit)
-          .limit(options.limit)
-          .lean()
-          .exec((err, results) => {
-            // a little organizing for page variables
-            let pages = {};
-            pages.query = searchqueryregex.toString().split('/')[1];
-            pages.results = count;
-            pages.available = Math.ceil((count / options.limit) - 1);
-            pages.current = parseInt(options.page);
-            pages.previous = pages.current - 1;
-            pages.next = pages.current + 1;
-            let stop = new Date().valueOf();
-            let timer = (stop - start);
-            // render our paginated feed of magnets
-            res.render(
-              'search',
-              { title: site_title, results: results, trackers: trackers(), pages: pages, timer: timer}
-            );
-          });
-        });
-      };
+app.get('/search', async (req, res) => {
+  const query = req.query.q;
+  const page = parseInt(req.query.p, 10) || 0;
+  const limit = 10;
+  
+  if (!query) {
+    return res.render('searchform', { title: SITE_TITLE });
+  }
+
+  if (query.length < 3) {
+    return res.render('error', { title: SITE_TITLE, error: 'You must type a longer search query.' });
+  }
+
+  const regex = new RegExp(query, 'i');
+  const countQuery = query.length === 40 ? { infohash: regex } : { name: regex };
+  
+  try {
+    const count = await Magnet.countDocuments(countQuery);
+    const results = await Magnet.find(countQuery)
+      .skip(page * limit)
+      .limit(limit)
+      .lean();
+    
+    const healthPromises = results.map(result => {
+      const magnet = result.magnet + getTrackers();
+      return webtorrentHealth(magnet).then(data => ({ result, data }));
+    });
+
+    const healthData = await Promise.all(healthPromises);
+    const pages = {
+      query: query.split('/')[1],
+      results: count,
+      available: Math.ceil(count / limit) - 1,
+      current: page,
+      previous: page - 1,
+      next: page + 1
     };
-  };
+
+    res.render('search', {
+      title: SITE_TITLE,
+      results: healthData.map(data => data.result),
+      trackers: getTrackers(),
+      pages,
+      timer: Date.now() - page,
+      health: healthData.map(data => data.data)
+    });
+  } catch (err) {
+    console.error('Error during search:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-app.get('/api/count', (req, res) => {
-  Magnet.count({}, (err, count) => {
-    // format number with commas
-    let localecount = count.toLocaleString();
-    // send the count
-    res.send(localecount);
-  }).lean();
+app.get('/api/count', async (req, res) => {
+  try {
+    const count = await Magnet.countDocuments({});
+    res.send(count.toLocaleString());
+  } catch (err) {
+    console.error('Error fetching count:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-/**
- * Start Express
- */
-app.listen(8080, () => {
-  console.log('Webserver is listening on port 8080!');
+// Start server
+app.listen(PORT, () => {
+  console.log(`Webserver is listening on port ${PORT}!`);
 });
