@@ -6,14 +6,17 @@ const mongoose = require('mongoose');
 const basicAuth = require('express-basic-auth');
 const webtorrentHealth = require('webtorrent-health');
 
-// Configurations
+// Constants
 const SITE_TITLE = 'Tordex';
 const MONGO_URI = 'mongodb://127.0.0.1/magnetdb';
 const PORT = 8080;
 
-// Connect to MongoDB
+// Initialize Express app
+const app = express();
+
+// Mongoose setup
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB has connected.'))
+  .then(() => console.log('MongoDB connected.'))
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Define Mongoose Schema and Model
@@ -26,13 +29,8 @@ const magnetSchema = new mongoose.Schema({
 
 const Magnet = mongoose.model('Magnet', magnetSchema);
 
-// Initialize Express app
-const app = express();
-
-// Static file serving
+// Middleware
 app.use('/public', express.static(path.join(__dirname, 'public')));
-
-// Set view engine
 app.set('view engine', 'pug');
 
 // Basic Auth (commented out by default)
@@ -42,7 +40,6 @@ app.set('view engine', 'pug');
 //   realm: 'Secret Place'
 // }));
 
-// Middleware to log IP addresses and URLs
 app.use((req, res, next) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   console.log('\x1b[36m%s\x1b[0m', `FROM: ${ip} ON: ${req.originalUrl}`);
@@ -50,7 +47,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Development settings
 if (app.get('env') === 'development') {
   app.locals.pretty = true;
 }
@@ -65,7 +61,7 @@ const getTrackers = () => (
   '&tr=udp%3A%2F%2Ftracker.piratepublic.com%3A1337'
 );
 
-// Route handlers
+// Route Handlers
 app.get('/', async (req, res) => {
   try {
     const count = await Magnet.countDocuments({});
@@ -103,8 +99,8 @@ app.get('/statistics', async (req, res) => {
 
 app.get('/infohash', async (req, res) => {
   const start = Date.now();
-  const infohash = req.query.q;
-  
+  const { q: infohash } = req.query;
+
   if (infohash.length !== 40) {
     return res.render('error', { title: SITE_TITLE, error: 'Incorrect infohash length.' });
   }
@@ -112,20 +108,21 @@ app.get('/infohash', async (req, res) => {
   try {
     const results = await Magnet.find({ infohash: new RegExp(infohash, 'i') }).lean().limit(1);
     const timer = Date.now() - start;
-    const healthPromises = results.map(result => {
-      const magnet = result.magnet + getTrackers();
-      return webtorrentHealth(magnet).then(data => ({ result, data }));
-    });
-
-    const healthData = await Promise.all(healthPromises);
-    const [firstResult] = healthData;
     
+    if (results.length === 0) {
+      return res.render('error', { title: SITE_TITLE, error: 'No results found.' });
+    }
+
+    const [result] = results;
+    const magnet = result.magnet + getTrackers();
+    const healthData = await webtorrentHealth(magnet);
+
     res.render('single', {
       title: SITE_TITLE,
-      result: firstResult.result,
+      result,
       trackers: getTrackers(),
       timer,
-      health: firstResult.data
+      health: healthData
     });
   } catch (err) {
     console.error('Error fetching infohash:', err);
@@ -134,10 +131,10 @@ app.get('/infohash', async (req, res) => {
 });
 
 app.get('/search', async (req, res) => {
-  const query = req.query.q;
-  const page = parseInt(req.query.p, 10) || 0;
+  const { q: query, p: pageParam } = req.query;
+  const page = parseInt(pageParam, 10) || 0;
   const limit = 10;
-  
+
   if (!query) {
     return res.render('searchform', { title: SITE_TITLE });
   }
@@ -148,14 +145,14 @@ app.get('/search', async (req, res) => {
 
   const regex = new RegExp(query, 'i');
   const countQuery = query.length === 40 ? { infohash: regex } : { name: regex };
-  
+
   try {
     const count = await Magnet.countDocuments(countQuery);
     const results = await Magnet.find(countQuery)
       .skip(page * limit)
       .limit(limit)
       .lean();
-    
+
     const healthPromises = results.map(result => {
       const magnet = result.magnet + getTrackers();
       return webtorrentHealth(magnet).then(data => ({ result, data }));
