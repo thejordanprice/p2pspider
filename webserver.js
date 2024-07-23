@@ -7,12 +7,12 @@ const path = require('path');
 const mongoose = require('mongoose');
 const WebSocket = require('ws');
 const routes = require('./routes/index');
-const Magnet = require('./models/magnetModel'); // Import the Magnet model
+const Magnet = require('./models/magnetModel');
 
 // Constants
 const PORT = 8080;
 const MONGO_URI = 'mongodb://127.0.0.1/magnetdb';
-const WS_SERVER_ADDRESS = 'ws://161.35.122.235:8081'; // WebSocket server address
+const WS_SERVER_ADDRESS = 'ws://161.35.122.235:8081';
 
 // Initialize Express app
 const app = express();
@@ -39,7 +39,7 @@ if (app.get('env') === 'development') {
 
 // Use routes
 app.use('/', (req, res, next) => {
-  res.locals.wsServerAddress = WS_SERVER_ADDRESS; // Expose WebSocket address to Pug
+  res.locals.wsServerAddress = WS_SERVER_ADDRESS;
   next();
 }, routes);
 
