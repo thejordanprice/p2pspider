@@ -10,7 +10,7 @@ const Magnet = require('./models/magnetModel');
 // Constants
 const PORT = 8080;
 const MONGO_URI = 'mongodb://127.0.0.1/magnetdb';
-const WS_SERVER_ADDRESS = 'ws://161.35.122.235:8081';
+const WS_SERVER_ADDRESS = 'ws://127.0.0.1:8081';
 
 // Initialize Express app
 const app = express();
