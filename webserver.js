@@ -6,11 +6,13 @@ const mongoose = require('mongoose');
 const WebSocket = require('ws');
 const routes = require('./routes/index');
 const Magnet = require('./models/magnetModel');
+require('dotenv').config();
 
 // Constants
-const PORT = 8080;
-const MONGO_URI = 'mongodb://127.0.0.1/magnetdb';
-const WS_SERVER_ADDRESS = 'ws://127.0.0.1:8081';
+const MONGO_URI = process.env.MONGO_URI;
+const WS_SERVER_ADDRESS = process.env.WS_SERVER_ADDRESS;
+const SITE_NAME = process.env.SITE_NAME;
+const PORT = process.env.SITE_PORT;
 
 // Initialize Express app
 const app = express();
@@ -38,15 +40,25 @@ if (app.get('env') === 'development') {
 // Use routes
 app.use('/', (req, res, next) => {
   res.locals.wsServerAddress = WS_SERVER_ADDRESS;
+  res.locals.site_name = SITE_NAME;
   next();
 }, routes);
 
 // WebSocket server setup
 const wss = new WebSocket.Server({ port: 8081 });
 
-wss.on('connection', ws => {
+wss.on('connection', async ws => {
   console.log('WebSocket connection established');
   ws.on('message', message => console.log('Received:', message));
+
+  try {
+    const count = await Magnet.countDocuments({});
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ count }));
+    }
+  } catch (err) {
+    console.error('Error fetching count for WebSocket:', err);
+  }
 });
 
 const updateCounter = async () => {
@@ -62,7 +74,6 @@ const updateCounter = async () => {
   }
 };
 
-// Update counter every 5 seconds
 setInterval(updateCounter, 5000);
 
 // Start server
