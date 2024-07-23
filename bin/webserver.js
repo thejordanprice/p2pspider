@@ -3,8 +3,6 @@
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
-const basicAuth = require('express-basic-auth');
-const webtorrentHealth = require('webtorrent-health');
 
 // Constants
 const SITE_TITLE = 'Tordex';
@@ -32,13 +30,6 @@ const Magnet = mongoose.model('Magnet', magnetSchema);
 // Middleware
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'pug');
-
-// Basic Auth (commented out by default)
-// app.use(basicAuth({
-//   users: { 'username': 'password' },
-//   challenge: true,
-//   realm: 'Secret Place'
-// }));
 
 app.use((req, res, next) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -108,14 +99,14 @@ app.get('/infohash', async (req, res) => {
   try {
     const results = await Magnet.find({ infohash: new RegExp(infohash, 'i') }).lean().limit(1);
     const timer = Date.now() - start;
-    
+
     if (results.length === 0) {
       return res.render('error', { title: SITE_TITLE, error: 'No results found.' });
     }
 
     const [result] = results;
     const magnet = result.magnet + getTrackers();
-    const healthData = await webtorrentHealth(magnet);
+    const healthData = false;
 
     res.render('single', {
       title: SITE_TITLE,
@@ -155,7 +146,7 @@ app.get('/search', async (req, res) => {
 
     const healthPromises = results.map(result => {
       const magnet = result.magnet + getTrackers();
-      return webtorrentHealth(magnet).then(data => ({ result, data }));
+      return false;
     });
 
     const healthData = await Promise.all(healthPromises);
