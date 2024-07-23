@@ -23,32 +23,25 @@ const Magnet = mongoose.model('Magnet', magnetSchema);
 
 // Redis configuration
 const redisClient = redis.createClient();
-
-redisClient.on('error', err => {
-  console.error('Redis error:', err);
-});
-
+redisClient.on('error', err => console.error('Redis error:', err));
 redisClient.on('end', () => {
   console.log('Redis client disconnected');
-  // Reconnect logic here
   reconnectRedisClient();
 });
 
 const reconnectRedisClient = () => {
   console.log('Attempting to reconnect to Redis...');
-  // Try to reconnect every 5 seconds
   setTimeout(() => {
     redisClient.connect().catch(err => {
       console.error('Redis reconnection error:', err);
-      reconnectRedisClient(); // Retry if connection fails
+      reconnectRedisClient();
     });
   }, 5000);
 };
 
-// Ensure Redis client is connected
 redisClient.connect().catch(err => {
   console.error('Error connecting to Redis:', err);
-  reconnectRedisClient(); // Retry if initial connection fails
+  reconnectRedisClient();
 });
 
 // P2PSpider Configuration
@@ -58,34 +51,44 @@ const p2p = P2PSpider({
   timeout: 1000
 });
 
-// Check if torrent is in DB already
-p2p.ignore((infohash, rinfo, callback) => {
-  if (redisClient.isOpen) {
-    redisClient.exists(`hashes:${infohash}`, (err, reply) => {
-      if (err) return callback(err);
-      callback(Boolean(reply));
-    });
-  } else {
-    callback(new Error('Redis client is not connected'));
-  }
-});
-
 // Handle metadata event
 p2p.on('metadata', async (metadata, rinfo) => {
+  console.log('Received metadata event');
+  console.log('Metadata:', metadata);
+  console.log('Remote info:', rinfo);
+
+  const { infohash, info } = metadata;
+
   try {
-    const { magnet, infohash, info } = metadata;
+    // Check if infohash exists in Redis
+    const existsInRedis = await redisClient.exists(`hashes:${infohash}`);
+
+    if (existsInRedis) {
+      console.log(`Metadata for infohash ${infohash} has already been seen recently.`);
+      return; // Skip processing
+    }
+
+    // Metadata is not in Redis, proceed with MongoDB
     const name = info.name ? info.name.toString() : '';
-    const files = (info.files || []).map(item => item.path).sort();
+    // Convert files to an array of strings
+    const files = (info.files || []).map(file => {
+      // Assuming file.path exists and is a buffer
+      return file.path ? file.path.toString() : '';
+    }).sort();
     const fetchedAt = Date.now();
 
+    // Check if metadata exists in MongoDB
     const existingMagnet = await Magnet.findOne({ infohash }).exec();
 
     if (!existingMagnet) {
-      const magnetDoc = new Magnet({ name, infohash, magnet, files, fetchedAt });
+      const magnetDoc = new Magnet({ name, infohash, magnet: metadata.magnet, files, fetchedAt });
       await magnetDoc.save();
-      console.log('Added:', name);
-      
-      redisClient.set(`hashes:${infohash}`, infohash, 'EX', 60 * 60 * 24);
+      console.log('Added to MongoDB:', name);
+
+      // Store infohash in Redis with a TTL of 24 hours
+      await redisClient.set(`hashes:${infohash}`, infohash, 'EX', 60 * 60 * 24);
+    } else {
+      console.log(`Metadata for infohash ${infohash} already exists in MongoDB.`);
     }
   } catch (err) {
     console.error('Error handling metadata:', err);
@@ -93,4 +96,6 @@ p2p.on('metadata', async (metadata, rinfo) => {
 });
 
 // Start listening for connections
-p2p.listen(6881, '0.0.0.0');
+p2p.listen(6881, '0.0.0.0', () => {
+  console.log('UDP Server listening on 0.0.0.0:6881');
+});
