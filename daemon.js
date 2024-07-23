@@ -1,11 +1,12 @@
 'use strict';
 
+require('dotenv').config();
 const mongoose = require('mongoose');
 const redis = require('redis');
 const P2PSpider = require('./lib');
 
 // MongoDB configuration
-const mongoDB = 'mongodb://127.0.0.1/magnetdb';
+const mongoDB = process.env.MONGO_URI;
 mongoose.connect(mongoDB)
   .then(() => console.log('MongoDB has connected.'))
   .catch(err => console.error('MongoDB connection error:', err));
@@ -22,7 +23,7 @@ const magnetSchema = new mongoose.Schema({
 const Magnet = mongoose.model('Magnet', magnetSchema);
 
 // Redis configuration
-const redisClient = redis.createClient();
+const redisClient = redis.createClient({ url: process.env.REDIS_URL });
 redisClient.on('error', err => console.error('Redis error:', err));
 redisClient.on('end', () => {
   console.log('Redis client disconnected');

@@ -6,13 +6,13 @@ const mongoose = require('mongoose');
 const WebSocket = require('ws');
 const routes = require('./routes/index');
 const Magnet = require('./models/magnetModel');
-require('dotenv').config(); // Load environment variables
+require('dotenv').config();
 
 // Constants
-const PORT = 8080;
 const MONGO_URI = process.env.MONGO_URI;
 const WS_SERVER_ADDRESS = process.env.WS_SERVER_ADDRESS;
 const SITE_NAME = process.env.SITE_NAME;
+const PORT = process.env.SITE_PORT;
 
 // Initialize Express app
 const app = express();
