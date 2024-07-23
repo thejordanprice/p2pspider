@@ -47,9 +47,19 @@ app.use('/', (req, res, next) => {
 // WebSocket server setup
 const wss = new WebSocket.Server({ port: 8081 });
 
-wss.on('connection', ws => {
+wss.on('connection', async ws => {
   console.log('WebSocket connection established');
   ws.on('message', message => console.log('Received:', message));
+
+  // Update counter immediately on new connection
+  try {
+    const count = await Magnet.countDocuments({});
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ count }));
+    }
+  } catch (err) {
+    console.error('Error fetching count for WebSocket:', err);
+  }
 });
 
 const updateCounter = async () => {
