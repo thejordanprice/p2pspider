@@ -53,10 +53,6 @@ const p2p = P2PSpider({
 
 // Handle metadata event
 p2p.on('metadata', async (metadata, rinfo) => {
-  console.log('Received metadata event');
-  console.log('Metadata:', metadata);
-  console.log('Remote info:', rinfo);
-
   const { infohash, info } = metadata;
 
   try {
