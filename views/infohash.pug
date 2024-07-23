@@ -1,0 +1,28 @@
+html
+    include includes/header.pug
+    body
+        include includes/navbar.pug
+        .container
+
+            .card
+                .card-header
+                    h4=result.name
+                .card-body
+                    p.card-text= 'Infohash: ' + result.infohash
+                    p.card-text= 'Fetched At: ' + new Date(result.fetchedAt)
+                    - var filestring = result.files ? String(result.files) : '';
+                    - var formatstring = filestring.split(',').join('\n');
+                    pre= formatstring || result.name
+                    a.btn.btn-primary(href=result.magnet + trackers) Magnet URI
+            br
+            br
+
+            if health
+                p="Seeds: " + health.seeds
+                p="Peers: " + health.peers
+            br
+
+            h5= "Query Time: " + timer + "ms"
+            br
+            br
+            include includes/footer.pug
