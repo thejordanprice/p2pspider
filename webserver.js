@@ -6,11 +6,13 @@ const mongoose = require('mongoose');
 const WebSocket = require('ws');
 const routes = require('./routes/index');
 const Magnet = require('./models/magnetModel');
+require('dotenv').config(); // Load environment variables
 
 // Constants
 const PORT = 8080;
-const MONGO_URI = 'mongodb://127.0.0.1/magnetdb';
-const WS_SERVER_ADDRESS = 'ws://127.0.0.1:8081';
+const MONGO_URI = process.env.MONGO_URI;
+const WS_SERVER_ADDRESS = process.env.WS_SERVER_ADDRESS;
+const SITE_NAME = process.env.SITE_NAME;
 
 // Initialize Express app
 const app = express();
@@ -38,6 +40,7 @@ if (app.get('env') === 'development') {
 // Use routes
 app.use('/', (req, res, next) => {
   res.locals.wsServerAddress = WS_SERVER_ADDRESS;
+  res.locals.site_name = SITE_NAME;
   next();
 }, routes);
 

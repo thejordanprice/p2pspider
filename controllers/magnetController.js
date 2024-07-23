@@ -14,7 +14,7 @@ const getTrackers = () => (
 exports.index = async (req, res) => {
   try {
     const count = await Magnet.countDocuments({});
-    res.render('index', { title: 'Tordex', count: count.toLocaleString() });
+    res.render('index', { title: res.locals.site_name, count: count.toLocaleString() });
   } catch (err) {
     console.error('Error fetching count:', err);
     res.status(500).send('Internal Server Error');
@@ -29,7 +29,7 @@ exports.latest = async (req, res) => {
       .limit(25)
       .lean();
     const timer = Date.now() - start;
-    res.render('search', { title: 'Tordex', results, trackers: getTrackers(), timer });
+    res.render('search', { title: res.locals.site_name, results, trackers: getTrackers(), timer });
   } catch (err) {
     console.error('Error fetching latest:', err);
     res.status(500).send('Internal Server Error');
@@ -39,7 +39,7 @@ exports.latest = async (req, res) => {
 exports.statistics = async (req, res) => {
   try {
     const stats = await mongoose.connection.db.stats({ scale: 1048576 });
-    res.render('statistics', { title: 'Tordex', statistics: stats });
+    res.render('statistics', { title: res.locals.site_name, statistics: stats });
   } catch (err) {
     console.error('Error fetching statistics:', err);
     res.status(500).send('Internal Server Error');
@@ -51,7 +51,7 @@ exports.infohash = async (req, res) => {
   const { q: infohash } = req.query;
 
   if (infohash.length !== 40) {
-    return res.render('error', { title: 'Tordex', error: 'Incorrect infohash length.' });
+    return res.render('error', { title: res.locals.site_name, error: 'Incorrect infohash length.' });
   }
 
   try {
@@ -59,7 +59,7 @@ exports.infohash = async (req, res) => {
     const timer = Date.now() - start;
 
     if (results.length === 0) {
-      return res.render('error', { title: 'Tordex', error: 'No results found.' });
+      return res.render('error', { title: res.locals.site_name, error: 'No results found.' });
     }
 
     const [result] = results;
@@ -83,11 +83,11 @@ exports.search = async (req, res) => {
   const limit = 10;
 
   if (!query) {
-    return res.render('searchform', { title: 'Tordex' });
+    return res.render('searchform', { title: res.locals.site_name });
   }
 
   if (query.length < 3) {
-    return res.render('error', { title: 'Tordex', error: 'You must type a longer search query.' });
+    return res.render('error', { title: res.locals.site_name, error: 'You must type a longer search query.' });
   }
 
   const regex = new RegExp(query, 'i');
