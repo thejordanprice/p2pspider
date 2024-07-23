@@ -2,7 +2,7 @@
   "apps" : [{
     //
     "name"      : "webserver",
-    "script"    : "bin/webserver.js",
+    "script"    : "webserver.js",
     "watch"     : true,
     "instances" : 1,
     "exec_mode" : "cluster",
@@ -10,7 +10,7 @@
   },{
     //
     "name"       : "daemon",
-    "script"     : "bin/daemon.js",
+    "script"     : "daemon.js",
     "watch"      : true,
     "instances"  : 1,
     "exec_mode"  : "cluster",

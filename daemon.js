@@ -2,7 +2,7 @@
 
 const mongoose = require('mongoose');
 const redis = require('redis');
-const P2PSpider = require('../lib');
+const P2PSpider = require('./lib');
 
 // MongoDB configuration
 const mongoDB = 'mongodb://127.0.0.1/magnetdb';
