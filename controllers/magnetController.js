@@ -29,7 +29,7 @@ exports.latest = async (req, res) => {
       .limit(25)
       .lean();
     const timer = Date.now() - start;
-    res.render('search', { title: res.locals.site_name, results, trackers: getTrackers(), timer });
+    res.render('latest', { title: res.locals.site_name, results, trackers: getTrackers(), timer });
   } catch (err) {
     console.error('Error fetching latest:', err);
     res.status(500).send('Internal Server Error');
