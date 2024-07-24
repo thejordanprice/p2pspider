@@ -23,7 +23,7 @@ const magnetSchema = new mongoose.Schema({
 const Magnet = mongoose.model('Magnet', magnetSchema);
 
 // Redis configuration
-const redisClient = redis.createClient({ url: process.env.REDIS_URL });
+const redisClient = redis.createClient({ url: process.env.REDIS_URI });
 redisClient.on('error', err => console.error('Redis error:', err));
 redisClient.on('end', () => {
   console.log('Redis client disconnected');
