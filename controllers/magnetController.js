@@ -39,7 +39,20 @@ exports.latest = async (req, res) => {
 exports.statistics = async (req, res) => {
   try {
     const stats = await mongoose.connection.db.stats({ scale: 1048576 });
-    res.render('statistics', { title: res.locals.site_name, statistics: stats });
+
+    // Format numbers to two decimal places
+    const formattedStats = {
+      db: stats.db,
+      collections: stats.collections,
+      objects: stats.objects,
+      avgObjSize: (stats.avgObjSize / 1024).toFixed(2), // Convert MB to GB
+      dataSize: stats.dataSize.toFixed(2),
+      storageSize: stats.storageSize.toFixed(2),
+      indexes: stats.indexes,
+      indexSize: stats.indexSize.toFixed(2)
+    };
+
+    res.render('statistics', { title: res.locals.site_name, statistics: formattedStats });
   } catch (err) {
     console.error('Error fetching statistics:', err);
     res.status(500).send('Internal Server Error');

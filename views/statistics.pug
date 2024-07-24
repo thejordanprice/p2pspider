@@ -2,14 +2,38 @@ html
     include includes/header.pug
     body
         include includes/navbar.pug
-        .container
-            h4="Database: " + statistics.db
-            h5="Collections: " + statistics.collections
-            h5="Objects: " + statistics.objects
-            h5="Avg. Size: " + statistics.avgObjSize + " MB"
-            h5="Data Size: " + statistics.dataSize + " MB"
-            h5="Storage Size: " + statistics.storageSize + " MB"
-            h5="Indexes: " + statistics.indexes
-            h5="Index Size: " + statistics.indexSize + " MB"
-    
+        .container.mt-4
+            .card
+                .card-header
+                    h4.card-title Database Statistics
+                .card-body
+                    .row
+                        .col-md-6
+                            .list-group
+                                .list-group-item.d-flex.justify-content-between.align-items-center
+                                    span Database: 
+                                    span.badge.badge-primary.badge-pill= statistics.db
+                                .list-group-item.d-flex.justify-content-between.align-items-center
+                                    span Collections: 
+                                    span.badge.badge-primary.badge-pill= statistics.collections
+                                .list-group-item.d-flex.justify-content-between.align-items-center
+                                    span Objects: 
+                                    span.badge.badge-primary.badge-pill= statistics.objects
+                        .col-md-6
+                            .list-group
+                                .list-group-item.d-flex.justify-content-between.align-items-center
+                                    span Avg. Size: 
+                                    span.badge.badge-primary.badge-pill= statistics.avgObjSize + " KB"
+                                .list-group-item.d-flex.justify-content-between.align-items-center
+                                    span Data Size: 
+                                    span.badge.badge-primary.badge-pill= statistics.dataSize + " MB"
+                                .list-group-item.d-flex.justify-content-between.align-items-center
+                                    span Storage Size: 
+                                    span.badge.badge-primary.badge-pill= statistics.storageSize + " MB"
+                                .list-group-item.d-flex.justify-content-between.align-items-center
+                                    span Indexes: 
+                                    span.badge.badge-primary.badge-pill= statistics.indexes
+                                .list-group-item.d-flex.justify-content-between.align-items-center
+                                    span Index Size: 
+                                    span.badge.badge-primary.badge-pill= statistics.indexSize + " MB"
             include includes/footer.pug
