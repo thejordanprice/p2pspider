@@ -24,6 +24,11 @@ html
                 br
                 h2#counter
                 br
+
+            div(style='text-align: center')
+                form(action='/search')
+                    input(placeholder='Search..', id='search', type='search', name='q')
+
                 p This is a database of magnet URI's that have been spotted in the wild
                 | on the DHT swarm via the bittorrent protocol.
 
