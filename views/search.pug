@@ -2,50 +2,50 @@ html
     include includes/header.pug
     body
         include includes/navbar.pug
-        .container
+        .container.mt-4
             if pagesdebug
                 pre=pagesdebug
 
             if pages
-                div.container.text-center
+                .text-center.mb-4
                     if pages.query
-                        h4="Query: " + pages.query
-                        p="Results: " + pages.results
+                        h4 Query: #{pages.query}
+                        p Results: #{pages.results}
+
+                .pagination.mb-4
                     if pages.current != 0
-                        a.btn.btn-primary.pull-left(href='/search?q=' + pages.query + '&p=' + pages.previous) Previous Page
+                        li.page-item
+                            a.page-link(href=`/search?q=${pages.query}&p=${pages.previous}`) Previous
                     if pages.available >= pages.next
-                        a.btn.btn-primary.pull-right(href='/search?q=' + pages.query + '&p=' + pages.next) Next Page
-
-            if timer
-                .container.text-center
-                    p= "Query Time: " + timer + "ms"
-
-            br
-            br
+                        li.page-item
+                            a.page-link(href=`/search?q=${pages.query}&p=${pages.next}`) Next
 
             if results
-                each item in results
-                    .container
-                        .card
-                            .card-body
-                                h4.card-title= item.name
-                                h6.card-subtitle.mb-2= 'Infohash: ' + item.infohash
-                                - var filestring = typeof item.files === 'string' ? item.files : '';
-                                - var formatstring = filestring.split(',').join('\n');
-                                - if (formatstring.length > 100) { formatstring = formatstring.substring(0, 100) };
-                                pre= formatstring || item.name
-                                a.btn.btn-primary.pull-left(href='/infohash?q=' + item.infohash) Details
-                                a.btn.btn-primary.pull-right(href=item.magnet + trackers) Magnet URI
-                    br
+                .list-group
+                    each item in results
+                        .list-group-item.border-0.mb-3
+                            .d-flex.justify-content-between
+                                h5.mb-1= item.name
+                                h6.text-muted= 'Infohash: ' + item.infohash
+                            - var filestring = typeof item.files === 'string' ? item.files : '';
+                            - var formatstring = filestring.split(',').join('\n');
+                            - if (formatstring.length > 100) { formatstring = formatstring.substring(0, 100) + '...' };
+                            // p= formatstring || item.name
+                            .d-flex.justify-content-between.mt-3
+                                a.btn.btn-primary(href=`/infohash?q=${item.infohash}`) Details
+                                a.btn.btn-info(href=item.magnet + trackers) Magnet URI
 
-            br
             if pages
-                div.container.text-center
+                .pagination.mt-4
                     if pages.current != 0
-                        a.btn.btn-primary.pull-left(href='/search?q=' + pages.query + '&p=' + pages.previous) Previous Page
+                        li.page-item
+                            a.page-link(href=`/search?q=${pages.query}&p=${pages.previous}`) Previous
                     if pages.available >= pages.next
-                        a.btn.btn-primary.pull-right(href='/search?q=' + pages.query + '&p=' + pages.next) Next Page
+                        li.page-item
+                            a.page-link(href=`/search?q=${pages.query}&p=${pages.next}`) Next
 
-            br
-            br
+            if timer
+                .text-center.mb-4
+                    p Query Time: #{timer} ms
+
             include includes/footer.pug
