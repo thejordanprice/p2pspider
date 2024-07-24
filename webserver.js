@@ -4,15 +4,16 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const WebSocket = require('ws');
+const http = require('http');
 const routes = require('./routes/index');
 const Magnet = require('./models/magnetModel');
 require('dotenv').config();
 
 // Constants
 const MONGO_URI = process.env.MONGO_URI;
-const WS_SERVER_ADDRESS = process.env.WS_SERVER_ADDRESS;
+const SITE_HOSTNAME = process.env.SITE_HOSTNAME;
 const SITE_NAME = process.env.SITE_NAME;
-const PORT = process.env.SITE_PORT;
+const SITE_PORT = process.env.SITE_PORT;
 
 // Initialize Express app
 const app = express();
@@ -39,13 +40,16 @@ if (app.get('env') === 'development') {
 
 // Use routes
 app.use('/', (req, res, next) => {
-  res.locals.wsServerAddress = WS_SERVER_ADDRESS;
+  res.locals.wsServerAddress = SITE_HOSTNAME;
   res.locals.site_name = SITE_NAME;
   next();
 }, routes);
 
+// Create HTTP server from the Express app
+const server = http.createServer(app);
+
 // WebSocket server setup
-const wss = new WebSocket.Server({ port: 8081 });
+const wss = new WebSocket.Server({ server });
 
 wss.on('connection', async ws => {
   console.log('WebSocket connection established');
@@ -77,6 +81,6 @@ const updateCounter = async () => {
 setInterval(updateCounter, 5000);
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Webserver is listening on port ${PORT}!`);
+server.listen(SITE_PORT, () => {
+  console.log(`Webserver is listening on port ${SITE_PORT}!`);
 });

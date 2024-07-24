@@ -2,7 +2,7 @@ html
     include includes/header.pug
     body
         script.
-            const ws = new WebSocket("#{wsServerAddress}");
+            const ws = new WebSocket("#{SITE_HOSTNAME}");
             
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
