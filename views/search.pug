@@ -31,7 +31,6 @@ html
                                     - var filestring = typeof item.files === 'string' ? item.files : '';
                                     - var formatstring = filestring.split(',').join('\n');
                                     - if (formatstring.length > 100) { formatstring = formatstring.substring(0, 100) + '...' }
-                                    p= formatstring || item.name
                                 .btn-group.ml-auto
                                     a.btn.btn-primary(href=`/infohash?q=${item.infohash}`) Details
                                     a.btn.btn-info(href=item.magnet + trackers) Magnet URI
