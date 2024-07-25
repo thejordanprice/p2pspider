@@ -14,6 +14,6 @@
     "watch"      : true,
     "instances"  : 1,
     "exec_mode"  : "cluster",
-    "max_memory_restart": "125M"
+    "max_memory_restart": "200M"
   }]
 }
