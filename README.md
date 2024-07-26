@@ -31,7 +31,50 @@ This can index over 1 million magnets per 24/hr on 2GB of RAM and around 2MB/s c
     npm install
     pm2 start ecosystem.json
     pm2 monit
-    
+
+### Setting Up a Single-Node Replica Set for MongoDB
+
+To enable MongoDB change streams, follow these steps to configure a single-node replica set:
+
+1. **Edit Configuration**
+
+   Open `/etc/mongod.conf` and add:
+   ```yaml
+   replication:
+     replSetName: "rs0"
+   ```
+
+2. **Restart MongoDB**
+
+   Apply changes:
+   ```bash
+   sudo systemctl restart mongod
+   ```
+
+3. **Initiate Replica Set**
+
+   Connect to MongoDB shell:
+   ```bash
+   mongo
+   ```
+
+   Run:
+   ```javascript
+   rs.initiate({
+     _id: "rs0",
+     members: [{ _id: 0, host: "localhost:27017" }]
+   });
+   ```
+
+4. **Verify**
+
+   Check status:
+   ```javascript
+   rs.status();
+   ```
+
+This configures a basic single-node replica set, enabling change streams.
+
 ### Configuration
 
 **You will need to have a port open on the outside and defined, by default it is 6881.**
