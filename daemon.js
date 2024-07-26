@@ -46,7 +46,7 @@ redisClient.connect().catch(err => {
 });
 
 // P2PSpider Configuration
-const p2p = P2PSpider({
+const p2p = new P2PSpider({
   nodesMaxSize: 250,
   maxConnections: 500,
   timeout: 1000
