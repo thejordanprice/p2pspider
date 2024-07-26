@@ -51,14 +51,14 @@ const server = http.createServer(app);
 // WebSocket server setup
 const wss = new WebSocket.Server({ server });
 
-let lastCount = null; // Variable to track the last sent count
+let lastCount = null;
 
 // Function to send the current count to all WebSocket clients
 const sendCountToClients = async () => {
   try {
     const count = await Magnet.countDocuments({});
-    if (count !== lastCount) { // Send update only if count has changed
-      lastCount = count; // Update the last sent count
+    if (count !== lastCount) {
+      lastCount = count;
       wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({ count }));
@@ -75,7 +75,6 @@ const watchMagnetCollection = () => {
   const changeStream = Magnet.watch();
 
   changeStream.on('change', async (change) => {
-    // console.log('Change detected:', change);
     await sendCountToClients();
   });
 };
