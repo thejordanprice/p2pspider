@@ -1,11 +1,3 @@
-html {
-    position: relative;
-    min-height: 100%;
-}
-body {
-    padding-top: 75px;
-    margin-bottom: 15px;
-}
 input[id=search] {
     width: 33%;
     box-sizing: border-box;

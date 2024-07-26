@@ -1,35 +1,36 @@
 html
-    include includes/header.pug
-    body
-        script.
-            const ws = new WebSocket("#{SITE_HOSTNAME}");
-            
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                $('#counter').html(data.count + " magnets...");
-            };
+  include includes/header.pug
+  body
+    include includes/navbar.pug
 
-            ws.onopen = () => {
-                console.log('WebSocket connection established.');
-            };
+    .container
+      .text-center
+        br
+        h2#counter
+        br
 
-            ws.onerror = (error) => {
-                console.error('WebSocket Error:', error);
-                $('#counter').html("Server not responding...");
-            };
+      .text-center
+        form(action='/search')
+          input(placeholder='Search..', id='search', type='search', name='q')
 
-        include includes/navbar.pug
-        .container
-            div.text-center
-                br
-                h2#counter
-                br
+        p This is a database of magnet URI's that have been spotted in the wild
+        | on the DHT swarm via the bittorrent protocol.
 
-            div(style='text-align: center')
-                form(action='/search')
-                    input(placeholder='Search..', id='search', type='search', name='q')
+    include includes/footer.pug
 
-                p This is a database of magnet URI's that have been spotted in the wild
-                | on the DHT swarm via the bittorrent protocol.
+    script.
+      const ws = new WebSocket("#{SITE_HOSTNAME}");
 
-            include includes/footer.pug
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        document.getElementById('counter').textContent = data.count + " magnets...";
+      };
+
+      ws.onopen = () => {
+        console.log('WebSocket connection established.');
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket Error:', error);
+        document.getElementById('counter').textContent = "Server not responding...";
+      };
