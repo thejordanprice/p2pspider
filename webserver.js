@@ -51,34 +51,37 @@ const server = http.createServer(app);
 // WebSocket server setup
 const wss = new WebSocket.Server({ server });
 
-wss.on('connection', async ws => {
-  console.log('WebSocket connection established');
-  ws.on('message', message => console.log('Received:', message));
+let lastCount = null; // Variable to track the last sent count
 
+// Function to send the current count to all WebSocket clients
+const sendCountToClients = async () => {
   try {
     const count = await Magnet.countDocuments({});
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ count }));
+    if (count !== lastCount) { // Send update only if count has changed
+      lastCount = count; // Update the last sent count
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ count }));
+        }
+      });
     }
-  } catch (err) {
-    console.error('Error fetching count for WebSocket:', err);
-  }
-});
-
-const updateCounter = async () => {
-  try {
-    const count = await Magnet.countDocuments({});
-    wss.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ count }));
-      }
-    });
   } catch (err) {
     console.error('Error fetching count for WebSocket:', err);
   }
 };
 
-setInterval(updateCounter, 5000);
+// Watch for changes in the Magnet collection and notify clients
+const watchMagnetCollection = () => {
+  const changeStream = Magnet.watch();
+
+  changeStream.on('change', async (change) => {
+    // console.log('Change detected:', change);
+    await sendCountToClients();
+  });
+};
+
+// Start watching the collection
+watchMagnetCollection();
 
 // Start server
 server.listen(SITE_PORT, () => {
