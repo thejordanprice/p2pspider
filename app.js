@@ -24,10 +24,6 @@ const PRODUCTION = process.env.NODE_ENV === 'production';
 
 // WebSocket server instance
 let wss = null;
-// Batching and throttling settings for WebSocket
-let pendingBroadcasts = [];
-let broadcastTimer = null;
-const BROADCAST_INTERVAL = 3000; // 3 seconds
 
 /**
  * Validate environment configuration
@@ -215,8 +211,10 @@ async function broadcastNewMagnet(magnetData) {
       data: magnetData
     };
     
-    // Add to queue for batch processing
-    queueBroadcast(message);
+    // Broadcast directly instead of queueing
+    if (wss) {
+      broadcastToClients(message);
+    }
   } catch (err) {
     console.error('Error broadcasting new magnet:', err);
   }
@@ -274,61 +272,6 @@ function initializeWebSocket(server, db) {
 }
 
 /**
- * Queue a message for batch broadcast
- */
-function queueBroadcast(message) {
-  pendingBroadcasts.push(message);
-  
-  // Start broadcast timer if not already running
-  if (!broadcastTimer) {
-    broadcastTimer = setTimeout(() => {
-      processBroadcastQueue();
-      broadcastTimer = null;
-    }, BROADCAST_INTERVAL);
-  }
-}
-
-/**
- * Process queued broadcast messages in batches
- */
-function processBroadcastQueue() {
-  if (pendingBroadcasts.length === 0) return;
-  
-  // Combine similar message types
-  const messagesByType = {};
-  
-  pendingBroadcasts.forEach(message => {
-    const type = message.eventType || 'unknown';
-    if (!messagesByType[type]) {
-      messagesByType[type] = [];
-    }
-    messagesByType[type].push(message);
-  });
-  
-  // Create a single combined message for each type
-  Object.keys(messagesByType).forEach(type => {
-    const messages = messagesByType[type];
-    
-    if (type === 'new_magnet') {
-      // For magnets, just send the latest one to reduce bandwidth
-      const latestMagnet = messages[messages.length - 1];
-      // Use the actual database count that was included in the broadcast data
-      // instead of overriding with the number of batched messages
-      broadcastToClients(latestMagnet);
-    } else if (type === 'count') {
-      // For count updates, only send the latest
-      broadcastToClients(messages[messages.length - 1]);
-    } else {
-      // For other types, send all
-      messages.forEach(broadcastToClients);
-    }
-  });
-  
-  // Clear the queue
-  pendingBroadcasts = [];
-}
-
-/**
  * Send count to a specific client
  */
 async function sendCountToClient(ws, db) {
@@ -350,7 +293,10 @@ async function updateAllClientsCount(db) {
   try {
     // Use cached count instead of counting documents again
     const count = db.totalCount;
-    queueBroadcast({ count });
+    // Broadcast directly instead of queueing
+    if (wss) {
+      broadcastToClients({ count });
+    }
   } catch (err) {
     console.error('Error updating WebSocket clients count:', err);
   }
@@ -367,8 +313,8 @@ function broadcastToClients(message) {
   
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
-      // Ensure we're not sending updates too frequently to the same client
-      if (currentTime - client.lastUpdate > 1000) { // Throttle to 1 update per second max
+      // Still maintain rate limiting per client to prevent overwhelming
+      if (currentTime - client.lastUpdate > 200) { // Allow more frequent updates (200ms instead of 1000ms)
         client.send(messageStr);
         client.lastUpdate = currentTime;
       }
