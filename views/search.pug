@@ -1,0 +1,54 @@
+html
+    include includes/header.pug
+    body
+        include includes/navbar.pug
+        
+        .container.mt-4
+            if pagesdebug
+                pre.bg-light.p-3.border.rounded= pagesdebug
+
+            if pages
+                .text-center.mb-4
+                    if pages.query
+                        h4.mb-2 Query: #{pages.query}
+                        p.text-muted.mb-4 Results: #{pages.results}
+
+                .d-flex.flex-column.align-items-center.mb-4
+                    .pagination
+                        if pages.current != 0
+                            li.page-item
+                                a.page-link(href=`/search?q=${pages.query}&p=${pages.previous}`) Previous
+                        if pages.available >= pages.next
+                            li.page-item
+                                a.page-link(href=`/search?q=${pages.query}&p=${pages.next}`) Next
+
+            if results
+                .list-group
+                    each item in results
+                        .list-group-item.border-0.p-4
+                            .d-flex.flex-column
+                                h5.mb-1= item.name
+                                h6.text-muted.mb-3= 'Infohash: ' + item.infohash
+                                - var filestring = typeof item.files === 'string' ? item.files : '';
+                                - var formatstring = filestring.split(',').join('\n');
+                                - if (formatstring.length > 100) { formatstring = formatstring.substring(0, 100) + '...' };
+                                p.text-muted= formatstring || item.name
+                                .d-flex.justify-content-between.mt-3
+                                    a.btn.btn-outline-primary(href=`/infohash?q=${item.infohash}`) Details
+                                    a.btn.btn-outline-info(href=item.magnet + trackers) Magnet URI
+
+            if pages
+                .d-flex.flex-column.align-items-center.mt-4
+                    .pagination
+                        if pages.current != 0
+                            li.page-item
+                                a.page-link(href=`/search?q=${pages.query}&p=${pages.previous}`) Previous
+                        if pages.available >= pages.next
+                            li.page-item
+                                a.page-link(href=`/search?q=${pages.query}&p=${pages.next}`) Next
+
+            if timer
+                .text-center.mt-4
+                    p.text-muted Query Time: #{timer} ms
+
+            include includes/footer.pug

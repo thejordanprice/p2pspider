@@ -1,0 +1,20 @@
+nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
+  .container
+    a.navbar-brand(href='/' style='font-weight:bold;')
+      i.fas.fa-home
+    button.navbar-toggler(type='button', data-bs-toggle='collapse', data-bs-target='#navbar', aria-controls='navbar', aria-expanded='false', aria-label='Toggle navigation')
+      span.navbar-toggler-icon
+    #navbar.collapse.navbar-collapse
+      ul.navbar-nav.me-auto
+        li.nav-item
+          a.nav-link(href='/')
+            i.fas.fa-search
+            span.ms-1 Search
+        li.nav-item
+          a.nav-link(href='/latest')
+            i.fas.fa-clock
+            span.ms-1 Latest
+        li.nav-item
+          a.nav-link(href='/statistics')
+            i.fas.fa-fire
+            span.ms-1 Statistics

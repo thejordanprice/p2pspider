@@ -1,0 +1,36 @@
+html
+  include includes/header.pug
+  body
+    include includes/navbar.pug
+
+    .container
+      .text-center
+        br
+        h2#counter
+        br
+
+      .text-center
+        form(action='/search')
+          input(placeholder='Search..', id='search', type='search', name='q')
+
+        p This is a database of magnet URI's that have been spotted in the wild
+        | on the DHT swarm via the bittorrent protocol.
+
+    include includes/footer.pug
+
+    script.
+      const ws = new WebSocket("#{SITE_HOSTNAME}");
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        document.getElementById('counter').textContent = data.count + " magnets...";
+      };
+
+      ws.onopen = () => {
+        console.log('WebSocket connection established.');
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket Error:', error);
+        document.getElementById('counter').textContent = "Server not responding...";
+      };

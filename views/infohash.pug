@@ -1,0 +1,29 @@
+html
+    include includes/header.pug
+    body
+        include includes/navbar.pug
+        .container.mt-4
+            .card.mb-4.shadow-sm
+                .card-header.bg-light.text-dark
+                    h4.card-title.mb-0.text-center= result.name
+                .card-body
+                    dl.row
+                        dt.col-sm-2 Infohash:
+                        dd.col-sm-10= result.infohash
+
+                        dt.col-sm-2 Fetched At:
+                        dd.col-sm-10= new Date(result.fetchedAt).toLocaleString()
+
+                        dt.col-sm-2 Files:
+                        dd.col-sm-10
+                            - var filestring = result.files ? String(result.files) : '';
+                            - var formatstring = filestring.split(',').join('\n');
+                            pre.pre-scrollable.bg-light.text-dark.p-2.border= formatstring || result.name
+
+                    .text-center.mt-3
+                        a.btn.btn-primary(href=result.magnet + trackers target="_blank") Magnet URI
+
+            .alert.alert-secondary.mt-4.text-center
+                h5= "Query Time: " + timer + "ms"
+
+            include includes/footer.pug

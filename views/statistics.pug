@@ -1,0 +1,39 @@
+html
+  include includes/header.pug
+  body
+    include includes/navbar.pug
+    .container.mt-4
+      .card
+        .card-header
+          h4.card-title Database Statistics
+        .card-body
+          .row
+            .col-md-6
+              .list-group
+                .list-group-item.d-flex.justify-content-between.align-items-center
+                  span Database:
+                  span.badge.bg-primary.text-light.rounded-pill= statistics.db
+                .list-group-item.d-flex.justify-content-between.align-items-center
+                  span Collections:
+                  span.badge.bg-primary.text-light.rounded-pill= statistics.collections
+                .list-group-item.d-flex.justify-content-between.align-items-center
+                  span Objects:
+                  span.badge.bg-primary.text-light.rounded-pill= statistics.objects
+            .col-md-6
+              .list-group
+                .list-group-item.d-flex.justify-content-between.align-items-center
+                  span Avg. Size:
+                  span.badge.bg-primary.text-light.rounded-pill= statistics.avgObjSize + " KB"
+                .list-group-item.d-flex.justify-content-between.align-items-center
+                  span Data Size:
+                  span.badge.bg-primary.text-light.rounded-pill= statistics.dataSize + " MB"
+                .list-group-item.d-flex.justify-content-between.align-items-center
+                  span Storage Size:
+                  span.badge.bg-primary.text-light.rounded-pill= statistics.storageSize + " MB"
+                .list-group-item.d-flex.justify-content-between.align-items-center
+                  span Indexes:
+                  span.badge.bg-primary.text-light.rounded-pill= statistics.indexes
+                .list-group-item.d-flex.justify-content-between.align-items-center
+                  span Index Size:
+                  span.badge.bg-primary.text-light.rounded-pill= statistics.indexSize + " MB"
+    include includes/footer.pug
