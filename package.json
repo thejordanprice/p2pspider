@@ -15,6 +15,7 @@
     "watch:css": "tailwindcss -i ./src/input.css -o ./public/css/tailwind.css --watch"
   },
   "dependencies": {
+    "axios": "^1.8.4",
     "bencode": "^0.7.0",
     "bitfield": "^1.1.2",
     "dotenv": "^16.4.5",

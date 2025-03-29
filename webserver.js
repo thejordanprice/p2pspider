@@ -30,6 +30,10 @@ function initializeDatabase() {
 function configureExpressApp(db) {
   const app = express();
   
+  // Body parser middleware
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  
   // Static files and view engine
   app.use('/public', express.static(path.join(__dirname, 'public')));
   app.set('view engine', 'ejs');
@@ -65,8 +69,11 @@ function startServer() {
   const app = configureExpressApp(db);
   const server = http.createServer(app);
   
-  // Initialize WebSocket server
-  wsServer.initialize(server, db);
+  // Initialize WebSocket server with Express app
+  wsServer.initialize(server, db, app);
+  
+  // Log the URL for the webhook endpoint
+  console.log(`WebSocket broadcast webhook URL: ${wsServer.getWebhookUrl()}`);
   
   server.listen(SITE_PORT, () => {
     console.log(`Webserver is listening on port ${SITE_PORT}!`);

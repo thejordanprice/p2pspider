@@ -4,7 +4,7 @@ require('dotenv').config();
 const { Database } = require('./models/db');
 const redis = require('redis');
 const P2PSpider = require('./lib');
-const wsServer = require('./utils/websocketServer');
+const axios = require('axios');
 
 // Environment configuration
 const USE_REDIS = process.env.USE_REDIS === 'true';
@@ -12,6 +12,11 @@ const REDIS_URI = process.env.REDIS_URI;
 const REDIS_HASH_TTL = 60 * 60 * 24; // 24 hours in seconds
 const P2P_PORT = 6881;
 const P2P_HOST = '0.0.0.0';
+
+// WebSocket webhook configuration
+const SITE_HOSTNAME = process.env.SITE_HOSTNAME || 'http://localhost:' + (process.env.SITE_PORT || 3000);
+const WEBHOOK_PATH = '/api/websocket/broadcast';
+const WEBHOOK_URL = `${SITE_HOSTNAME}${WEBHOOK_PATH}`;
 
 /**
  * Database initialization
@@ -145,7 +150,7 @@ async function processMetadata(metadata, db, redisClient) {
       await storeInfohashInRedis(infohash, redisClient);
       
       // Broadcast new magnet via WebSocket
-      broadcastNewMagnet({ name, infohash, fetchedAt });
+      await broadcastNewMagnet({ name, infohash, fetchedAt });
     } else {
       console.log(`Metadata for infohash ${infohash} already exists in database.`);
     }
@@ -171,14 +176,41 @@ async function storeInfohashInRedis(infohash, redisClient) {
 }
 
 /**
- * Broadcast new magnet discovery via WebSocket
+ * Broadcast new magnet discovery via WebSocket webhook
  */
-function broadcastNewMagnet(magnetData) {
+async function broadcastNewMagnet(magnetData) {
   try {
-    // Use shared WebSocket server to broadcast message
-    wsServer.broadcastNewMagnet(magnetData);
+    const message = {
+      eventType: 'new_magnet',
+      data: magnetData
+    };
+    
+    await sendWebhookRequest(message);
   } catch (err) {
     console.error('Error broadcasting new magnet:', err);
+  }
+}
+
+/**
+ * Send webhook request to webserver for WebSocket broadcast
+ */
+async function sendWebhookRequest(data) {
+  try {
+    console.log(`Sending webhook request to ${WEBHOOK_URL}`);
+    const response = await axios.post(WEBHOOK_URL, data, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 3000 // 3 second timeout
+    });
+    
+    if (response.status === 200) {
+      console.log(`WebSocket broadcast successful, reached ${response.data.clients} clients`);
+    } else {
+      console.warn(`WebSocket broadcast returned status ${response.status}`);
+    }
+  } catch (err) {
+    console.error(`Error sending webhook request to ${WEBHOOK_URL}:`, err.message);
   }
 }
 
@@ -193,6 +225,7 @@ async function main() {
   // Start listening for connections
   p2p.listen(P2P_PORT, P2P_HOST, () => {
     console.log(`UDP Server listening on ${P2P_HOST}:${P2P_PORT}`);
+    console.log(`WebSocket webhook URL: ${WEBHOOK_URL}`);
   });
 }
 

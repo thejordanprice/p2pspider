@@ -4,12 +4,16 @@ const WebSocket = require('ws');
 let wss = null;
 let dbInstance = null;
 
+// HTTP API endpoint path for daemon to send messages to webserver
+const HTTP_WEBHOOK_PATH = '/api/websocket/broadcast';
+
 /**
  * Initialize WebSocket server
  * @param {http.Server} server - HTTP server to attach WebSocket server to
  * @param {Object} db - Database instance
+ * @param {express.Application} app - Express application
  */
-function initialize(server, db) {
+function initialize(server, db, app) {
   if (wss) {
     return wss; // Already initialized
   }
@@ -28,7 +32,49 @@ function initialize(server, db) {
     }
   });
   
+  // Set up HTTP webhook endpoint for daemon to send messages
+  setupHttpWebhook(app);
+  
   return wss;
+}
+
+/**
+ * Set up HTTP webhook for inter-process communication
+ * @param {express.Application} app - Express application
+ */
+function setupHttpWebhook(app) {
+  if (!app) {
+    console.warn('Express app not provided, HTTP webhook not set up');
+    return;
+  }
+  
+  // Parse JSON bodies for the webhook endpoint
+  const bodyParser = require('body-parser');
+  app.use(bodyParser.json({ limit: '1mb' }));
+  
+  app.post(HTTP_WEBHOOK_PATH, (req, res) => {
+    try {
+      const data = req.body;
+      
+      if (!data) {
+        return res.status(400).json({ error: 'Invalid request body' });
+      }
+      
+      broadcastMessage(data);
+      
+      // If this is a new magnet, update the count for all clients
+      if (data.eventType === 'new_magnet' && dbInstance) {
+        updateAllClientsCount(dbInstance);
+      }
+      
+      res.status(200).json({ success: true, clients: wss ? wss.clients.size : 0 });
+    } catch (err) {
+      console.error('Error handling webhook request:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  console.log(`HTTP webhook endpoint set up at ${HTTP_WEBHOOK_PATH}`);
 }
 
 /**
@@ -69,27 +115,6 @@ async function updateAllClientsCount(db) {
 }
 
 /**
- * Broadcast a new magnet discovery to all connected clients
- * @param {Object} magnetData - Magnet data to broadcast
- */
-function broadcastNewMagnet(magnetData) {
-  if (!wss) return;
-  
-  const message = {
-    eventType: 'new_magnet',
-    data: magnetData
-  };
-  
-  broadcastMessage(message);
-  
-  // Also update the count for all clients after a new magnet
-  // This ensures the counter stays in sync
-  if (wss.clients.size > 0 && dbInstance) {
-    updateAllClientsCount(dbInstance);
-  }
-}
-
-/**
  * Broadcast a message to all connected clients
  * @param {Object} message - Message to broadcast
  */
@@ -103,10 +128,20 @@ function broadcastMessage(message) {
   });
 }
 
+/**
+ * Get the URL for the webhook endpoint
+ * @returns {string} The URL for the webhook endpoint
+ */
+function getWebhookUrl() {
+  const hostname = process.env.SITE_HOSTNAME || 'http://localhost:' + (process.env.SITE_PORT || 3000);
+  return `${hostname}${HTTP_WEBHOOK_PATH}`;
+}
+
 module.exports = {
   initialize,
   getServer,
-  broadcastNewMagnet,
   broadcastMessage,
-  updateAllClientsCount
+  updateAllClientsCount,
+  HTTP_WEBHOOK_PATH,
+  getWebhookUrl
 }; 
