@@ -1,6 +1,6 @@
 {
-  "name": "P2P Magnet Search",
-  "short_name": "P2P Magnet",
+  "name": "DHT Spider",
+  "short_name": "DHT Spider",
   "icons": [
     {
       "src": "/public/favicon/android-chrome-192x192.png",
