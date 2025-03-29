@@ -14,7 +14,9 @@ DHT Spider can index over 1 million magnets per 24 hours on modest hardware (2GB
 
 ###### Screenshots
 
-*Screenshots showing the DHT Spider interface will be placed here*
+![DHT Spider Home Page](docs/screenshots/0.png)
+
+![DHT Spider Search Results](docs/screenshots/1.png)
 
 ### Getting Started
 
