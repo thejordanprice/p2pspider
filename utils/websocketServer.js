@@ -27,6 +27,9 @@ function initialize(server, db, app) {
     
     try {
       await sendCountToClient(ws, db);
+      
+      // Also send statistics to newly connected clients
+      await sendStatsToClient(ws, db);
     } catch (err) {
       console.error('Error in WebSocket connection handler:', err);
     }
@@ -71,6 +74,8 @@ function setupHttpWebhook(app) {
         // If this is a new magnet, update the count for all clients
         if (data.eventType === 'new_magnet' && dbInstance) {
           updateAllClientsCount(dbInstance);
+          // Also update statistics for all clients
+          updateAllClientsStats(dbInstance);
         }
         
         res.status(200).json({ success: true, clients: wss ? wss.clients.size : 0 });
@@ -138,6 +143,86 @@ function broadcastMessage(message) {
 }
 
 /**
+ * Send statistics to a specific client
+ * @param {WebSocket} ws - WebSocket client
+ * @param {Object} db - Database instance
+ */
+async function sendStatsToClient(ws, db) {
+  try {
+    const stats = await getDatabaseStats(db);
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ eventType: 'statistics_update', statistics: stats }));
+    }
+  } catch (err) {
+    console.error('Error fetching statistics for WebSocket:', err);
+  }
+}
+
+/**
+ * Update all connected clients with latest statistics
+ * @param {Object} db - Database instance
+ */
+async function updateAllClientsStats(db) {
+  try {
+    const stats = await getDatabaseStats(db);
+    broadcastMessage({ eventType: 'statistics_update', statistics: stats });
+  } catch (err) {
+    console.error('Error updating WebSocket clients statistics:', err);
+  }
+}
+
+/**
+ * Get database statistics
+ * @param {Object} db - Database instance
+ * @returns {Object} Database statistics
+ */
+async function getDatabaseStats(db) {
+  let stats;
+  
+  try {
+    if (db.type === 'mongodb') {
+      const mongoStats = await db.db.connection.db.stats({ scale: 1048576 });
+      stats = {
+        db: mongoStats.db,
+        collections: mongoStats.collections,
+        objects: mongoStats.objects,
+        avgObjSize: (mongoStats.avgObjSize / 1024).toFixed(2),
+        dataSize: mongoStats.dataSize.toFixed(2),
+        storageSize: mongoStats.storageSize.toFixed(2),
+        indexes: mongoStats.indexes,
+        indexSize: mongoStats.indexSize.toFixed(2)
+      };
+    } else {
+      // SQLite statistics
+      const dbSize = await new Promise((resolve, reject) => {
+        db.db.get('SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()', (err, row) => {
+          if (err) reject(err);
+          else resolve(row ? row.size / (1024 * 1024) : 0);
+        });
+      });
+      
+      const count = await db.countDocuments({});
+      
+      stats = {
+        db: 'SQLite',
+        collections: 1,
+        objects: count,
+        avgObjSize: count > 0 ? ((dbSize * 1024 * 1024) / count / 1024).toFixed(2) : '0.00',
+        dataSize: dbSize.toFixed(2),
+        storageSize: dbSize.toFixed(2),
+        indexes: 2,  // We created 2 indexes (infohash and name)
+        indexSize: (dbSize * 0.2).toFixed(2)  // Estimate index size as 20% of total
+      };
+    }
+    
+    return stats;
+  } catch (err) {
+    console.error('Error getting database statistics:', err);
+    throw err;
+  }
+}
+
+/**
  * Get the URL for the webhook endpoint
  * @returns {string} The URL for the webhook endpoint
  */
@@ -153,6 +238,7 @@ module.exports = {
   getServer,
   broadcastMessage,
   updateAllClientsCount,
+  updateAllClientsStats,
   HTTP_WEBHOOK_PATH,
   getWebhookUrl
 }; 
