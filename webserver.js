@@ -53,7 +53,13 @@ function configureExpressApp(db) {
   
   // Routes with locals
   app.use('/', (req, res, next) => {
-    res.locals.wsServerAddress = SITE_HOSTNAME;
+    // Make sure WebSocket address has proper protocol
+    let wsAddress = SITE_HOSTNAME;
+    if (wsAddress && !wsAddress.startsWith('ws')) {
+      // Convert http:// to ws:// or https:// to wss://
+      wsAddress = wsAddress.replace(/^http/, 'ws');
+    }
+    res.locals.wsServerAddress = wsAddress;
     res.locals.site_name = SITE_NAME;
     next();
   }, routes);

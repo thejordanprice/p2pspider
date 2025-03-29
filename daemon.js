@@ -14,9 +14,26 @@ const P2P_PORT = 6881;
 const P2P_HOST = '0.0.0.0';
 
 // WebSocket webhook configuration
-const SITE_HOSTNAME = process.env.SITE_HOSTNAME || 'http://localhost:' + (process.env.SITE_PORT || 3000);
+const SITE_HOSTNAME = process.env.SITE_HOSTNAME || 'http://localhost:3000';
 const WEBHOOK_PATH = '/api/websocket/broadcast';
-const WEBHOOK_URL = `${SITE_HOSTNAME}${WEBHOOK_PATH}`;
+const WEBHOOK_URL = SITE_HOSTNAME.startsWith('http') 
+  ? `${SITE_HOSTNAME}${WEBHOOK_PATH}`
+  : `http://${SITE_HOSTNAME}${WEBHOOK_PATH}`;
+
+/**
+ * Validate environment configuration
+ */
+function validateEnvironment() {
+  // Check SITE_HOSTNAME format
+  const siteHostname = process.env.SITE_HOSTNAME;
+  if (siteHostname && !siteHostname.startsWith('http')) {
+    console.warn(`
+⚠️  WARNING: SITE_HOSTNAME "${siteHostname}" does not include protocol (http:// or https://)
+   For WebSocket communication to work properly, update your .env file:
+   SITE_HOSTNAME=http://${siteHostname}:${process.env.SITE_PORT || '3000'}
+    `);
+  }
+}
 
 /**
  * Database initialization
@@ -215,12 +232,36 @@ async function sendWebhookRequest(data) {
 }
 
 /**
+ * Check connection to the webserver
+ */
+async function checkWebserverConnection() {
+  try {
+    console.log(`Checking connection to webserver at ${WEBHOOK_URL}...`);
+    await axios.get(WEBHOOK_URL.replace('/api/websocket/broadcast', '/'), {
+      timeout: 3000
+    });
+    console.log('Successfully connected to webserver!');
+    return true;
+  } catch (err) {
+    console.error(`Could not connect to webserver: ${err.message}`);
+    console.log(`Make sure webserver is running and SITE_HOSTNAME (${process.env.SITE_HOSTNAME}) is correct in .env file`);
+    return false;
+  }
+}
+
+/**
  * Main application function
  */
 async function main() {
+  // Validate environment configuration
+  validateEnvironment();
+
   const db = initializeDatabase();
   const redisClient = await initializeRedis();
   const p2p = initializeP2PSpider(db, redisClient);
+
+  // Check connection to webserver
+  await checkWebserverConnection();
 
   // Start listening for connections
   p2p.listen(P2P_PORT, P2P_HOST, () => {

@@ -43,38 +43,47 @@ function initialize(server, db, app) {
  * @param {express.Application} app - Express application
  */
 function setupHttpWebhook(app) {
-  if (!app) {
-    console.warn('Express app not provided, HTTP webhook not set up');
-    return;
-  }
-  
-  // Parse JSON bodies for the webhook endpoint
-  const bodyParser = require('body-parser');
-  app.use(bodyParser.json({ limit: '1mb' }));
-  
-  app.post(HTTP_WEBHOOK_PATH, (req, res) => {
-    try {
-      const data = req.body;
-      
-      if (!data) {
-        return res.status(400).json({ error: 'Invalid request body' });
-      }
-      
-      broadcastMessage(data);
-      
-      // If this is a new magnet, update the count for all clients
-      if (data.eventType === 'new_magnet' && dbInstance) {
-        updateAllClientsCount(dbInstance);
-      }
-      
-      res.status(200).json({ success: true, clients: wss ? wss.clients.size : 0 });
-    } catch (err) {
-      console.error('Error handling webhook request:', err);
-      res.status(500).json({ error: err.message });
+  try {
+    if (!app) {
+      console.warn('Express app not provided, HTTP webhook not set up');
+      return;
     }
-  });
-  
-  console.log(`HTTP webhook endpoint set up at ${HTTP_WEBHOOK_PATH}`);
+    
+    // Check if bodyParser middleware is already loaded
+    try {
+      const bodyParser = require('body-parser');
+      app.use(bodyParser.json({ limit: '1mb' }));
+    } catch (err) {
+      console.log('Using express.json() for body parsing');
+      // Express already has a built-in body parser
+    }
+    
+    app.post(HTTP_WEBHOOK_PATH, (req, res) => {
+      try {
+        const data = req.body;
+        
+        if (!data) {
+          return res.status(400).json({ error: 'Invalid request body' });
+        }
+        
+        broadcastMessage(data);
+        
+        // If this is a new magnet, update the count for all clients
+        if (data.eventType === 'new_magnet' && dbInstance) {
+          updateAllClientsCount(dbInstance);
+        }
+        
+        res.status(200).json({ success: true, clients: wss ? wss.clients.size : 0 });
+      } catch (err) {
+        console.error('Error handling webhook request:', err);
+        res.status(500).json({ error: err.message });
+      }
+    });
+    
+    console.log(`HTTP webhook endpoint set up at ${HTTP_WEBHOOK_PATH}`);
+  } catch (err) {
+    console.error('Error setting up HTTP webhook:', err);
+  }
 }
 
 /**
@@ -134,7 +143,9 @@ function broadcastMessage(message) {
  */
 function getWebhookUrl() {
   const hostname = process.env.SITE_HOSTNAME || 'http://localhost:' + (process.env.SITE_PORT || 3000);
-  return `${hostname}${HTTP_WEBHOOK_PATH}`;
+  return hostname.startsWith('http') 
+    ? `${hostname}${HTTP_WEBHOOK_PATH}`
+    : `http://${hostname}${HTTP_WEBHOOK_PATH}`;
 }
 
 module.exports = {

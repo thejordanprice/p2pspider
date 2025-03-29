@@ -94,7 +94,18 @@
       });
       
       // WebSocket connection for real-time updates
-      const ws = new WebSocket("<%= wsServerAddress %>");
+      let wsAddress = "<%= wsServerAddress %>";
+      
+      // Make sure WebSocket address has proper protocol
+      if (!wsAddress.startsWith('ws')) {
+        wsAddress = wsAddress.replace(/^http/, 'ws');
+        if (!wsAddress.startsWith('ws')) {
+          wsAddress = `ws://${wsAddress}`;
+        }
+      }
+      
+      console.log('Connecting to WebSocket server at:', wsAddress);
+      const ws = new WebSocket(wsAddress);
       let currentCount = 0;
 
       ws.onmessage = (event) => {
