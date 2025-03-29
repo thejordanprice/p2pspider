@@ -33,7 +33,7 @@ function configureExpressApp(db) {
   
   // Static files and view engine
   app.use('/public', express.static(path.join(__dirname, 'public')));
-  app.set('view engine', 'pug');
+  app.set('view engine', 'ejs');
   
   // Logging middleware
   app.use((req, res, next) => {

@@ -1,0 +1,46 @@
+<head>
+  <title><%= typeof title !== 'undefined' ? title : 'P2P Magnet Search' %></title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google" value="notranslate">
+  <meta name="description" content="A searchable database of magnet URIs from the DHT swarm">
+  <meta name="theme-color" content="#0ea5e9">
+
+  <!-- Preload critical assets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+
+  <!-- Prevent flash of unstyled content -->
+  <style>
+    :root {
+      --primary: #0ea5e9;
+      --primary-dark: #0284c7;
+      --secondary: #7c3aed;
+      --dark-bg: #1e293b;
+      --card-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+    }
+    .search-form button { opacity: 0; }
+    .search-form button i { visibility: hidden; }
+    body.ready .search-form button { opacity: 1; }
+    body.ready .search-form button i { visibility: visible; }
+    body { opacity: 0.98; transition: opacity 0.2s ease-in-out; }
+    body.ready { opacity: 1; }
+    @keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+    .animate-fadeIn { animation: fadeIn 0.5s ease-in-out; }
+  </style>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="public/css/tailwind.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@500;600;700&display=swap">
+  
+  <!-- Favicons -->
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIiBmaWxsPSIjMGVhNWU5Ij4KICA8IS0tIFNpbXBsaWZpZWQgbWFnbmV0IGljb24gYmFzZWQgb24gRm9udCBBd2Vzb21lIC0tPgogIDxwYXRoIGQ9Ik0xMjggMTI4aDE5MnYxMjguN2MwIDU5LjUtNDIuNyAxMDguOC05OC45IDExOS4xYy01NS41IDEwLjEtMTA5LjItMjQuMy0xMjcuMy03OS4xYy0zMi42LTMuNy02MS4zLTIxLjgtNzkuNS00OC4yYy0zMC41LTQ0LjMtMjIuNC0xMDQuOCAxOS4yLTEzOS42VjEyOHpNMzA0IDY0SDE0NGMtOC44IDAtMTYtNy4yLTE2LTE2czcuMi0xNiAxNi0xNmgxNjBjOC44IDAgMTYgNy4yIDE2IDE2cy03LjIgMTYtMTYgMTZ6bS04MCAzODRjNzkuNSAwIDE0NC02NC41IDE0NC0xNDRWMTI4YzAtMzUuMy0yOC43LTY0LTY0LTY0SDE0NGMtMzUuMyAwLTY0IDI4LjctNjQgNjR2MTc2YzAgNzkuNSA2NC41IDE0NCAxNDQgMTQ0eiIvPgo8L3N2Zz4g">
+  <link rel="icon" href="public/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="public/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="public/favicon/site.webmanifest">
+  
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js" defer></script>
+</head> 

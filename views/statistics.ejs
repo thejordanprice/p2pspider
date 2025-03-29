@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('includes/header') %>
+  <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col">
+    <%- include('includes/navbar') %>
+    
+    <main class="flex-grow animate-fadeIn">
+      <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+          <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-dark-800 mb-3 flex items-center justify-center md:text-4xl">
+              <i class="fas fa-chart-bar text-primary-500 mr-3"></i>
+              <span>Statistics</span>
+            </h1>
+          </div>
+          
+          <div class="card bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg transform">
+            <div class="p-6">
+              <h2 class="text-2xl font-bold text-dark-900 mb-6 flex items-center">
+                <i class="fas fa-database text-primary-500 mr-3"></i>
+                <span>Database Statistics</span>
+              </h2>
+              
+              <div class="grid gap-8 md:grid-cols-2">
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                    <div class="text-dark-700 font-medium flex items-center">
+                      <i class="fas fa-server text-primary-500 mr-2"></i>
+                      <span>Database</span>
+                    </div>
+                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.db %></span>
+                  </div>
+                  
+                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                    <div class="text-dark-700 font-medium flex items-center">
+                      <i class="fas fa-table text-primary-500 mr-2"></i>
+                      <span>Collections</span>
+                    </div>
+                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.collections %></span>
+                  </div>
+                  
+                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                    <div class="text-dark-700 font-medium flex items-center">
+                      <i class="fas fa-cubes text-primary-500 mr-2"></i>
+                      <span>Objects</span>
+                    </div>
+                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.objects %></span>
+                  </div>
+                </div>
+                
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                    <div class="text-dark-700 font-medium flex items-center">
+                      <i class="fas fa-calculator text-primary-500 mr-2"></i>
+                      <span>Avg. Size</span>
+                    </div>
+                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.avgObjSize %> KB</span>
+                  </div>
+                  
+                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                    <div class="text-dark-700 font-medium flex items-center">
+                      <i class="fas fa-database text-primary-500 mr-2"></i>
+                      <span>Data Size</span>
+                    </div>
+                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.dataSize %> MB</span>
+                  </div>
+                  
+                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                    <div class="text-dark-700 font-medium flex items-center">
+                      <i class="fas fa-hdd text-primary-500 mr-2"></i>
+                      <span>Storage Size</span>
+                    </div>
+                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.storageSize %> MB</span>
+                  </div>
+                  
+                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                    <div class="text-dark-700 font-medium flex items-center">
+                      <i class="fas fa-sort-alpha-down text-primary-500 mr-2"></i>
+                      <span>Indexes</span>
+                    </div>
+                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.indexes %></span>
+                  </div>
+                  
+                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                    <div class="text-dark-700 font-medium flex items-center">
+                      <i class="fas fa-weight-hanging text-primary-500 mr-2"></i>
+                      <span>Index Size</span>
+                    </div>
+                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.indexSize %> MB</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <%- include('includes/footer') %>
+  </body>
+</html> 

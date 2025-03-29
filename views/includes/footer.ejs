@@ -1,0 +1,31 @@
+<footer class="bg-gradient-to-r from-dark-900 to-dark-800 text-white py-8 mt-auto">
+  <div class="container mx-auto px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex flex-col justify-between items-center space-y-6 md:flex-row md:space-y-0">
+        <div class="flex items-center">
+          <div class="transform transition-transform duration-300 hover:rotate-12">
+            <i class="fas fa-magnet text-primary-500 text-2xl mr-3"></i>
+          </div>
+          <h3 class="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-secondary-400">
+            <%= site_name || 'P2P Magnet Search' %>
+          </h3>
+        </div>
+        
+        <div class="text-sm text-gray-400 flex items-center">
+          <span>Powered by</span>
+          <i class="fas fa-code mx-2 text-primary-500 animate-pulse"></i>
+          <a href="https://github.com/justinwalsh/p2pspider" 
+             target="_blank"
+             class="text-white font-medium hover:text-primary-400 transition-colors duration-200">
+            P2PSpider
+          </a>
+          <span class="mx-1">•</span>
+          <a href="/statistics"
+             class="text-white font-medium hover:text-primary-400 transition-colors duration-200">
+            Statistics
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer> 

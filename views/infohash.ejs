@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('includes/header') %>
+  <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col">
+    <%- include('includes/navbar') %>
+    
+    <main class="flex-grow animate-fadeIn">
+      <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+          <div class="card bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 mb-8 hover:shadow-elegant-lg transform">
+            <div class="p-6">
+              <h1 class="text-2xl font-bold text-dark-900 mb-6 text-center"><%= result.name %></h1>
+              
+              <div class="grid gap-6 md:grid-cols-2">
+                <div class="flex flex-col">
+                  <h3 class="text-sm font-semibold text-dark-600 uppercase mb-2 flex items-center">
+                    <i class="fas fa-fingerprint text-primary-500 mr-2"></i>
+                    <span>Infohash</span>
+                  </h3>
+                  <p class="font-mono text-dark-800 break-all select-all bg-gray-50 p-2 rounded-md border border-gray-100"><%= result.infohash %></p>
+                </div>
+                
+                <div class="flex flex-col">
+                  <h3 class="text-sm font-semibold text-dark-600 uppercase mb-2 flex items-center">
+                    <i class="fas fa-calendar text-primary-500 mr-2"></i>
+                    <span>Fetched At</span>
+                  </h3>
+                  <p class="text-dark-800 bg-gray-50 p-2 rounded-md border border-gray-100"><%= new Date(result.fetchedAt).toLocaleString() %></p>
+                </div>
+              </div>
+              
+              <div class="mt-6">
+                <h3 class="text-sm font-semibold text-dark-600 uppercase mb-2 flex items-center">
+                  <i class="fas fa-folder-open text-primary-500 mr-2"></i>
+                  <span>Files</span>
+                </h3>
+                <% 
+                  var filestring = result.files ? String(result.files) : '';
+                  var formatstring = filestring.split(',').join('\n');
+                %>
+                <div class="bg-gray-50 rounded-lg p-4 overflow-auto max-h-96 text-sm text-dark-700 font-mono border border-gray-100">
+                  <pre class="whitespace-pre-wrap break-words"><%= formatstring || result.name %></pre>
+                </div>
+              </div>
+              
+              <div class="flex justify-center mt-8">
+                <a class="btn-primary flex items-center transition-all duration-300 hover:shadow-md hover:bg-primary-600"
+                   href="<%= result.magnet + trackers %>" 
+                   target="_blank">
+                  <i class="fas fa-magnet mr-2"></i>
+                  <span>Download via Magnet URI</span>
+                </a>
+              </div>
+              
+              <% if (timer) { %>
+                <div class="text-center mt-4">
+                  <p class="text-sm text-dark-500 bg-white inline-block py-1 px-4 rounded-full shadow-sm">
+                    <i class="fas fa-bolt text-yellow-500 mr-1"></i>
+                    <span>Query time: </span>
+                    <span class="font-medium"><%= timer %> ms</span>
+                  </p>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <%- include('includes/footer') %>
+  </body>
+</html> 

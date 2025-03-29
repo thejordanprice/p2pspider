@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('includes/header') %>
+  <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col">
+    <%- include('includes/navbar') %>
+    
+    <main class="flex-grow animate-fadeIn">
+      <div class="container mx-auto px-4 py-8">
+        <% if (typeof pagesdebug !== 'undefined') { %>
+          <pre class="bg-dark-800 text-gray-200 p-4 rounded-lg overflow-x-auto text-sm mb-8 font-mono shadow-md"><%= pagesdebug %></pre>
+        <% } %>
+
+        <% if (typeof pages !== 'undefined') { %>
+          <div class="max-w-4xl mx-auto mb-8">
+            <% if (pages.query) { %>
+              <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-dark-800 mb-3 flex items-center justify-center md:text-4xl">
+                  <i class="fas fa-search text-primary-500 mr-3"></i>
+                  <span>Search: <%= pages.query %></span>
+                </h1>
+                <p class="text-lg text-dark-600 bg-white inline-block py-1 px-4 rounded-full shadow-sm">
+                  <span class="font-medium"><%= pages.results %></span>
+                  <span> results found</span>
+                </p>
+              </div>
+            <% } %>
+            
+            <div class="flex justify-center gap-4 mb-8">
+              <% if (pages.current != 0) { %>
+                <div class="transition-transform duration-300 transform">
+                  <a class="btn-primary flex items-center hover:-translate-x-1 hover:shadow-lg"
+                     href="/search?q=<%= pages.query %>&p=<%= pages.previous %>">
+                    <i class="fas fa-chevron-left mr-2"></i>
+                    <span>Previous</span>
+                  </a>
+                </div>
+              <% } %>
+              <% if (pages.available >= pages.next) { %>
+                <div class="transition-transform duration-300 transform">
+                  <a class="btn-primary flex items-center hover:translate-x-1 hover:shadow-lg"
+                     href="/search?q=<%= pages.query %>&p=<%= pages.next %>">
+                    <span>Next</span>
+                    <i class="fas fa-chevron-right ml-2"></i>
+                  </a>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+
+        <% if (typeof results !== 'undefined' && results.length > 0) { %>
+          <div class="max-w-4xl mx-auto space-y-6">
+            <% results.forEach(function(item) { %>
+              <div class="card bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg hover:-translate-y-1 transform">
+                <div class="p-6">
+                  <h2 class="text-xl font-semibold text-dark-900 mb-2 break-words"><%= item.name %></h2>
+                  <div class="flex items-center text-sm font-medium text-dark-500 mb-4">
+                    <span class="bg-gray-100 rounded-md px-2 py-1 font-mono">Infohash:</span>
+                    <span class="select-all ml-2"><%= item.infohash %></span>
+                  </div>
+                  
+                  <% 
+                    var filestring = typeof item.files === 'string' ? item.files : '';
+                    var formatstring = filestring.split(',').join('\n');
+                    if (formatstring.length > 100) { 
+                      formatstring = formatstring.substring(0, 100) + '...'; 
+                    }
+                  %>
+                  <% if (formatstring) { %>
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm text-dark-700 font-mono border border-gray-100">
+                      <pre class="whitespace-pre-wrap break-words"><%= formatstring %></pre>
+                    </div>
+                  <% } %>
+                  
+                  <div class="flex flex-wrap justify-between items-center gap-4 mt-4">
+                    <a class="btn-primary flex items-center transition-all duration-300 hover:shadow-md hover:bg-primary-600"
+                       href="/infohash?q=<%= item.infohash %>">
+                      <i class="fas fa-info-circle mr-2"></i>
+                      <span>Details</span>
+                    </a>
+                    <a class="btn-secondary flex items-center transition-all duration-300 hover:shadow-md hover:bg-dark-800"
+                       href="<%= item.magnet + trackers %>">
+                      <i class="fas fa-magnet mr-2 text-primary-500"></i>
+                      <span>Magnet URI</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        <% } %>
+
+        <% if (typeof pages !== 'undefined') { %>
+          <div class="flex justify-center gap-4 mt-8">
+            <% if (pages.current != 0) { %>
+              <div class="transition-transform duration-300 transform">
+                <a class="btn-primary flex items-center hover:-translate-x-1 hover:shadow-lg"
+                   href="/search?q=<%= pages.query %>&p=<%= pages.previous %>">
+                  <i class="fas fa-chevron-left mr-2"></i>
+                  <span>Previous</span>
+                </a>
+              </div>
+            <% } %>
+            <% if (pages.available >= pages.next) { %>
+              <div class="transition-transform duration-300 transform">
+                <a class="btn-primary flex items-center hover:translate-x-1 hover:shadow-lg"
+                   href="/search?q=<%= pages.query %>&p=<%= pages.next %>">
+                  <span>Next</span>
+                  <i class="fas fa-chevron-right ml-2"></i>
+                </a>
+              </div>
+            <% } %>
+          </div>
+        <% } %>
+
+        <% if (typeof timer !== 'undefined') { %>
+          <div class="text-center mt-8">
+            <p class="text-sm text-dark-500 bg-white inline-block py-1 px-4 rounded-full shadow-sm">
+              <i class="fas fa-bolt text-yellow-500 mr-1"></i>
+              <span>Query time:</span>
+              <span class="font-medium"><%= timer %> ms</span>
+            </p>
+          </div>
+        <% } %>
+      </div>
+    </main>
+
+    <%- include('includes/footer') %>
+  </body>
+</html> 
