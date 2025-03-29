@@ -312,7 +312,8 @@ function processBroadcastQueue() {
     if (type === 'new_magnet') {
       // For magnets, just send the latest one to reduce bandwidth
       const latestMagnet = messages[messages.length - 1];
-      latestMagnet.count = messages.length; // Include count of messages batched
+      // Use the actual database count that was included in the broadcast data
+      // instead of overriding with the number of batched messages
       broadcastToClients(latestMagnet);
     } else if (type === 'count') {
       // For count updates, only send the latest
