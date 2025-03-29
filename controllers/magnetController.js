@@ -125,6 +125,13 @@ exports.latest = async (req, res) => {
 
 exports.statistics = async (req, res) => {
   try {
+    // Check if database is connected before proceeding
+    if (!db.connected) {
+      // Handle case where database isn't connected yet
+      console.log('Database not connected yet when accessing statistics page');
+      return res.status(503).send('Database is still initializing, please try again in a few seconds.');
+    }
+
     const stats = await getOrSetCache('db_statistics', CACHE_DURATION, async () => {
       if (db.type === 'mongodb') {
         const mongoStats = await db.db.connection.db.stats({ scale: 1048576 });

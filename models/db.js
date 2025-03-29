@@ -43,10 +43,9 @@ class Database {
         await mongoose.connect(MONGO_URI);
         this.connected = true;
         console.log('MongoDB has connected.');
-        // Initialize counter after connection
-        this.totalCount = await Magnet.countDocuments({});
-        this.lastCountUpdate = Date.now();
-        console.log(`Initial document count: ${this.totalCount}`);
+        
+        // Initialize counter after connection, but don't block the connection process
+        this.initializeCounter();
       } catch (err) {
         console.error('MongoDB connection error:', err);
         throw err;
@@ -82,19 +81,14 @@ class Database {
                         console.error('SQLite index creation error:', err);
                         reject(err);
                       } else {
-                        // Initialize counter for SQLite
-                        this.db.get('SELECT COUNT(*) as count FROM magnets', [], (err, row) => {
-                          if (err) {
-                            console.error('SQLite count error:', err);
-                          } else {
-                            this.totalCount = row.count;
-                            this.lastCountUpdate = Date.now();
-                            console.log(`Initial document count: ${this.totalCount}`);
-                          }
-                          this.connected = true;
-                          console.log('SQLite has connected.');
-                          resolve();
-                        });
+                        // Set connected first so routes can work
+                        this.connected = true;
+                        console.log('SQLite has connected.');
+                        
+                        // Initialize counter in the background
+                        this.initializeCounter();
+                        
+                        resolve();
                       }
                     });
                   }
@@ -106,6 +100,34 @@ class Database {
       });
     } else {
       throw new Error(`Unsupported database type: ${this.type}`);
+    }
+  }
+  
+  // This method initializes the counter without blocking the connection
+  async initializeCounter() {
+    try {
+      if (this.type === 'mongodb') {
+        this.totalCount = await Magnet.countDocuments({});
+      } else {
+        this.totalCount = await new Promise((resolve, reject) => {
+          this.db.get('SELECT COUNT(*) as count FROM magnets', [], (err, row) => {
+            if (err) {
+              console.error('SQLite count error:', err);
+              reject(err);
+            } else {
+              resolve(row ? row.count : 0);
+            }
+          });
+        });
+      }
+      
+      this.lastCountUpdate = Date.now();
+      console.log(`Initial document count: ${this.totalCount}`);
+    } catch (err) {
+      console.error('Error initializing counter:', err);
+      // Set default count to 0 if there's an error
+      this.totalCount = 0;
+      this.lastCountUpdate = Date.now();
     }
   }
 
