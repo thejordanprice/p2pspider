@@ -17,7 +17,13 @@
             </p>
           </div>
           
-          <div class="bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg transform border border-gray-100">
+          <div id="statistics-container" 
+               class="bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg transform border border-gray-100"
+               data-objects="<%= statistics.objects %>"
+               data-data-size="<%= statistics.dataSize %>"
+               data-storage-size="<%= statistics.storageSize %>"
+               data-index-size="<%= statistics.indexSize %>"
+               data-avg-obj-size="<%= statistics.avgObjSize %>">
             <div class="p-6 md:p-8">
               <h2 class="text-2xl font-bold text-dark-900 mb-8 flex items-center">
                 <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mr-3 shadow-sm">
@@ -35,7 +41,7 @@
                       </div>
                       <span>Database</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.db %></span>
+                    <span id="stat-db" class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.db %></span>
                   </div>
                   
                   <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
@@ -45,7 +51,7 @@
                       </div>
                       <span>Collections</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.collections %></span>
+                    <span id="stat-collections" class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.collections %></span>
                   </div>
                   
                   <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
@@ -55,7 +61,7 @@
                       </div>
                       <span>Objects</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.objects.toLocaleString() %></span>
+                    <span id="stat-objects" class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.objects.toLocaleString() %></span>
                   </div>
                 </div>
                 
@@ -67,7 +73,7 @@
                       </div>
                       <span>Avg. Object Size</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.avgObjSize %> KB</span>
+                    <span id="stat-avg-obj-size" class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.avgObjSize %> KB</span>
                   </div>
                   
                   <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
@@ -77,7 +83,7 @@
                       </div>
                       <span>Data Size</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.dataSize %> MB</span>
+                    <span id="stat-data-size" class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.dataSize %> MB</span>
                   </div>
                   
                   <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
@@ -87,7 +93,7 @@
                       </div>
                       <span>Storage Size</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.storageSize %> MB</span>
+                    <span id="stat-storage-size" class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.storageSize %> MB</span>
                   </div>
                   
                   <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
@@ -97,7 +103,7 @@
                       </div>
                       <span>Indexes</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.indexes %></span>
+                    <span id="stat-indexes" class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.indexes %></span>
                   </div>
                   
                   <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
@@ -107,7 +113,7 @@
                       </div>
                       <span>Index Size</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.indexSize %> MB</span>
+                    <span id="stat-index-size" class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.indexSize %> MB</span>
                   </div>
                 </div>
               </div>
@@ -125,5 +131,111 @@
     </main>
     
     <%- include('includes/footer') %>
+
+    <script>
+      // WebSocket connection for real-time updates
+      (function() {
+        // Get WebSocket address
+        const wsAddress = "<%= wsServerAddress %>";
+        
+        // Make sure WebSocket address has proper protocol
+        let wsProtocolFixed = wsAddress;
+        if (!wsAddress.startsWith('ws')) {
+          wsProtocolFixed = wsAddress.replace(/^http/, 'ws');
+          if (!wsProtocolFixed.startsWith('ws')) {
+            wsProtocolFixed = `ws://${wsAddress}`;
+          }
+        }
+        
+        console.log('Connecting to WebSocket server at:', wsProtocolFixed);
+        const ws = new WebSocket(wsProtocolFixed);
+        
+        // Get stats container and initial values
+        const statsContainer = document.getElementById('statistics-container');
+        const initialStats = {
+          objects: parseInt(statsContainer.dataset.objects || 0),
+          dataSize: parseFloat(statsContainer.dataset.dataSize || 0),
+          storageSize: parseFloat(statsContainer.dataset.storageSize || 0),
+          indexSize: parseFloat(statsContainer.dataset.indexSize || 0),
+          avgObjSize: parseFloat(statsContainer.dataset.avgObjSize || 0)
+        };
+
+        ws.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          
+          // Handle new magnet event to update statistics
+          if (data.eventType === 'new_magnet' && data.data && data.data.count !== undefined) {
+            updateStatistics(data.data.count);
+          }
+        };
+
+        ws.onopen = function() {
+          console.log('WebSocket connection established for Statistics page.');
+        };
+
+        ws.onerror = function(error) {
+          console.error('WebSocket Error:', error);
+        };
+        
+        // Function to update statistics based on new count
+        function updateStatistics(newCount) {
+          if (!newCount || newCount <= initialStats.objects) return;
+          
+          // Calculate the difference in objects
+          const newObjects = newCount;
+          const objectsDiff = newObjects - initialStats.objects;
+          
+          // Update objects count with animation
+          const objectsElement = document.getElementById('stat-objects');
+          if (objectsElement) {
+            updateElementWithPulse(objectsElement, newObjects.toLocaleString());
+          }
+          
+          // Estimate new data size based on average object size
+          if (initialStats.avgObjSize > 0) {
+            const newDataSize = initialStats.dataSize + (objectsDiff * initialStats.avgObjSize / 1024);
+            const dataSizeElement = document.getElementById('stat-data-size');
+            if (dataSizeElement) {
+              updateElementWithPulse(dataSizeElement, newDataSize.toFixed(2) + ' MB');
+            }
+            
+            // Update storage size (usually similar to data size)
+            const newStorageSize = initialStats.storageSize + (objectsDiff * initialStats.avgObjSize / 1024);
+            const storageSizeElement = document.getElementById('stat-storage-size');
+            if (storageSizeElement) {
+              updateElementWithPulse(storageSizeElement, newStorageSize.toFixed(2) + ' MB');
+            }
+            
+            // Update index size (estimated as a percentage of storage size)
+            const indexRatio = initialStats.indexSize / initialStats.storageSize;
+            const newIndexSize = newStorageSize * indexRatio;
+            const indexSizeElement = document.getElementById('stat-index-size');
+            if (indexSizeElement) {
+              updateElementWithPulse(indexSizeElement, newIndexSize.toFixed(2) + ' MB');
+            }
+          }
+        }
+        
+        // Function to update element with a pulse animation
+        function updateElementWithPulse(element, newValue) {
+          // Save original background
+          const originalBg = element.style.background || '';
+          
+          // Add pulse animation
+          element.style.transition = 'all 0.3s ease-in-out';
+          element.style.transform = 'scale(1.1)';
+          element.style.background = 'linear-gradient(to right, #0ea5e9, #7c3aed)';
+          
+          // Update the value
+          element.textContent = newValue;
+          
+          // Remove animation after short delay
+          setTimeout(function() {
+            element.style.transform = 'scale(1)';
+            element.style.background = originalBg;
+          }, 300);
+        }
+      })();
+    </script>
   </body>
 </html> 

@@ -44,7 +44,10 @@
         <% } %>
 
         <% if (typeof results !== 'undefined' && results.length > 0) { %>
-          <div class="max-w-5xl mx-auto space-y-6">
+          <div id="latest-container" 
+               class="max-w-5xl mx-auto space-y-6"
+               data-is-first-page="<%= typeof pages === 'undefined' || (typeof pages !== 'undefined' && pages.current === 0) ? 'true' : 'false' %>"
+               data-trackers="<%= trackers %>">
             <% results.forEach(function(item) { %>
               <div class="bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg hover:-translate-y-1 transform border border-gray-100 group relative">
                 <!-- Pulse indicator for new items -->
@@ -130,5 +133,144 @@
     </main>
 
     <%- include('includes/footer') %>
+
+    <script>
+      // WebSocket connection for real-time updates
+      (function() {
+        // Get WebSocket address
+        const wsAddress = "<%= wsServerAddress %>";
+        
+        // Make sure WebSocket address has proper protocol
+        let wsProtocolFixed = wsAddress;
+        if (!wsAddress.startsWith('ws')) {
+          wsProtocolFixed = wsAddress.replace(/^http/, 'ws');
+          if (!wsProtocolFixed.startsWith('ws')) {
+            wsProtocolFixed = `ws://${wsAddress}`;
+          }
+        }
+        
+        console.log('Connecting to WebSocket server at:', wsProtocolFixed);
+        const ws = new WebSocket(wsProtocolFixed);
+
+        ws.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          
+          // Handle new magnet event
+          if (data.eventType === 'new_magnet') {
+            addNewMagnetToList(data.data);
+          }
+        };
+
+        ws.onopen = function() {
+          console.log('WebSocket connection established for Latest page.');
+        };
+
+        ws.onerror = function(error) {
+          console.error('WebSocket Error:', error);
+        };
+        
+        // Function to add a new magnet to the top of the list
+        function addNewMagnetToList(magnetData) {
+          if (!magnetData || !magnetData.name) return;
+          
+          const container = document.getElementById('latest-container');
+          if (!container) return;
+          
+          // Get page info from data attributes
+          const isFirstPage = container.dataset.isFirstPage === 'true';
+          const trackers = container.dataset.trackers || '';
+          
+          // Only add if we're on the first page (latest discoveries)
+          if (isFirstPage) {
+            // Create new magnet element
+            const newElement = document.createElement('div');
+            newElement.className = 'bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg hover:-translate-y-1 transform border border-gray-100 group relative new-magnet';
+            newElement.style.opacity = '0';
+            newElement.style.transform = 'translateY(-20px)';
+            newElement.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            
+            // Format files for display (if any)
+            let filesHtml = '';
+            if (magnetData.files) {
+              let fileString = typeof magnetData.files === 'string' ? magnetData.files : magnetData.files.join(',');
+              let formatString = fileString.split(',').join('\n');
+              if (formatString.length > 100) {
+                formatString = formatString.substring(0, 100) + '...';
+              }
+              if (formatString) {
+                filesHtml = `
+                  <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm text-dark-700 font-mono border border-gray-200 shadow-inner">
+                    <pre class="whitespace-pre-wrap break-words">${formatString}</pre>
+                  </div>
+                `;
+              }
+            }
+            
+            // Populate the HTML content
+            newElement.innerHTML = `
+              <div class="absolute top-4 right-4 flex items-center">
+                <span class="animate-ping absolute h-3 w-3 rounded-full bg-primary-400 opacity-75"></span>
+                <span class="relative rounded-full h-3 w-3 bg-primary-500"></span>
+              </div>
+              
+              <div class="p-6 md:p-8">
+                <div class="flex justify-between items-start mb-4">
+                  <h2 class="text-xl font-bold text-dark-900 break-words group-hover:text-primary-600 transition-colors duration-300 pr-10">${magnetData.name}</h2>
+                  <div class="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full flex items-center">
+                    Just Added
+                    <i class="fas fa-bolt ml-1.5 text-yellow-500"></i>
+                  </div>
+                </div>
+                
+                <div class="flex flex-wrap items-center text-sm font-medium text-dark-500 mb-4 gap-2">
+                  <span class="bg-gray-100 rounded-md px-2 py-1 font-mono">Infohash:</span>
+                  <span class="select-all font-mono bg-gray-50 px-2 py-1 rounded text-dark-600 border border-gray-200 text-xs md:text-sm">${magnetData.infohash}</span>
+                </div>
+                
+                ${filesHtml}
+                
+                <div class="flex flex-wrap justify-between items-center gap-4 mt-6">
+                  <a class="flex items-center transition-all duration-300 py-2.5 px-5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg shadow-sm hover:shadow-md"
+                     href="/infohash?q=${magnetData.infohash}">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <span>View Details</span>
+                  </a>
+                  <a class="flex items-center transition-all duration-300 py-2.5 px-5 bg-dark-700 hover:bg-dark-800 text-white font-medium rounded-lg shadow-sm hover:shadow-md"
+                     href="magnet:?xt=urn:btih:${magnetData.infohash}${trackers}">
+                    <i class="fas fa-magnet mr-2 text-primary-500"></i>
+                    <span>Magnet URI</span>
+                  </a>
+                </div>
+              </div>
+            `;
+            
+            // Add to the top of the container
+            if (container.firstChild) {
+              container.insertBefore(newElement, container.firstChild);
+            } else {
+              container.appendChild(newElement);
+            }
+            
+            // Trigger animation
+            setTimeout(function() {
+              newElement.style.opacity = '1';
+              newElement.style.transform = 'translateY(0)';
+            }, 50);
+            
+            // Remove oldest item if there are more than 25 displayed
+            const items = container.querySelectorAll('.bg-white');
+            if (items.length > 25) {
+              // Get the last item that's not just added
+              const oldestItem = items[items.length - 1];
+              oldestItem.style.opacity = '0';
+              oldestItem.style.transform = 'translateY(20px)';
+              setTimeout(function() {
+                oldestItem.remove();
+              }, 500);
+            }
+          }
+        }
+      })();
+    </script>
   </body>
 </html> 

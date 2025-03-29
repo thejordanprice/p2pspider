@@ -174,6 +174,7 @@ async function processMetadata(metadata, db, redisClient) {
       await broadcastNewMagnet({ 
         name, 
         infohash, 
+        files,
         fetchedAt,
         count: db.totalCount // Include current count from cached counter
       });
@@ -211,7 +212,7 @@ async function broadcastNewMagnet(magnetData) {
       data: magnetData
     };
     
-    // Broadcast directly instead of queueing
+    // Broadcast directly to all clients
     if (wss) {
       broadcastToClients(message);
     }
@@ -313,8 +314,8 @@ function broadcastToClients(message) {
   
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
-      // Still maintain rate limiting per client to prevent overwhelming
-      if (currentTime - client.lastUpdate > 200) { // Allow more frequent updates (200ms instead of 1000ms)
+      // Allow more frequent updates (200ms instead of 1000ms)
+      if (currentTime - client.lastUpdate > 200) {
         client.send(messageStr);
         client.lastUpdate = currentTime;
       }
