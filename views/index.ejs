@@ -117,9 +117,11 @@
           // Display new magnet notification
           displayNewMagnetNotification(data.data);
           
-          // Increment count and update counter with pulse animation
-          currentCount++;
-          updateCounterWithPulse(counter, currentCount);
+          // Use the server's count instead of incrementing locally
+          if (data.data && data.data.count !== undefined) {
+            currentCount = data.data.count;
+            updateCounterWithPulse(counter, currentCount);
+          }
         } else if (data.count !== undefined) {
           // Regular count update
           currentCount = data.count;
