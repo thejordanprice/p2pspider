@@ -30,6 +30,9 @@ function initialize(server, db, app) {
       
       // Also send statistics to newly connected clients
       await sendStatsToClient(ws, db);
+      
+      // Send latest magnets to newly connected clients
+      await sendLatestToClient(ws, db);
     } catch (err) {
       console.error('Error in WebSocket connection handler:', err);
     }
@@ -76,6 +79,8 @@ function setupHttpWebhook(app) {
           updateAllClientsCount(dbInstance);
           // Also update statistics for all clients
           updateAllClientsStats(dbInstance);
+          // Send latest magnets to all clients
+          updateAllClientsLatest(dbInstance);
         }
         
         res.status(200).json({ success: true, clients: wss ? wss.clients.size : 0 });
@@ -233,12 +238,57 @@ function getWebhookUrl() {
     : `http://${hostname}${HTTP_WEBHOOK_PATH}`;
 }
 
+/**
+ * Send latest magnets to a specific client
+ * @param {WebSocket} ws - WebSocket client
+ * @param {Object} db - Database instance
+ */
+async function sendLatestToClient(ws, db) {
+  try {
+    const latestMagnets = await getLatestMagnets(db);
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ eventType: 'latest_magnets', latestMagnets }));
+    }
+  } catch (err) {
+    console.error('Error fetching latest magnets for WebSocket:', err);
+  }
+}
+
+/**
+ * Update all connected clients with latest magnets
+ * @param {Object} db - Database instance
+ */
+async function updateAllClientsLatest(db) {
+  try {
+    const latestMagnets = await getLatestMagnets(db);
+    broadcastMessage({ eventType: 'latest_magnets', latestMagnets });
+  } catch (err) {
+    console.error('Error updating WebSocket clients with latest magnets:', err);
+  }
+}
+
+/**
+ * Get latest magnets from database
+ * @param {Object} db - Database instance
+ * @returns {Array} Latest magnets
+ */
+async function getLatestMagnets(db) {
+  try {
+    // Fetch 15 most recent magnets
+    return await db.find({}, { sort: { fetchedAt: -1 }, limit: 15 });
+  } catch (err) {
+    console.error('Error getting latest magnets:', err);
+    throw err;
+  }
+}
+
 module.exports = {
   initialize,
   getServer,
   broadcastMessage,
   updateAllClientsCount,
   updateAllClientsStats,
+  updateAllClientsLatest,
   HTTP_WEBHOOK_PATH,
   getWebhookUrl
 }; 
