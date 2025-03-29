@@ -1,4 +1,4 @@
-<nav class="bg-gradient-to-r from-dark-900 to-dark-800 text-white shadow-md sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
+<nav class="bg-dark-900 text-white shadow-md sticky top-0 z-50 border-b border-dark-800">
   <div class="container px-4 mx-auto">
     <div class="flex items-center justify-between h-16">
       <a class="flex items-center text-xl font-bold transition-all duration-300 hover:scale-105"
@@ -13,7 +13,7 @@
       <div class="sm:hidden" x-data="{ open: false }">
         <button 
           @click="open = !open"
-          class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 transition-colors duration-200"
+          class="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 transition-colors duration-200"
           :aria-expanded="open ? 'true' : 'false'">
           <span class="sr-only">Toggle menu</span>
           <!-- Icon when menu is closed -->
@@ -36,18 +36,18 @@
              x-transition:leave-end="opacity-0 transform scale-95"
              class="absolute left-0 right-0 p-2 bg-dark-800 shadow-lg rounded-b-lg z-50"
              @click.away="open = false">
-          <div class="px-2 pt-2 pb-3 space-y-1 rounded-md shadow-inner bg-dark-900 bg-opacity-50">
-            <a href="/" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-primary-500 hover:bg-opacity-20 transition duration-150 ease-in-out flex items-center">
+          <div class="px-2 pt-2 pb-3 space-y-1 rounded-md shadow-inner bg-dark-900">
+            <a href="/" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-dark-700 transition duration-150 ease-in-out flex items-center">
               <i class="fas fa-search text-primary-500 mr-3 w-5 text-center"></i>
               <span>Search</span>
             </a>
             
-            <a href="/latest" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-primary-500 hover:bg-opacity-20 transition duration-150 ease-in-out flex items-center">
+            <a href="/latest" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-dark-700 transition duration-150 ease-in-out flex items-center">
               <i class="fas fa-clock text-primary-500 mr-3 w-5 text-center"></i>
               <span>Latest</span>
             </a>
             
-            <a href="/statistics" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-primary-500 hover:bg-opacity-20 transition duration-150 ease-in-out flex items-center">
+            <a href="/statistics" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-dark-700 transition duration-150 ease-in-out flex items-center">
               <i class="fas fa-fire text-primary-500 mr-3 w-5 text-center"></i>
               <span>Statistics</span>
             </a>
