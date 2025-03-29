@@ -105,6 +105,52 @@ Cluster mode does not work on Windows. On Linux and other UNIX-like operating sy
 
 Please don't share the data DHT Spider crawls to the internet. Because sometimes it discovers sensitive/copyrighted/adult material.
 
+### Performance Optimization
+
+To maximize performance, DHT Spider now includes several optimizations:
+
+#### 1. Redis Caching
+Enable Redis by setting `USE_REDIS=true` in your `.env` file to significantly reduce database load:
+```
+# Redis options: "true" or "false"
+USE_REDIS=true
+```
+
+#### 2. Production Mode
+Run the application in production mode for better performance:
+```bash
+# Direct NodeJS execution
+npm run start:prod   # For the web server
+npm run daemon:prod  # For the DHT crawler
+
+# Or with PM2 (recommended for production)
+pm2 start ecosystem.json
+```
+
+#### 3. Optimized PM2 Configuration
+The included `ecosystem.json` is configured for optimal performance:
+- Web server runs in cluster mode with multiple instances
+- DHT crawler runs in a single instance to avoid duplicate crawling
+- Memory limits prevent excessive resource usage
+
+#### 4. WebSocket Optimizations
+The WebSocket server includes:
+- Message batching to reduce overhead
+- Client connection health monitoring
+- Throttled broadcasts to prevent excessive updates
+
+#### Monitoring Performance
+Monitor system resources during operation:
+```bash
+pm2 monit
+```
+
+If the application is still slow:
+1. Increase server resources (RAM/CPU)
+2. Use a CDN for static assets
+3. Consider using a dedicated Redis server
+4. Scale horizontally with a load balancer
+
 ## License
 
 MIT

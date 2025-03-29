@@ -1,19 +1,23 @@
 {
-  "apps" : [{
-    //
-    "name"      : "webserver",
-    "script"    : "webserver.js",
-    "watch"     : true,
-    "instances" : 1,
-    "exec_mode" : "cluster",
-    "max_memory_restart": "100M"
-  },{
-    //
-    "name"       : "daemon",
-    "script"     : "daemon.js",
-    "watch"      : true,
-    "instances"  : 1,
-    "exec_mode"  : "cluster",
-    "max_memory_restart": "125M"
-  }]
+  "apps": [
+    {
+      "name": "p2pspider-daemon",
+      "script": "daemon.js",
+      "instances": 1,
+      "exec_mode": "fork",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    {
+      "name": "p2pspider-web",
+      "script": "webserver.js",
+      "instances": "max",
+      "exec_mode": "cluster",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "node_args": "--max-old-space-size=2048"
+    }
+  ]
 }

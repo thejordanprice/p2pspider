@@ -12,12 +12,17 @@
   },
   "scripts": {
     "build:css": "tailwindcss -i ./src/input.css -o ./public/css/tailwind.css --minify",
-    "watch:css": "tailwindcss -i ./src/input.css -o ./public/css/tailwind.css --watch"
+    "watch:css": "tailwindcss -i ./src/input.css -o ./public/css/tailwind.css --watch",
+    "start": "node webserver.js",
+    "start:daemon": "node daemon.js",
+    "start:prod": "NODE_ENV=production node webserver.js",
+    "daemon:prod": "NODE_ENV=production node daemon.js"
   },
   "dependencies": {
     "axios": "^1.8.4",
     "bencode": "^0.7.0",
     "bitfield": "^1.1.2",
+    "compression": "^1.7.4",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.15.3",

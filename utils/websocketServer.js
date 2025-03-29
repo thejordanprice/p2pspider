@@ -7,6 +7,11 @@ let dbInstance = null;
 // HTTP API endpoint path for daemon to send messages to webserver
 const HTTP_WEBHOOK_PATH = '/api/websocket/broadcast';
 
+// Batching and throttling settings
+let pendingBroadcasts = [];
+let broadcastTimer = null;
+const BROADCAST_INTERVAL = 3000; // 3 seconds
+
 /**
  * Initialize WebSocket server
  * @param {http.Server} server - HTTP server to attach WebSocket server to
@@ -23,13 +28,42 @@ function initialize(server, db, app) {
   
   wss.on('connection', async (ws) => {
     console.log('WebSocket connection established');
-    ws.on('message', message => console.log('Received:', message));
+    
+    // Set client properties
+    ws.isAlive = true;
+    ws.lastUpdate = 0;
+    
+    // Handle pings to keep connection alive
+    ws.on('pong', () => {
+      ws.isAlive = true;
+    });
+    
+    // Handle messages (don't log all of them to reduce overhead)
+    ws.on('message', message => {
+      // Only process messages, don't log them
+    });
     
     try {
       await sendCountToClient(ws, db);
     } catch (err) {
       console.error('Error in WebSocket connection handler:', err);
     }
+  });
+  
+  // Set up ping interval to keep connections alive and clean up dead connections
+  const pingInterval = setInterval(() => {
+    wss.clients.forEach(ws => {
+      if (ws.isAlive === false) {
+        return ws.terminate();
+      }
+      
+      ws.isAlive = false;
+      ws.ping(() => {});
+    });
+  }, 30000); // 30 seconds
+  
+  wss.on('close', () => {
+    clearInterval(pingInterval);
   });
   
   // Set up HTTP webhook endpoint for daemon to send messages
@@ -66,7 +100,8 @@ function setupHttpWebhook(app) {
           return res.status(400).json({ error: 'Invalid request body' });
         }
         
-        broadcastMessage(data);
+        // Queue the message for batch processing
+        queueBroadcast(data);
         
         // If this is a new magnet, update the count for all clients
         if (data.eventType === 'new_magnet' && dbInstance) {
@@ -84,6 +119,61 @@ function setupHttpWebhook(app) {
   } catch (err) {
     console.error('Error setting up HTTP webhook:', err);
   }
+}
+
+/**
+ * Queue a message for batch broadcast
+ * @param {Object} message - Message to broadcast
+ */
+function queueBroadcast(message) {
+  pendingBroadcasts.push(message);
+  
+  // Start broadcast timer if not already running
+  if (!broadcastTimer) {
+    broadcastTimer = setTimeout(() => {
+      processBroadcastQueue();
+      broadcastTimer = null;
+    }, BROADCAST_INTERVAL);
+  }
+}
+
+/**
+ * Process queued broadcast messages in batches
+ */
+function processBroadcastQueue() {
+  if (pendingBroadcasts.length === 0) return;
+  
+  // Combine similar message types
+  const messagesByType = {};
+  
+  pendingBroadcasts.forEach(message => {
+    const type = message.eventType || 'unknown';
+    if (!messagesByType[type]) {
+      messagesByType[type] = [];
+    }
+    messagesByType[type].push(message);
+  });
+  
+  // Create a single combined message for each type
+  Object.keys(messagesByType).forEach(type => {
+    const messages = messagesByType[type];
+    
+    if (type === 'new_magnet') {
+      // For magnets, just send the latest one to reduce bandwidth
+      const latestMagnet = messages[messages.length - 1];
+      latestMagnet.count = messages.length; // Include count of messages batched
+      broadcastToClients(latestMagnet);
+    } else if (type === 'count') {
+      // For count updates, only send the latest
+      broadcastToClients(messages[messages.length - 1]);
+    } else {
+      // For other types, send all
+      messages.forEach(broadcastToClients);
+    }
+  });
+  
+  // Clear the queue
+  pendingBroadcasts = [];
 }
 
 /**
@@ -117,7 +207,7 @@ async function sendCountToClient(ws, db) {
 async function updateAllClientsCount(db) {
   try {
     const count = await db.countDocuments({});
-    broadcastMessage({ count });
+    queueBroadcast({ count });
   } catch (err) {
     console.error('Error updating WebSocket clients count:', err);
   }
@@ -127,14 +217,28 @@ async function updateAllClientsCount(db) {
  * Broadcast a message to all connected clients
  * @param {Object} message - Message to broadcast
  */
-function broadcastMessage(message) {
+function broadcastToClients(message) {
   if (!wss) return;
+  
+  const messageStr = JSON.stringify(message);
+  const currentTime = Date.now();
   
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify(message));
+      // Ensure we're not sending updates too frequently to the same client
+      if (currentTime - client.lastUpdate > 1000) { // Throttle to 1 update per second max
+        client.send(messageStr);
+        client.lastUpdate = currentTime;
+      }
     }
   });
+}
+
+/**
+ * Alias for backward compatibility
+ */
+function broadcastMessage(message) {
+  queueBroadcast(message);
 }
 
 /**

@@ -7,11 +7,13 @@ const http = require('http');
 const routes = require('./routes/index');
 const { Database } = require('./models/db');
 const wsServer = require('./utils/websocketServer');
+const compression = require('compression');
 
 // Constants
 const SITE_HOSTNAME = process.env.SITE_HOSTNAME;
 const SITE_NAME = process.env.SITE_NAME;
 const SITE_PORT = process.env.SITE_PORT;
+const PRODUCTION = process.env.NODE_ENV === 'production';
 
 /**
  * Database initialization
@@ -25,26 +27,67 @@ function initializeDatabase() {
 }
 
 /**
+ * Cache control middleware
+ */
+function cacheControl(req, res, next) {
+  // Static assets cache
+  if (req.url.match(/\.(css|js|ico|jpg|jpeg|png|gif|woff|woff2|ttf|svg|eot)$/)) {
+    res.set('Cache-Control', 'public, max-age=86400'); // 1 day
+    res.set('Expires', new Date(Date.now() + 86400000).toUTCString());
+  } 
+  // HTML pages short cache
+  else if (req.method === 'GET') {
+    res.set('Cache-Control', 'public, max-age=60'); // 1 minute for dynamic content
+  }
+  
+  next();
+}
+
+/**
  * Express app configuration
  */
 function configureExpressApp(db) {
   const app = express();
   
+  // Compression middleware
+  app.use(compression());
+  
+  // Cache control middleware
+  app.use(cacheControl);
+  
   // Body parser middleware
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   
-  // Static files and view engine
-  app.use('/public', express.static(path.join(__dirname, 'public')));
+  // Static files with caching
+  app.use('/public', express.static(path.join(__dirname, 'public'), {
+    maxAge: PRODUCTION ? '1d' : 0,
+    etag: true
+  }));
+  
+  // View engine
   app.set('view engine', 'ejs');
   
-  // Logging middleware
-  app.use((req, res, next) => {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    console.log('\x1b[36m%s\x1b[0m', `FROM: ${ip} ON: ${req.originalUrl}`);
-    res.locals.ip = ip;
-    next();
-  });
+  // Logging middleware - only log in development or log less in production
+  if (!PRODUCTION) {
+    app.use((req, res, next) => {
+      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      console.log('\x1b[36m%s\x1b[0m', `FROM: ${ip} ON: ${req.originalUrl}`);
+      res.locals.ip = ip;
+      next();
+    });
+  } else {
+    // In production, only log errors or important requests
+    app.use((req, res, next) => {
+      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      // Skip logging for static asset requests
+      if (!req.originalUrl.startsWith('/public/')) {
+        console.log('\x1b[36m%s\x1b[0m', `FROM: ${ip} ON: ${req.originalUrl}`);
+      }
+      res.locals.ip = ip;
+      next();
+    });
+  }
   
   // Development settings
   if (app.get('env') === 'development') {
