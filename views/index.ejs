@@ -171,7 +171,7 @@
         
         // Create notification element
         const notification = document.createElement('div');
-        notification.className = 'fixed bottom-4 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg transition-opacity duration-500 ease-in-out opacity-0 max-w-md overflow-hidden';
+        notification.className = 'fixed bottom-4 right-4 bg-white dark:bg-dark-800 text-dark-800 dark:text-white p-4 rounded-lg shadow-elegant transition-all duration-500 ease-in-out opacity-0 max-w-md overflow-hidden border-l-4 border-primary-500 transform translate-y-2';
         notification.style.zIndex = '50';
         
         const truncatedName = magnetData.name.length > 40 
@@ -181,14 +181,14 @@
         notification.innerHTML = `
           <div class="flex items-start">
             <div class="flex-shrink-0 pt-0.5">
-              <i class="fas fa-magnet text-primary-500"></i>
+              <i class="fas fa-magnet text-primary-500 text-lg"></i>
             </div>
             <div class="ml-3 w-0 flex-1">
-              <p class="text-sm font-medium">New magnet discovered</p>
-              <p class="mt-1 text-sm text-gray-300">${truncatedName}</p>
+              <p class="text-sm font-medium text-primary-600 dark:text-primary-400">New magnet discovered</p>
+              <p class="mt-1 text-sm text-dark-600 dark:text-gray-300 font-medium">${truncatedName}</p>
             </div>
             <div class="ml-4 flex-shrink-0 flex">
-              <button class="bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+              <button class="rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500">
                 <span class="sr-only">Close</span>
                 <i class="fas fa-times"></i>
               </button>
@@ -201,13 +201,15 @@
         
         // Fade in
         setTimeout(() => {
-          notification.classList.add('opacity-100');
+          notification.classList.add('opacity-100', 'transform', 'translate-y-0');
+          notification.classList.remove('translate-y-2');
         }, 100);
         
         // Add click handler to close button
         const closeButton = notification.querySelector('button');
         closeButton.addEventListener('click', () => {
           notification.classList.remove('opacity-100');
+          notification.classList.add('translate-y-2');
           setTimeout(() => {
             notification.remove();
           }, 500);
@@ -216,6 +218,7 @@
         // Auto-remove after 5 seconds
         setTimeout(() => {
           notification.classList.remove('opacity-100');
+          notification.classList.add('translate-y-2');
           setTimeout(() => {
             notification.remove();
           }, 500);
