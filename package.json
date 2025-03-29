@@ -13,10 +13,9 @@
   "scripts": {
     "build:css": "tailwindcss -i ./src/input.css -o ./public/css/tailwind.css --minify",
     "watch:css": "tailwindcss -i ./src/input.css -o ./public/css/tailwind.css --watch",
-    "start": "node webserver.js",
-    "start:daemon": "node daemon.js",
-    "start:prod": "NODE_ENV=production node webserver.js",
-    "daemon:prod": "NODE_ENV=production node daemon.js"
+    "start": "node app.js",
+    "start:prod": "NODE_ENV=production node app.js",
+    "start:pm2": "pm2 start ecosystem.json"
   },
   "dependencies": {
     "axios": "^1.8.4",

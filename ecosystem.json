@@ -1,19 +1,10 @@
 {
   "apps": [
     {
-      "name": "p2pspider-daemon",
-      "script": "daemon.js",
+      "name": "p2pspider",
+      "script": "app.js",
       "instances": 1,
       "exec_mode": "fork",
-      "env": {
-        "NODE_ENV": "production"
-      }
-    },
-    {
-      "name": "p2pspider-web",
-      "script": "webserver.js",
-      "instances": "max",
-      "exec_mode": "cluster",
       "env": {
         "NODE_ENV": "production"
       },

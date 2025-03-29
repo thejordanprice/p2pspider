@@ -29,12 +29,11 @@ cp .env.sample .env
 # Edit .env file as needed
 
 # Run the application
-node daemon.js  # Start the crawler
-node webserver.js  # Start the web interface
+npm start  # Start the unified application (both crawler and web interface)
 
 # Alternatively, use PM2 for process management
 npm install -g pm2
-pm2 start ecosystem.json
+npm run start:pm2  # Uses the ecosystem.json file
 pm2 monit
 ```
 
