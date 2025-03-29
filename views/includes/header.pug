@@ -4,6 +4,13 @@ head
   meta(name='viewport', content='width=device-width, initial-scale=1')
   meta(name='google', value='notranslate')
 
+  // Prevent flash of unstyled content
+  style.
+    .search-form button { opacity: 0; }
+    .search-form button i { visibility: hidden; }
+    body.ready .search-form button { opacity: 1; }
+    body.ready .search-form button i { visibility: visible; }
+
   // Stylesheets
   link(rel='stylesheet', href='public/css/tailwind.css')
   link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css')

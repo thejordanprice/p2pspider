@@ -11,7 +11,7 @@ html(lang="en")
             span.inline-block.animate-pulse Loading...
             .absolute.h-1.w-24.bg-primary-500.bottom-0.left-1/2.rounded-full.mt-2(style="transform: translateX(-50%)")
           
-          form.mb-12(action='/search')
+          form.mb-12.search-form(action='/search')
             .relative.max-w-xl.mx-auto
               input.search-input.w-full(
                 placeholder='Search for magnets...' 
@@ -20,12 +20,11 @@ html(lang="en")
                 name='q'
                 autocomplete="off"
               )
-              button(
+              button.absolute.text-primary-600.hover_text-primary-800(
                 type="submit"
-                style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);"
-                class="text-primary-600 hover:text-primary-800 transition-colors"
+                style="right: 0.75rem; top: 50%; transform: translateY(-50%); transition: color 0.2s;"
               )
-                i.fas.fa-search
+                i.fas.fa-search.text-lg
           
           .card.max-w-2xl.mx-auto.bg-white.rounded-xl.shadow-elegant.overflow-hidden
             .p-8
@@ -48,6 +47,11 @@ html(lang="en")
     include includes/footer.pug
 
     script.
+      // Hide elements momentarily until styles are fully loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        document.body.classList.add('ready');
+      });
+      
       const ws = new WebSocket("#{wsServerAddress}");
 
       ws.onmessage = (event) => {
