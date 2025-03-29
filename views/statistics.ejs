@@ -35,7 +35,7 @@
                       </div>
                       <span>Database</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm" id="db"><%= statistics.db %></span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.db %></span>
                   </div>
                   
                   <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
@@ -45,7 +45,7 @@
                       </div>
                       <span>Collections</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm" id="collections"><%= statistics.collections %></span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.collections %></span>
                   </div>
                   
                   <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
@@ -55,7 +55,7 @@
                       </div>
                       <span>Objects</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm" id="objects"><%= statistics.objects.toLocaleString() %></span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.objects.toLocaleString() %></span>
                   </div>
                 </div>
                 
@@ -67,7 +67,7 @@
                       </div>
                       <span>Avg. Object Size</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm" id="avgObjSize"><%= statistics.avgObjSize %> KB</span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.avgObjSize %> KB</span>
                   </div>
                   
                   <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
@@ -77,7 +77,7 @@
                       </div>
                       <span>Data Size</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm" id="dataSize"><%= statistics.dataSize %> MB</span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.dataSize %> MB</span>
                   </div>
                   
                   <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
@@ -87,7 +87,7 @@
                       </div>
                       <span>Storage Size</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm" id="storageSize"><%= statistics.storageSize %> MB</span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.storageSize %> MB</span>
                   </div>
                   
                   <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
@@ -97,7 +97,7 @@
                       </div>
                       <span>Indexes</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm" id="indexes"><%= statistics.indexes %></span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.indexes %></span>
                   </div>
                   
                   <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
@@ -107,7 +107,7 @@
                       </div>
                       <span>Index Size</span>
                     </div>
-                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm" id="indexSize"><%= statistics.indexSize %> MB</span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.indexSize %> MB</span>
                   </div>
                 </div>
               </div>
@@ -125,74 +125,5 @@
     </main>
     
     <%- include('includes/footer') %>
-
-    <script>
-      // WebSocket connection for real-time updates
-      let wsAddress = "<%= wsServerAddress %>";
-      
-      // Make sure WebSocket address has proper protocol
-      if (!wsAddress.startsWith('ws')) {
-        wsAddress = wsAddress.replace(/^http/, 'ws');
-        if (!wsAddress.startsWith('ws')) {
-          wsAddress = `ws://${wsAddress}`;
-        }
-      }
-      
-      console.log('Connecting to WebSocket server at:', wsAddress);
-      const ws = new WebSocket(wsAddress);
-
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        
-        // Handle statistics update
-        if (data.eventType === 'statistics_update' && data.statistics) {
-          updateStatistics(data.statistics);
-        }
-      };
-
-      // Function to update statistics on the page
-      function updateStatistics(stats) {
-        if (!stats) return;
-        
-        // Update each statistic with animation
-        updateStatWithAnimation('db', stats.db);
-        updateStatWithAnimation('collections', stats.collections);
-        updateStatWithAnimation('objects', parseInt(stats.objects).toLocaleString());
-        updateStatWithAnimation('avgObjSize', stats.avgObjSize + ' KB');
-        updateStatWithAnimation('dataSize', stats.dataSize + ' MB');
-        updateStatWithAnimation('storageSize', stats.storageSize + ' MB');
-        updateStatWithAnimation('indexes', stats.indexes);
-        updateStatWithAnimation('indexSize', stats.indexSize + ' MB');
-      }
-      
-      // Helper function to update a statistic with animation
-      function updateStatWithAnimation(id, value) {
-        const element = document.getElementById(id);
-        if (!element) return;
-        
-        // Add pulse animation
-        element.classList.add('scale-110');
-        element.classList.add('bg-primary-500');
-        
-        // Update the value
-        element.textContent = value;
-        
-        // Remove animation after a short delay
-        setTimeout(() => {
-          element.classList.remove('scale-110');
-          element.classList.remove('bg-primary-500');
-        }, 500);
-      }
-      
-      ws.onopen = () => {
-        console.log('WebSocket connection established.');
-      };
-
-      ws.onerror = (error) => {
-        console.error('WebSocket Error:', error);
-      };
-      
-      // Initial statistics values are already set in the HTML
-    </script>
   </body>
 </html> 

@@ -26,7 +26,7 @@ exports.index = async (req, res) => {
 exports.latest = async (req, res) => {
   const start = Date.now();
   try {
-    const results = await db.find({}, { sort: { fetchedAt: -1 }, limit: 15 });
+    const results = await db.find({}, { sort: { fetchedAt: -1 }, limit: 25 });
     const timer = Date.now() - start;
     res.render('latest', { title: res.locals.site_name, results, trackers: getTrackers(), timer });
   } catch (err) {
@@ -103,7 +103,7 @@ exports.infohash = async (req, res) => {
     const magnet = result.magnet + getTrackers();
 
     res.render('infohash', {
-      title: res.locals.site_name,
+      title: 'Tordex',
       result,
       trackers: getTrackers(),
       timer
@@ -202,7 +202,7 @@ exports.search = async (req, res) => {
     };
 
     res.render('search', {
-      title: res.locals.site_name,
+      title: 'Tordex',
       results: results,
       trackers: getTrackers(),
       pages,

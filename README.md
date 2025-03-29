@@ -1,4 +1,4 @@
-# p2pspider
+# p2pspider - DHT Spider
 
 [![GitHub issues](https://img.shields.io/github/issues/thejordanprice/p2pspider.svg)](https://github.com/thejordanprice/p2pspider/issues)
 [![GitHub stars](https://img.shields.io/github/stars/thejordanprice/p2pspider.svg)](https://github.com/thejordanprice/p2pspider/stargazers)
@@ -6,64 +6,90 @@
 [![GitHub license](https://img.shields.io/github/license/thejordanprice/p2pspider.svg)](https://github.com/thejordanprice/p2pspider/blob/master/LICENSE)
 [![Twitter](https://img.shields.io/twitter/url/https/github.com/thejordanprice/p2pspider.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2Fthejordanprice%2Fp2pspider)
 
-Daemon that scrapes the DHT swarm and an express bootstrapped front-end connected to the same mongodb to create an automated magnet db with search.
+A daemon that crawls the BitTorrent DHT network and an Express web application that provides a searchable database of magnet links with real-time updates through WebSockets.
 
 ### Intro
 
-This can index over 1 million magnets per 24/hr on 2GB of RAM and around 2MB/s connection. It is a RAM/CPU hog though, it will consume 100% of the CPU and the RAM if allowed and can be controlled via the 'ecosystem.json' file. On 2GB RAM it is suggested to use 8 instances of the daemon and 2 of the webserver; all limited at 175MB.
+DHT Spider can index over 1 million magnets per 24 hours on modest hardware (2GB of RAM and around 2MB/s connection). It's resource-intensive and will use available CPU and RAM, which can be controlled via the 'ecosystem.json' file. On 2GB RAM, it's recommended to use 8 instances of the daemon and 2 of the webserver, all limited at 175MB.
 
 ###### Screenshots
 
-![Screenshot][index]
-
-[index]: https://i.ibb.co/yqsSPxd/Screenshot-2024-07-25-5-34-02-PM.png "index page"
-
-![Screenshot][query]
-
-[query]: https://i.ibb.co/mTTdFj2/Screenshot-2024-07-25-5-34-42-PM.png "query page"
-
+*Screenshots showing the DHT Spider interface will be placed here*
 
 ### Getting Started
 
-    apt install mongodb
-    apt install redis-server
-    npm install -g pm2
-    npm install
-    pm2 start ecosystem.json
-    pm2 monit
+```
+# Install dependencies
+npm install
+
+# Set up configuration
+cp .env.sample .env
+# Edit .env file as needed
+
+# Run the application
+node daemon.js  # Start the crawler
+node webserver.js  # Start the web interface
+
+# Alternatively, use PM2 for process management
+npm install -g pm2
+pm2 start ecosystem.json
+pm2 monit
+```
 
 ### Configuration
 
-**You will need to have a port open on the outside and defined, by default it is 6881.**
+**You will need to have port 6881 (or your configured port) open to the internet for the DHT crawler to function properly.**
 
-Some minor configuration and tweaks can be done, depending on the hardware and connection you are connected to; you may want to experiment with some of these settings. In the bin/daemon.js file you can find a block of code that looks like this below.
-
-    const p2p = P2PSpider({
-        nodesMaxSize: 250,
-        maxConnections: 500,
-        timeout: 1000
-    });
-
-It isn't reccomended changing the nodesMaxSize or the maxConnections, but timeout seems to be a possibility to get your indexing to go faster. It may require a little bit more RAM with a higher timeout though, the highest we would reccomend at the time is 5000ms.
-
-#### Database and Redis Configuration
-
-P2PSpider now supports both MongoDB and SQLite as database options, and Redis usage can be toggled on/off. These options can be configured in the `.env` file:
+The application can be configured through the `.env` file:
 
 ```
+# Database and server configuration
+REDIS_URI=redis://127.0.0.1:6379
+MONGO_URI=mongodb://127.0.0.1/magnetdb
+SITE_HOSTNAME=http://127.0.0.1:8080
+SITE_NAME=DHT Spider
+SITE_PORT=8080
+
 # Database options: "mongodb" or "sqlite"
-DB_TYPE=mongodb
-# Redis options: "true" or "false" 
-USE_REDIS=true
+DB_TYPE=sqlite
+
+# Redis options: "true" or "false"
+USE_REDIS=false
+
 # SQLite database file location (only used if DB_TYPE=sqlite)
 SQLITE_PATH=./data/magnet.db
 ```
+
+You can also fine-tune the crawler performance in the daemon.js file:
+
+```javascript
+const p2p = P2PSpider({
+    nodesMaxSize: 250,
+    maxConnections: 500,
+    timeout: 1000
+});
+```
+
+It's not recommended to change the `nodesMaxSize` or `maxConnections`, but adjusting the `timeout` may increase indexing speed. Higher timeout values may require more RAM; the maximum recommended value is 5000ms.
+
+#### Database and Redis Configuration
+
+DHT Spider supports both MongoDB and SQLite as database options, and Redis usage can be toggled on/off:
 
 - **DB_TYPE**: Choose between "mongodb" or "sqlite" as your database
 - **USE_REDIS**: Set to "true" to use Redis for caching recent infohashes, or "false" to disable Redis
 - **SQLITE_PATH**: Path where the SQLite database file will be created (only used when DB_TYPE=sqlite)
 
-Using SQLite reduces dependencies and is perfect for smaller deployments, while MongoDB is better for large-scale operations. Redis provides caching to prevent duplicate processing of recently seen infohashes.
+SQLite is ideal for smaller deployments with reduced dependencies, while MongoDB is better for large-scale operations. Redis provides caching to prevent duplicate processing of recently seen infohashes.
+
+### Features
+
+- Real-time DHT network crawling and magnet link indexing
+- WebSocket-based live updates on the web interface
+- Searchable database of discovered magnet links
+- Statistics page with database information
+- Support for both MongoDB and SQLite databases
+- Responsive web interface with modern design
 
 ### Protocols
 
@@ -71,11 +97,11 @@ Using SQLite reduces dependencies and is perfect for smaller deployments, while 
 
 ### Notes
 
-Cluster mode will not and will never work on Windows... With other OSs we can get multiple instances listening on the same UDP port. For the more technical folks, Windows doesn't allow us to get down to the lower levels of our system like Linux and various others do. We simply cannot touch things at the hardware level while using that operating system.
+Cluster mode does not work on Windows. On Linux and other UNIX-like operating systems, multiple instances can listen on the same UDP port, which is not possible on Windows due to operating system limitations.
 
 ### Notice
 
-Please don't share the data p2pspider crawled to the internet. Because sometimes it crawls sensitive/copyrighted/porn data.
+Please don't share the data DHT Spider crawls to the internet. Because sometimes it discovers sensitive/copyrighted/adult material.
 
 ## License
 
