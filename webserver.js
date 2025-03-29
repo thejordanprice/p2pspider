@@ -1,11 +1,11 @@
 'use strict';
 
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const WebSocket = require('ws');
 const http = require('http');
 const routes = require('./routes/index');
-require('dotenv').config();
 const { Database } = require('./models/db');
 
 // Constants
