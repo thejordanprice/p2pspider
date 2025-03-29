@@ -95,14 +95,40 @@
       
       // WebSocket connection for real-time updates
       const ws = new WebSocket("<%= wsServerAddress %>");
+      let currentCount = 0;
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
         const counter = document.getElementById('counter');
         
-        counter.innerHTML = `
+        // Handle different message types
+        if (data.eventType === 'new_magnet') {
+          // Display new magnet notification
+          displayNewMagnetNotification(data.data);
+          
+          // Increment count and update counter with pulse animation
+          currentCount++;
+          updateCounterWithPulse(counter, currentCount);
+        } else if (data.count !== undefined) {
+          // Regular count update
+          currentCount = data.count;
+          updateCounter(counter, currentCount);
+        }
+      };
+      
+      // Function to update the counter
+      function updateCounter(counterElement, count) {
+        if (!counterElement) return;
+        
+        if (count === undefined) {
+          // If no count provided, just remove the loading animation
+          counterElement.classList.remove('animate-pulse');
+          return;
+        }
+        
+        counterElement.innerHTML = `
           <span class="inline-block bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-600 font-bold font-display relative">
-            ${data.count.toLocaleString()}
+            ${count.toLocaleString()}
             <span class="text-gray-700 font-normal"> magnets indexed</span>
             <div class="absolute h-1 w-3/4 bg-gradient-to-r from-primary-500 to-secondary-500 opacity-50 bottom-0 left-1/2 rounded-full"
                  style="transform: translateX(-50%)">
@@ -110,8 +136,78 @@
           </span>
         `;
         
-        counter.classList.remove('animate-pulse');
-      };
+        counterElement.classList.remove('animate-pulse');
+      }
+      
+      // Function to update counter with pulse animation
+      function updateCounterWithPulse(counterElement, count) {
+        if (!counterElement) return;
+        
+        updateCounter(counterElement, count);
+        
+        // Add and then remove pulse animation
+        counterElement.classList.add('scale-105', 'text-primary-600');
+        setTimeout(() => {
+          counterElement.classList.remove('scale-105', 'text-primary-600');
+        }, 300);
+      }
+      
+      // Function to display a notification for new magnets
+      function displayNewMagnetNotification(magnetData) {
+        if (!magnetData) return;
+        
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = 'fixed bottom-4 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg transition-opacity duration-500 ease-in-out opacity-0 max-w-md overflow-hidden';
+        notification.style.zIndex = '50';
+        
+        const truncatedName = magnetData.name.length > 40 
+          ? magnetData.name.substring(0, 40) + '...' 
+          : magnetData.name;
+          
+        notification.innerHTML = `
+          <div class="flex items-start">
+            <div class="flex-shrink-0 pt-0.5">
+              <i class="fas fa-magnet text-primary-500"></i>
+            </div>
+            <div class="ml-3 w-0 flex-1">
+              <p class="text-sm font-medium">New magnet discovered</p>
+              <p class="mt-1 text-sm text-gray-300">${truncatedName}</p>
+            </div>
+            <div class="ml-4 flex-shrink-0 flex">
+              <button class="bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                <span class="sr-only">Close</span>
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        `;
+        
+        // Add to document
+        document.body.appendChild(notification);
+        
+        // Fade in
+        setTimeout(() => {
+          notification.classList.add('opacity-100');
+        }, 100);
+        
+        // Add click handler to close button
+        const closeButton = notification.querySelector('button');
+        closeButton.addEventListener('click', () => {
+          notification.classList.remove('opacity-100');
+          setTimeout(() => {
+            notification.remove();
+          }, 500);
+        });
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+          notification.classList.remove('opacity-100');
+          setTimeout(() => {
+            notification.remove();
+          }, 500);
+        }, 5000);
+      }
 
       ws.onopen = () => {
         console.log('WebSocket connection established.');

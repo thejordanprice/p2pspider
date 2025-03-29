@@ -4,6 +4,7 @@ require('dotenv').config();
 const { Database } = require('./models/db');
 const redis = require('redis');
 const P2PSpider = require('./lib');
+const wsServer = require('./utils/websocketServer');
 
 // Environment configuration
 const USE_REDIS = process.env.USE_REDIS === 'true';
@@ -142,6 +143,9 @@ async function processMetadata(metadata, db, redisClient) {
 
       // Store in Redis with TTL
       await storeInfohashInRedis(infohash, redisClient);
+      
+      // Broadcast new magnet via WebSocket
+      broadcastNewMagnet({ name, infohash, fetchedAt });
     } else {
       console.log(`Metadata for infohash ${infohash} already exists in database.`);
     }
@@ -163,6 +167,18 @@ async function storeInfohashInRedis(infohash, redisClient) {
     await redisClient.set(`hashes:${infohash}`, infohash, 'EX', REDIS_HASH_TTL);
   } catch (err) {
     console.error('Error storing infohash in Redis:', err);
+  }
+}
+
+/**
+ * Broadcast new magnet discovery via WebSocket
+ */
+function broadcastNewMagnet(magnetData) {
+  try {
+    // Use shared WebSocket server to broadcast message
+    wsServer.broadcastNewMagnet(magnetData);
+  } catch (err) {
+    console.error('Error broadcasting new magnet:', err);
   }
 }
 
