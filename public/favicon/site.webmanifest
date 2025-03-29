@@ -1,0 +1,19 @@
+{
+  "name": "P2P Magnet Search",
+  "short_name": "P2P Magnet",
+  "icons": [
+    {
+      "src": "/public/favicon/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/public/favicon/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#0ea5e9",
+  "background_color": "#ffffff",
+  "display": "standalone"
+} 
