@@ -1,10 +1,23 @@
-html
+doctype html
+html(lang="en")
   include includes/header.pug
-  body
+  body.bg-gray-50.min-h-screen.flex.flex-col
     include includes/navbar.pug
-    .container
+    
+    main.flex-grow
+      .container.mx-auto.px-4.py-12
+        .max-w-xl.mx-auto
+          .bg-red-50.border-l-4.border-red-500.p-6.rounded-lg.shadow-elegant
+            .flex.items-center.mb-4
+              i.fas.fa-exclamation-circle.text-3xl.text-red-500.mr-4
+              h1.text-xl.font-semibold.text-dark-900 Error Occurred
+            
+            .text-dark-700.p-2
+              p= error
+            
+            .mt-6
+              a.btn-primary.flex.items-center.justify-center.w-full(class="sm:w-auto" href='/')
+                i.fas.fa-home.mr-2
+                span Back to Home
 
-      .alert.alert-danger(role='alert')
-        p=error
-
-      include includes/footer.pug
+    include includes/footer.pug

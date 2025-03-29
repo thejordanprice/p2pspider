@@ -10,7 +10,10 @@
   "bugs": {
     "url": "https://github.com/thejordanprice/p2pspider/issues"
   },
-  "scripts": {},
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/input.css -o ./public/css/tailwind.css --minify",
+    "watch:css": "tailwindcss -i ./src/input.css -o ./public/css/tailwind.css --watch"
+  },
   "dependencies": {
     "bencode": "^0.7.0",
     "bitfield": "^1.1.2",
@@ -23,6 +26,11 @@
     "redis": "^4.6.15",
     "sqlite3": "^5.1.7",
     "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24",
+    "tailwindcss": "^3.3.2"
   },
   "keywords": [
     "torrent",

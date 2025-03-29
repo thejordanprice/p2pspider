@@ -1,39 +1,49 @@
-html
+doctype html
+html(lang="en")
   include includes/header.pug
-  body
+  body.bg-gray-50.min-h-screen.flex.flex-col
     include includes/navbar.pug
-    .container.mt-4
-      .card
-        .card-header
-          h4.card-title Database Statistics
-        .card-body
-          .row
-            .col-md-6
-              .list-group
-                .list-group-item.d-flex.justify-content-between.align-items-center
-                  span Database:
-                  span.badge.bg-primary.text-light.rounded-pill= statistics.db
-                .list-group-item.d-flex.justify-content-between.align-items-center
-                  span Collections:
-                  span.badge.bg-primary.text-light.rounded-pill= statistics.collections
-                .list-group-item.d-flex.justify-content-between.align-items-center
-                  span Objects:
-                  span.badge.bg-primary.text-light.rounded-pill= statistics.objects
-            .col-md-6
-              .list-group
-                .list-group-item.d-flex.justify-content-between.align-items-center
-                  span Avg. Size:
-                  span.badge.bg-primary.text-light.rounded-pill= statistics.avgObjSize + " KB"
-                .list-group-item.d-flex.justify-content-between.align-items-center
-                  span Data Size:
-                  span.badge.bg-primary.text-light.rounded-pill= statistics.dataSize + " MB"
-                .list-group-item.d-flex.justify-content-between.align-items-center
-                  span Storage Size:
-                  span.badge.bg-primary.text-light.rounded-pill= statistics.storageSize + " MB"
-                .list-group-item.d-flex.justify-content-between.align-items-center
-                  span Indexes:
-                  span.badge.bg-primary.text-light.rounded-pill= statistics.indexes
-                .list-group-item.d-flex.justify-content-between.align-items-center
-                  span Index Size:
-                  span.badge.bg-primary.text-light.rounded-pill= statistics.indexSize + " MB"
+    
+    main.flex-grow
+      .container.mx-auto.px-4.py-8
+        .max-w-4xl.mx-auto
+          .card
+            .p-6
+              h1.text-2xl.font-bold.text-dark-900.mb-6 Database Statistics
+              
+              .grid.gap-8(class="md:grid-cols-2")
+                .space-y-4
+                  .flex.items-center.justify-between.p-3.bg-gray-50.rounded-lg
+                    span.text-dark-700.font-medium Database
+                    span.px-3.py-1.bg-primary-600.text-white.font-medium.rounded-full= statistics.db
+                  
+                  .flex.items-center.justify-between.p-3.bg-gray-50.rounded-lg
+                    span.text-dark-700.font-medium Collections
+                    span.px-3.py-1.bg-primary-600.text-white.font-medium.rounded-full= statistics.collections
+                  
+                  .flex.items-center.justify-between.p-3.bg-gray-50.rounded-lg
+                    span.text-dark-700.font-medium Objects
+                    span.px-3.py-1.bg-primary-600.text-white.font-medium.rounded-full= statistics.objects
+                
+                .space-y-4
+                  .flex.items-center.justify-between.p-3.bg-gray-50.rounded-lg
+                    span.text-dark-700.font-medium Avg. Size
+                    span.px-3.py-1.bg-primary-600.text-white.font-medium.rounded-full= statistics.avgObjSize + " KB"
+                  
+                  .flex.items-center.justify-between.p-3.bg-gray-50.rounded-lg
+                    span.text-dark-700.font-medium Data Size
+                    span.px-3.py-1.bg-primary-600.text-white.font-medium.rounded-full= statistics.dataSize + " MB"
+                  
+                  .flex.items-center.justify-between.p-3.bg-gray-50.rounded-lg
+                    span.text-dark-700.font-medium Storage Size
+                    span.px-3.py-1.bg-primary-600.text-white.font-medium.rounded-full= statistics.storageSize + " MB"
+                  
+                  .flex.items-center.justify-between.p-3.bg-gray-50.rounded-lg
+                    span.text-dark-700.font-medium Indexes
+                    span.px-3.py-1.bg-primary-600.text-white.font-medium.rounded-full= statistics.indexes
+                    
+                  .flex.items-center.justify-between.p-3.bg-gray-50.rounded-lg
+                    span.text-dark-700.font-medium Index Size
+                    span.px-3.py-1.bg-primary-600.text-white.font-medium.rounded-full= statistics.indexSize + " MB"
+    
     include includes/footer.pug
