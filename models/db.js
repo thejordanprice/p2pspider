@@ -33,6 +33,8 @@ class Database {
     this.db = null;
     this.type = DB_TYPE;
     this.connected = false;
+    this.totalCount = 0; // Added counter to track total documents
+    this.lastCountUpdate = 0; // Timestamp of last full count
   }
 
   async connect() {
@@ -41,6 +43,10 @@ class Database {
         await mongoose.connect(MONGO_URI);
         this.connected = true;
         console.log('MongoDB has connected.');
+        // Initialize counter after connection
+        this.totalCount = await Magnet.countDocuments({});
+        this.lastCountUpdate = Date.now();
+        console.log(`Initial document count: ${this.totalCount}`);
       } catch (err) {
         console.error('MongoDB connection error:', err);
         throw err;
@@ -76,9 +82,19 @@ class Database {
                         console.error('SQLite index creation error:', err);
                         reject(err);
                       } else {
-                        this.connected = true;
-                        console.log('SQLite has connected.');
-                        resolve();
+                        // Initialize counter for SQLite
+                        this.db.get('SELECT COUNT(*) as count FROM magnets', [], (err, row) => {
+                          if (err) {
+                            console.error('SQLite count error:', err);
+                          } else {
+                            this.totalCount = row.count;
+                            this.lastCountUpdate = Date.now();
+                            console.log(`Initial document count: ${this.totalCount}`);
+                          }
+                          this.connected = true;
+                          console.log('SQLite has connected.');
+                          resolve();
+                        });
                       }
                     });
                   }
@@ -120,7 +136,11 @@ class Database {
 
     if (this.type === 'mongodb') {
       const magnetDoc = new Magnet(magnetData);
-      return await magnetDoc.save();
+      const result = await magnetDoc.save();
+      if (result) {
+        this.totalCount++; // Increment counter on successful save
+      }
+      return result;
     } else {
       return new Promise((resolve, reject) => {
         const { name, infohash, magnet, files, fetchedAt } = magnetData;
@@ -138,9 +158,10 @@ class Database {
                 reject(err);
               }
             } else {
+              this.totalCount++; // Increment counter on successful save
               resolve({ id: this.lastID, ...magnetData });
             }
-          }
+          }.bind(this) // Bind to access this.totalCount
         );
       });
     }
@@ -149,18 +170,49 @@ class Database {
   async countDocuments(query = {}) {
     if (!this.connected) await this.connect();
 
-    if (this.type === 'mongodb') {
-      return await Magnet.countDocuments(query);
-    } else {
-      return new Promise((resolve, reject) => {
-        this.db.get('SELECT COUNT(*) as count FROM magnets', [], (err, row) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(row.count);
-          }
+    // If it's a complex query or it's been over an hour since last full count, do a real count
+    const isComplexQuery = Object.keys(query).length > 0;
+    const shouldRefreshCount = Date.now() - this.lastCountUpdate > 3600000; // 1 hour
+    
+    if (isComplexQuery) {
+      // For complex queries, we still need to do a full count
+      if (this.type === 'mongodb') {
+        return await Magnet.countDocuments(query);
+      } else {
+        return new Promise((resolve, reject) => {
+          const whereClause = this.buildWhereClause(query);
+          const sql = whereClause 
+            ? `SELECT COUNT(*) as count FROM magnets WHERE ${whereClause}`
+            : 'SELECT COUNT(*) as count FROM magnets';
+            
+          this.db.get(sql, [], (err, row) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(row.count);
+            }
+          });
         });
-      });
+      }
+    } else {
+      // For empty queries requesting total count, use the cached counter
+      if (shouldRefreshCount) {
+        // Periodically refresh the total count to ensure accuracy
+        if (this.type === 'mongodb') {
+          this.totalCount = await Magnet.countDocuments({});
+        } else {
+          this.totalCount = await new Promise((resolve, reject) => {
+            this.db.get('SELECT COUNT(*) as count FROM magnets', [], (err, row) => {
+              if (err) reject(err);
+              else resolve(row.count);
+            });
+          });
+        }
+        this.lastCountUpdate = Date.now();
+        console.log(`Refreshed document count: ${this.totalCount}`);
+      }
+      
+      return this.totalCount;
     }
   }
 
@@ -228,6 +280,61 @@ class Database {
     }
     
     return clauses.join(' AND ');
+  }
+
+  async removeMagnet(query) {
+    if (!this.connected) await this.connect();
+
+    if (this.type === 'mongodb') {
+      const result = await Magnet.deleteOne(query);
+      if (result.deletedCount > 0) {
+        this.totalCount--;
+      }
+      return result;
+    } else {
+      return new Promise((resolve, reject) => {
+        const whereClause = this.buildWhereClause(query);
+        if (!whereClause) {
+          resolve({ deleted: 0 }); // Safety check
+          return;
+        }
+        
+        this.db.run(
+          `DELETE FROM magnets WHERE ${whereClause}`,
+          function(err) {
+            if (err) {
+              reject(err);
+            } else {
+              const deleted = this.changes;
+              if (deleted > 0) {
+                this.totalCount -= deleted;
+              }
+              resolve({ deleted });
+            }
+          }.bind(this) // Bind to access this.totalCount
+        );
+      });
+    }
+  }
+
+  // Utility method for forcing a refresh of the counter
+  async refreshCounter() {
+    if (!this.connected) await this.connect();
+    
+    if (this.type === 'mongodb') {
+      this.totalCount = await Magnet.countDocuments({});
+    } else {
+      this.totalCount = await new Promise((resolve, reject) => {
+        this.db.get('SELECT COUNT(*) as count FROM magnets', [], (err, row) => {
+          if (err) reject(err);
+          else resolve(row.count);
+        });
+      });
+    }
+    
+    this.lastCountUpdate = Date.now();
+    console.log(`Refreshed document count: ${this.totalCount}`);
+    return this.totalCount;
   }
 }
 

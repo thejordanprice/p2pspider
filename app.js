@@ -174,8 +174,13 @@ async function processMetadata(metadata, db, redisClient) {
       // Store in Redis with TTL
       await storeInfohashInRedis(infohash, redisClient);
       
-      // Broadcast new magnet via WebSocket
-      await broadcastNewMagnet({ name, infohash, fetchedAt });
+      // Broadcast new magnet via WebSocket including current count
+      await broadcastNewMagnet({ 
+        name, 
+        infohash, 
+        fetchedAt,
+        count: db.totalCount // Include current count from cached counter
+      });
     } else {
       console.log(`Metadata for infohash ${infohash} already exists in database.`);
     }
@@ -327,7 +332,8 @@ function processBroadcastQueue() {
  */
 async function sendCountToClient(ws, db) {
   try {
-    const count = await db.countDocuments({});
+    // Use cached count instead of counting documents again
+    const count = db.totalCount;
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ count }));
     }
@@ -341,7 +347,8 @@ async function sendCountToClient(ws, db) {
  */
 async function updateAllClientsCount(db) {
   try {
-    const count = await db.countDocuments({});
+    // Use cached count instead of counting documents again
+    const count = db.totalCount;
     queueBroadcast({ count });
   } catch (err) {
     console.error('Error updating WebSocket clients count:', err);

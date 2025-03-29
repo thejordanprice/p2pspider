@@ -98,7 +98,7 @@ const getTrackers = () => (
 exports.index = async (req, res) => {
   try {
     const count = await getOrSetCache('total_count', CACHE_DURATION, async () => {
-      return await db.countDocuments({});
+      return db.totalCount; // Use cached counter instead of counting
     });
     
     res.render('index', { title: res.locals.site_name, count: count.toLocaleString() });
@@ -147,7 +147,8 @@ exports.statistics = async (req, res) => {
           });
         });
         
-        const count = await db.countDocuments({});
+        // Use the cached counter instead of counting
+        const count = db.totalCount;
         
         return {
           db: 'SQLite',
@@ -316,7 +317,7 @@ exports.search = async (req, res) => {
 exports.count = async (req, res) => {
   try {
     const count = await getOrSetCache('total_count', CACHE_DURATION, async () => {
-      return await db.countDocuments({});
+      return db.totalCount; // Use cached counter instead of counting
     });
     
     res.send(count.toLocaleString());
