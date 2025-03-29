@@ -5,11 +5,13 @@
   <meta name="google" value="notranslate">
   <meta name="description" content="A searchable database of magnet URIs from the DHT swarm">
   <meta name="theme-color" content="#0ea5e9">
+  <meta name="color-scheme" content="light">
 
   <!-- Preload critical assets -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preload" href="public/css/tailwind.css" as="style">
 
   <!-- Prevent flash of unstyled content -->
   <style>
@@ -28,6 +30,18 @@
     body.ready { opacity: 1; }
     @keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
     .animate-fadeIn { animation: fadeIn 0.5s ease-in-out; }
+    .btn-primary {
+      @apply bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200;
+    }
+    .btn-secondary {
+      @apply bg-dark-700 hover:bg-dark-800 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200;
+    }
+    .shadow-elegant {
+      box-shadow: rgba(50, 50, 93, 0.1) 0px 13px 27px -5px, rgba(0, 0, 0, 0.15) 0px 8px 16px -8px;
+    }
+    .shadow-elegant-lg {
+      box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
+    }
   </style>
 
   <!-- Stylesheets -->

@@ -10,69 +10,61 @@
           <pre class="bg-dark-800 text-gray-200 p-4 rounded-lg overflow-x-auto text-sm mb-8 font-mono shadow-md"><%= pagesdebug %></pre>
         <% } %>
 
-        <div class="max-w-4xl mx-auto mb-8">
+        <div class="max-w-5xl mx-auto mb-10">
           <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-dark-800 mb-3 flex items-center justify-center md:text-4xl">
+            <h1 class="text-3xl font-bold text-dark-800 mb-4 flex items-center justify-center md:text-4xl">
               <i class="fas fa-clock text-primary-500 mr-3"></i>
-              <span>Latest Discoveries</span>
+              <span class="bg-clip-text text-transparent bg-gradient-to-r from-dark-800 to-dark-700 font-display">Latest Discoveries</span>
             </h1>
+            <p class="text-lg text-dark-600 max-w-2xl mx-auto">
+              Fresh magnet links discovered from the BitTorrent DHT network in real-time
+            </p>
           </div>
         </div>
 
         <% if (typeof pages !== 'undefined') { %>
-          <div class="max-w-4xl mx-auto mb-8">
-            <% if (pages.query) { %>
-              <div class="text-center mb-8">
-                <h1 class="text-3xl font-bold text-dark-800 mb-3 flex items-center justify-center md:text-4xl">
-                  <i class="fas fa-search text-primary-500 mr-3"></i>
-                  <span>Search: <%= pages.query %></span>
-                </h1>
-                <p class="text-lg text-dark-600 bg-white inline-block py-1 px-4 rounded-full shadow-sm">
-                  <span class="font-medium"><%= pages.results %></span>
-                  <span> results found</span>
-                </p>
-              </div>
-            <% } %>
-            
-            <div class="flex justify-center gap-4 mb-8">
+          <div class="max-w-5xl mx-auto mb-10">            
+            <div class="flex justify-center gap-4 my-8">
               <% if (pages.current != 0) { %>
-                <div class="transition-transform duration-300 transform">
-                  <a class="btn-primary flex items-center hover:-translate-x-1 hover:shadow-lg"
-                     href="/latest?p=<%= pages.previous %>">
-                    <i class="fas fa-chevron-left mr-2"></i>
-                    <span>Previous</span>
-                  </a>
-                </div>
+                <button onclick="window.location.href='/latest?p=<%= pages.previous %>'" 
+                        class="bg-white py-2.5 px-6 rounded-lg shadow-sm hover:shadow-md border border-gray-100 text-dark-800 font-medium flex items-center gap-2 transition-all duration-300 hover:-translate-x-1 transform">
+                  <i class="fas fa-chevron-left text-primary-500"></i>
+                  <span>Previous</span>
+                </button>
               <% } %>
               <% if (pages.available >= pages.next) { %>
-                <div class="transition-transform duration-300 transform">
-                  <a class="btn-primary flex items-center hover:translate-x-1 hover:shadow-lg"
-                     href="/latest?p=<%= pages.next %>">
-                    <span>Next</span>
-                    <i class="fas fa-chevron-right ml-2"></i>
-                  </a>
-                </div>
+                <button onclick="window.location.href='/latest?p=<%= pages.next %>'" 
+                        class="bg-white py-2.5 px-6 rounded-lg shadow-sm hover:shadow-md border border-gray-100 text-dark-800 font-medium flex items-center gap-2 transition-all duration-300 hover:translate-x-1 transform">
+                  <span>Next</span>
+                  <i class="fas fa-chevron-right text-primary-500"></i>
+                </button>
               <% } %>
             </div>
           </div>
         <% } %>
 
         <% if (typeof results !== 'undefined' && results.length > 0) { %>
-          <div class="max-w-4xl mx-auto space-y-6">
+          <div class="max-w-5xl mx-auto space-y-6">
             <% results.forEach(function(item) { %>
-              <div class="card bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg hover:-translate-y-1 transform">
-                <div class="p-6">
-                  <div class="flex justify-between items-start mb-3">
-                    <h2 class="text-xl font-semibold text-dark-900 break-words"><%= item.name %></h2>
-                    <div class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full flex items-center">
+              <div class="bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg hover:-translate-y-1 transform border border-gray-100 group relative">
+                <!-- Pulse indicator for new items -->
+                <div class="absolute top-4 right-4 flex items-center">
+                  <span class="animate-ping absolute h-3 w-3 rounded-full bg-primary-400 opacity-75"></span>
+                  <span class="relative rounded-full h-3 w-3 bg-primary-500"></span>
+                </div>
+                
+                <div class="p-6 md:p-8">
+                  <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-xl font-bold text-dark-900 break-words group-hover:text-primary-600 transition-colors duration-300 pr-10"><%= item.name %></h2>
+                    <div class="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full flex items-center">
                       Just Added
-                      <i class="fas fa-bolt ml-1 text-yellow-500"></i>
+                      <i class="fas fa-bolt ml-1.5 text-yellow-500"></i>
                     </div>
                   </div>
                   
-                  <div class="flex items-center text-sm font-medium text-dark-500 mb-4">
+                  <div class="flex flex-wrap items-center text-sm font-medium text-dark-500 mb-4 gap-2">
                     <span class="bg-gray-100 rounded-md px-2 py-1 font-mono">Infohash:</span>
-                    <span class="select-all ml-2"><%= item.infohash %></span>
+                    <span class="select-all font-mono bg-gray-50 px-2 py-1 rounded text-dark-600 border border-gray-200 text-xs md:text-sm"><%= item.infohash %></span>
                   </div>
                   
                   <% 
@@ -83,18 +75,18 @@
                     }
                   %>
                   <% if (formatstring) { %>
-                    <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm text-dark-700 font-mono border border-gray-100">
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm text-dark-700 font-mono border border-gray-200 shadow-inner">
                       <pre class="whitespace-pre-wrap break-words"><%= formatstring %></pre>
                     </div>
                   <% } %>
                   
-                  <div class="flex flex-wrap justify-between items-center gap-4 mt-4">
-                    <a class="btn-primary flex items-center transition-all duration-300 hover:shadow-md hover:bg-primary-600"
+                  <div class="flex flex-wrap justify-between items-center gap-4 mt-6">
+                    <a class="flex items-center transition-all duration-300 py-2.5 px-5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg shadow-sm hover:shadow-md"
                        href="/infohash?q=<%= item.infohash %>">
                       <i class="fas fa-info-circle mr-2"></i>
-                      <span>Details</span>
+                      <span>View Details</span>
                     </a>
-                    <a class="btn-secondary flex items-center transition-all duration-300 hover:shadow-md hover:bg-dark-800"
+                    <a class="flex items-center transition-all duration-300 py-2.5 px-5 bg-dark-700 hover:bg-dark-800 text-white font-medium rounded-lg shadow-sm hover:shadow-md"
                        href="<%= item.magnet + trackers %>">
                       <i class="fas fa-magnet mr-2 text-primary-500"></i>
                       <span>Magnet URI</span>
@@ -107,34 +99,30 @@
         <% } %>
 
         <% if (typeof pages !== 'undefined') { %>
-          <div class="flex justify-center gap-4 mt-8">
+          <div class="flex justify-center gap-4 mt-10">
             <% if (pages.current != 0) { %>
-              <div class="transition-transform duration-300 transform">
-                <a class="btn-primary flex items-center hover:-translate-x-1 hover:shadow-lg"
-                   href="/latest?p=<%= pages.previous %>">
-                  <i class="fas fa-chevron-left mr-2"></i>
-                  <span>Previous</span>
-                </a>
-              </div>
+              <button onclick="window.location.href='/latest?p=<%= pages.previous %>'" 
+                      class="bg-white py-2.5 px-6 rounded-lg shadow-sm hover:shadow-md border border-gray-100 text-dark-800 font-medium flex items-center gap-2 transition-all duration-300 hover:-translate-x-1 transform">
+                <i class="fas fa-chevron-left text-primary-500"></i>
+                <span>Previous</span>
+              </button>
             <% } %>
             <% if (pages.available >= pages.next) { %>
-              <div class="transition-transform duration-300 transform">
-                <a class="btn-primary flex items-center hover:translate-x-1 hover:shadow-lg"
-                   href="/latest?p=<%= pages.next %>">
-                  <span>Next</span>
-                  <i class="fas fa-chevron-right ml-2"></i>
-                </a>
-              </div>
+              <button onclick="window.location.href='/latest?p=<%= pages.next %>'" 
+                      class="bg-white py-2.5 px-6 rounded-lg shadow-sm hover:shadow-md border border-gray-100 text-dark-800 font-medium flex items-center gap-2 transition-all duration-300 hover:translate-x-1 transform">
+                <span>Next</span>
+                <i class="fas fa-chevron-right text-primary-500"></i>
+              </button>
             <% } %>
           </div>
         <% } %>
 
         <% if (typeof timer !== 'undefined') { %>
           <div class="text-center mt-8">
-            <p class="text-sm text-dark-500 bg-white inline-block py-1 px-4 rounded-full shadow-sm">
-              <i class="fas fa-bolt text-yellow-500 mr-1"></i>
+            <p class="text-sm text-dark-500 bg-white inline-block py-2 px-4 rounded-full shadow-sm border border-gray-100">
+              <i class="fas fa-bolt text-yellow-500 mr-2"></i>
               <span>Query time:</span>
-              <span class="font-medium"><%= timer %> ms</span>
+              <span class="font-medium ml-1"><%= timer %> ms</span>
             </p>
           </div>
         <% } %>

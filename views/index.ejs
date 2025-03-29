@@ -7,71 +7,76 @@
     <main class="flex-grow animate-fadeIn">
       <div class="container mx-auto px-4 py-12">
         <div class="max-w-3xl mx-auto text-center">
-          <h1 id="counter" class="text-4xl font-bold mb-8 tracking-tight relative md:text-5xl">
-            <span class="inline-block">Loading...</span>
-            <div class="absolute h-1 w-32 bg-gradient-to-r from-primary-500 to-secondary-500 bottom-0 left-1/2 rounded-full mt-2"
-                 style="transform: translateX(-50%)">
-            </div>
+          <h1 id="counter" class="text-5xl font-bold mb-12 tracking-tight relative md:text-6xl">
+            <span class="inline-block bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-secondary-500 font-display relative">
+              Loading<span class="animate-pulse">...</span>
+              <div class="absolute h-1 w-3/4 bg-gradient-to-r from-primary-500 to-secondary-500 opacity-50 bottom-0 left-1/2 rounded-full"
+                   style="transform: translateX(-50%)">
+              </div>
+            </span>
           </h1>
           
-          <form class="mb-12 search-form transition-all duration-300 hover:scale-102 transform"
+          <form class="mb-12 search-form transition-all duration-300 transform"
                 action="/search">
-            <div class="relative max-w-xl mx-auto transition-all duration-300 group transform">
-              <input class="search-input w-full shadow-elegant rounded-full focus:ring-2 focus:ring-primary-500 focus:outline-none pl-12 pr-12 py-4 text-lg transition-all duration-300"
+            <div class="relative max-w-xl mx-auto transition-all duration-300 group">
+              <input class="search-input w-full h-16 shadow-elegant rounded-full focus:ring-2 focus:ring-primary-500 focus:outline-none pl-14 pr-14 py-4 text-lg transition-all duration-300 bg-white/80 backdrop-blur"
                      placeholder="Search for magnets..." 
                      id="search" 
                      type="search" 
                      name="q"
                      autocomplete="off">
-              <div class="absolute left-4 top-1/2 transition-all duration-300 group-hover:text-primary-500"
+              <div class="absolute left-5 top-1/2 transition-all duration-300 group-hover:text-primary-500"
                    style="transform: translateY(-50%)">
-                <i class="fas fa-search text-gray-400 text-lg"></i>
+                <i class="fas fa-search text-gray-400 text-xl"></i>
               </div>
-              <div class="absolute text-white bg-primary-500 rounded-full w-10 h-10 flex items-center justify-center transition-all duration-300 hover:bg-primary-600 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transform"
-                   style="right: 8px; top: 50%; transform: translateY(-50%); transition: all 0.2s;">
-                <button type="submit">
+              <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
+                <button type="submit"
+                        class="text-white bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full w-10 h-10 flex items-center justify-center transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
                   <i class="fas fa-arrow-right text-lg"></i>
                 </button>
               </div>
             </div>
           </form>
           
-          <div class="card max-w-2xl mx-auto bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg hover:-translate-y-1 transform">
-            <div class="p-8">
-              <h2 class="text-2xl font-semibold text-dark-800 mb-4 flex items-center">
+          <div class="bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-500 hover:shadow-elegant-lg transform hover:-translate-y-1 max-w-2xl mx-auto relative group">
+            <!-- Background gradient overlay animation -->
+            <div class="absolute inset-0 bg-gradient-to-r from-primary-500/5 to-secondary-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            <div class="p-8 relative z-10">
+              <h2 class="text-2xl font-bold text-dark-800 mb-6 flex items-center justify-center">
                 <i class="fas fa-info-circle text-primary-500 mr-3"></i>
-                <span>About</span>
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-dark-800 to-dark-700">About</span>
               </h2>
               <p class="text-dark-600 text-lg leading-relaxed">
                 This is a database of magnet URIs that have been spotted in the wild 
                 on the DHT swarm via the BitTorrent protocol.
               </p>
               
-              <ul class="mt-6 space-y-4">
-                <li class="flex items-start transition-all duration-300 hover:translate-x-1 transform">
-                  <div class="flex-shrink-0 bg-primary-100 rounded-full p-1 mt-1 mr-3">
+              <ul class="mt-6 space-y-5">
+                <li class="flex items-start transition-all duration-300 transform hover:translate-x-1">
+                  <div class="flex-shrink-0 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full p-1.5 mt-1 mr-3 shadow-sm">
                     <i class="fas fa-check text-primary-600"></i>
                   </div>
                   <div class="text-dark-700">Real-time DHT crawling and indexing of BitTorrent magnet links</div>
                 </li>
-                <li class="flex items-start transition-all duration-300 hover:translate-x-1 transform">
-                  <div class="flex-shrink-0 bg-primary-100 rounded-full p-1 mt-1 mr-3">
+                <li class="flex items-start transition-all duration-300 transform hover:translate-x-1">
+                  <div class="flex-shrink-0 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full p-1.5 mt-1 mr-3 shadow-sm">
                     <i class="fas fa-check text-primary-600"></i>
                   </div>
                   <div class="text-dark-700">Fast search through millions of magnets with advanced filtering</div>
                 </li>
-                <li class="flex items-start transition-all duration-300 hover:translate-x-1 transform">
-                  <div class="flex-shrink-0 bg-primary-100 rounded-full p-1 mt-1 mr-3">
+                <li class="flex items-start transition-all duration-300 transform hover:translate-x-1">
+                  <div class="flex-shrink-0 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full p-1.5 mt-1 mr-3 shadow-sm">
                     <i class="fas fa-check text-primary-600"></i>
                   </div>
                   <div class="text-dark-700">Constantly updated with latest discoveries from the DHT network</div>
                 </li>
               </ul>
               
-              <div class="mt-8 bg-gray-50 p-4 rounded-lg border border-gray-100">
-                <div class="flex items-center text-sm text-dark-600">
-                  <i class="fas fa-bolt text-yellow-500 mr-2"></i>
-                  <span class="font-medium">Live updates via WebSocket connection</span>
+              <div class="mt-8 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-inner">
+                <div class="flex items-center text-sm text-dark-600 font-medium">
+                  <i class="fas fa-bolt text-yellow-500 mr-2 animate-pulse"></i>
+                  <span>Live updates via WebSocket connection</span>
                 </div>
               </div>
             </div>
@@ -96,10 +101,13 @@
         const counter = document.getElementById('counter');
         
         counter.innerHTML = `
-          <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-600 font-bold">
+          <span class="inline-block bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-600 font-bold font-display relative">
             ${data.count.toLocaleString()}
-          </span> 
-          <span class="text-gray-700">magnets indexed</span>
+            <span class="text-gray-700 font-normal"> magnets indexed</span>
+            <div class="absolute h-1 w-3/4 bg-gradient-to-r from-primary-500 to-secondary-500 opacity-50 bottom-0 left-1/2 rounded-full"
+                 style="transform: translateX(-50%)">
+            </div>
+          </span>
         `;
         
         counter.classList.remove('animate-pulse');

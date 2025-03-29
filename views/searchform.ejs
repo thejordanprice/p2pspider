@@ -6,35 +6,65 @@
     
     <main class="flex-grow animate-fadeIn">
       <div class="container mx-auto px-4">
-        <div class="max-w-3xl mx-auto text-center py-16">
-          <h1 class="text-4xl font-bold mb-8 tracking-tight relative md:text-5xl"> 
-            <span>Search Magnets</span>
-            <div class="absolute h-1 w-32 bg-gradient-to-r from-primary-500 to-secondary-500 bottom-0 left-1/2 rounded-full mt-2"
+        <div class="max-w-3xl mx-auto text-center py-16 md:py-24">
+          <h1 class="text-4xl font-bold mb-8 tracking-tight relative md:text-5xl lg:text-6xl">
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-600 font-display">Search Magnets</span>
+            <div class="absolute h-1 w-48 bg-gradient-to-r from-primary-500 to-secondary-500 bottom-0 left-1/2 rounded-full mt-2 opacity-75"
                  style="transform: translateX(-50%)">
             </div>
           </h1>
           
-          <form class="search-form transition-all duration-300 hover:scale-102 transform"
+          <p class="text-lg text-dark-600 max-w-xl mx-auto mb-10">
+            Search through millions of magnet links discovered from the BitTorrent DHT network
+          </p>
+          
+          <form class="search-form transition-all duration-300 transform mx-auto mb-12"
                 action='/search'>
-            <div class="relative max-w-xl mx-auto transition-all duration-300 transform group">
-              <input class="search-input w-full shadow-elegant rounded-full focus:ring-2 focus:ring-primary-500 focus:outline-none pl-12 pr-12 py-4 text-lg transition-all duration-300"
+            <div class="relative max-w-xl mx-auto transition-all duration-300 group">
+              <input class="search-input w-full h-16 shadow-elegant rounded-full focus:ring-2 focus:ring-primary-500 focus:outline-none pl-14 pr-14 py-4 text-lg transition-all duration-300 bg-white/80 backdrop-blur border border-gray-100"
                      placeholder='Search for magnets...' 
                      id='search' 
                      type='search' 
                      name='q'
                      autocomplete="off">
-              <div class="absolute left-4 top-1/2 transition-all duration-300 group-hover:text-primary-500"
+              <div class="absolute left-5 top-1/2 transition-all duration-300 group-hover:text-primary-500"
                    style="transform: translateY(-50%)">
-                <i class="fas fa-search text-gray-400 text-lg"></i>
+                <i class="fas fa-search text-gray-400 text-xl"></i>
               </div>
-              <div class="absolute text-white bg-primary-500 rounded-full w-10 h-10 flex items-center justify-center transition-all duration-300 hover:bg-primary-600 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transform"
-                   style="right: 8px; top: 50%; transform: translateY(-50%); transition: all 0.2s;">
-                <button type="submit">
+              <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
+                <button type="submit"
+                        class="text-white bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full w-10 h-10 flex items-center justify-center transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
                   <i class="fas fa-arrow-right text-lg"></i>
                 </button>
               </div>
             </div>
           </form>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div class="bg-white rounded-xl shadow-sm p-6 transition-all duration-300 hover:shadow-md hover:-translate-y-1 transform border border-gray-100">
+              <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-bolt text-primary-600 text-xl"></i>
+              </div>
+              <h3 class="text-lg font-semibold mb-2">Fast Searches</h3>
+              <p class="text-dark-600 text-sm">Our optimized database allows for lightning-fast queries across millions of records</p>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6 transition-all duration-300 hover:shadow-md hover:-translate-y-1 transform border border-gray-100">
+              <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-clock text-primary-600 text-xl"></i>
+              </div>
+              <h3 class="text-lg font-semibold mb-2">Real-time Updates</h3>
+              <p class="text-dark-600 text-sm">New magnets are added in real-time as they're discovered on the DHT network</p>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6 transition-all duration-300 hover:shadow-md hover:-translate-y-1 transform border border-gray-100">
+              <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-filter text-primary-600 text-xl"></i>
+              </div>
+              <h3 class="text-lg font-semibold mb-2">Advanced Filtering</h3>
+              <p class="text-dark-600 text-sm">Find exactly what you're looking for with precise search capabilities</p>
+            </div>
+          </div>
         </div>
       </div>
     </main>

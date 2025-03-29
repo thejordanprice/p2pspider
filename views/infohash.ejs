@@ -5,57 +5,77 @@
     <%- include('includes/navbar') %>
     
     <main class="flex-grow animate-fadeIn">
-      <div class="container mx-auto px-4 py-8">
-        <div class="max-w-4xl mx-auto">
-          <div class="card bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 mb-8 hover:shadow-elegant-lg transform">
-            <div class="p-6">
-              <h1 class="text-2xl font-bold text-dark-900 mb-6 text-center"><%= result.name %></h1>
+      <div class="container mx-auto px-4 py-8 md:py-12">
+        <div class="max-w-5xl mx-auto">
+          <div class="bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg transform border border-gray-100 mb-8">
+            <div class="p-6 md:p-8">
+              <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold text-dark-900 mb-3 md:text-3xl"><%= result.name %></h1>
+                <div class="h-1 w-32 bg-gradient-to-r from-primary-500 to-secondary-500 mx-auto rounded-full mb-2"></div>
+              </div>
               
-              <div class="grid gap-6 md:grid-cols-2">
-                <div class="flex flex-col">
-                  <h3 class="text-sm font-semibold text-dark-600 uppercase mb-2 flex items-center">
-                    <i class="fas fa-fingerprint text-primary-500 mr-2"></i>
+              <div class="grid gap-8 md:grid-cols-2">
+                <div class="flex flex-col space-y-2">
+                  <h3 class="text-sm font-semibold text-dark-600 uppercase flex items-center mb-2">
+                    <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-2">
+                      <i class="fas fa-fingerprint text-primary-600"></i>
+                    </div>
                     <span>Infohash</span>
                   </h3>
-                  <p class="font-mono text-dark-800 break-all select-all bg-gray-50 p-2 rounded-md border border-gray-100"><%= result.infohash %></p>
+                  <div class="font-mono text-dark-800 break-all select-all bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-inner text-sm">
+                    <%= result.infohash %>
+                  </div>
                 </div>
                 
-                <div class="flex flex-col">
-                  <h3 class="text-sm font-semibold text-dark-600 uppercase mb-2 flex items-center">
-                    <i class="fas fa-calendar text-primary-500 mr-2"></i>
+                <div class="flex flex-col space-y-2">
+                  <h3 class="text-sm font-semibold text-dark-600 uppercase flex items-center mb-2">
+                    <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-2">
+                      <i class="fas fa-calendar text-primary-600"></i>
+                    </div>
                     <span>Fetched At</span>
                   </h3>
-                  <p class="text-dark-800 bg-gray-50 p-2 rounded-md border border-gray-100"><%= new Date(result.fetchedAt).toLocaleString() %></p>
+                  <div class="text-dark-800 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-inner flex items-center gap-2">
+                    <i class="fas fa-clock text-primary-500"></i>
+                    <span><%= new Date(result.fetchedAt).toLocaleString() %></span>
+                  </div>
                 </div>
               </div>
               
-              <div class="mt-6">
-                <h3 class="text-sm font-semibold text-dark-600 uppercase mb-2 flex items-center">
-                  <i class="fas fa-folder-open text-primary-500 mr-2"></i>
+              <div class="mt-8">
+                <h3 class="text-sm font-semibold text-dark-600 uppercase flex items-center mb-4">
+                  <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-2">
+                    <i class="fas fa-folder-open text-primary-600"></i>
+                  </div>
                   <span>Files</span>
                 </h3>
                 <% 
                   var filestring = result.files ? String(result.files) : '';
                   var formatstring = filestring.split(',').join('\n');
                 %>
-                <div class="bg-gray-50 rounded-lg p-4 overflow-auto max-h-96 text-sm text-dark-700 font-mono border border-gray-100">
+                <div class="bg-gray-50 rounded-lg p-5 overflow-auto max-h-96 text-sm text-dark-700 font-mono border border-gray-200 shadow-inner">
                   <pre class="whitespace-pre-wrap break-words"><%= formatstring || result.name %></pre>
                 </div>
               </div>
               
-              <div class="flex justify-center mt-8">
-                <a class="btn-primary flex items-center transition-all duration-300 hover:shadow-md hover:bg-primary-600"
+              <div class="mt-10 flex flex-col md:flex-row justify-center md:justify-between items-center gap-4">
+                <a class="flex items-center py-3 px-6 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-lg shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 transform hover:from-primary-600 hover:to-primary-700"
                    href="<%= result.magnet + trackers %>" 
                    target="_blank">
                   <i class="fas fa-magnet mr-2"></i>
                   <span>Download via Magnet URI</span>
                 </a>
+                
+                <a class="flex items-center py-3 px-6 bg-gray-100 text-dark-700 font-medium rounded-lg shadow-sm transition-all duration-300 hover:shadow-md hover:bg-gray-200" 
+                   href="javascript:history.back()">
+                  <i class="fas fa-arrow-left mr-2"></i>
+                  <span>Go Back</span>
+                </a>
               </div>
               
               <% if (timer) { %>
-                <div class="text-center mt-4">
-                  <p class="text-sm text-dark-500 bg-white inline-block py-1 px-4 rounded-full shadow-sm">
-                    <i class="fas fa-bolt text-yellow-500 mr-1"></i>
+                <div class="text-center mt-8">
+                  <p class="text-sm text-dark-500 bg-white inline-block py-2 px-4 rounded-full shadow-sm border border-gray-100">
+                    <i class="fas fa-bolt text-yellow-500 mr-2"></i>
                     <span>Query time: </span>
                     <span class="font-medium"><%= timer %> ms</span>
                   </p>

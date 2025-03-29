@@ -5,89 +5,117 @@
     <%- include('includes/navbar') %>
     
     <main class="flex-grow animate-fadeIn">
-      <div class="container mx-auto px-4 py-8">
-        <div class="max-w-4xl mx-auto">
-          <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-dark-800 mb-3 flex items-center justify-center md:text-4xl">
+      <div class="container mx-auto px-4 py-8 md:py-12">
+        <div class="max-w-5xl mx-auto">
+          <div class="text-center mb-10">
+            <h1 class="text-3xl font-bold text-dark-800 mb-4 flex items-center justify-center md:text-4xl">
               <i class="fas fa-chart-bar text-primary-500 mr-3"></i>
-              <span>Statistics</span>
+              <span class="bg-clip-text text-transparent bg-gradient-to-r from-dark-800 to-dark-700 font-display">Statistics</span>
             </h1>
+            <p class="text-lg text-dark-600 max-w-2xl mx-auto">
+              Our database is constantly growing as we discover more magnets from the DHT swarm.
+            </p>
           </div>
           
-          <div class="card bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg transform">
-            <div class="p-6">
-              <h2 class="text-2xl font-bold text-dark-900 mb-6 flex items-center">
-                <i class="fas fa-database text-primary-500 mr-3"></i>
+          <div class="bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg transform border border-gray-100">
+            <div class="p-6 md:p-8">
+              <h2 class="text-2xl font-bold text-dark-900 mb-8 flex items-center">
+                <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mr-3 shadow-sm">
+                  <i class="fas fa-database text-primary-600"></i>
+                </div>
                 <span>Database Statistics</span>
               </h2>
               
               <div class="grid gap-8 md:grid-cols-2">
-                <div class="space-y-4">
-                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                <div class="space-y-5">
+                  <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
                     <div class="text-dark-700 font-medium flex items-center">
-                      <i class="fas fa-server text-primary-500 mr-2"></i>
+                      <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-server text-primary-600"></i>
+                      </div>
                       <span>Database</span>
                     </div>
-                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.db %></span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.db %></span>
                   </div>
                   
-                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                  <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
                     <div class="text-dark-700 font-medium flex items-center">
-                      <i class="fas fa-table text-primary-500 mr-2"></i>
+                      <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-table text-primary-600"></i>
+                      </div>
                       <span>Collections</span>
                     </div>
-                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.collections %></span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.collections %></span>
                   </div>
                   
-                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                  <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
                     <div class="text-dark-700 font-medium flex items-center">
-                      <i class="fas fa-cubes text-primary-500 mr-2"></i>
+                      <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-cubes text-primary-600"></i>
+                      </div>
                       <span>Objects</span>
                     </div>
-                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.objects %></span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.objects.toLocaleString() %></span>
                   </div>
                 </div>
                 
-                <div class="space-y-4">
-                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                <div class="space-y-5">
+                  <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
                     <div class="text-dark-700 font-medium flex items-center">
-                      <i class="fas fa-calculator text-primary-500 mr-2"></i>
-                      <span>Avg. Size</span>
+                      <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-calculator text-primary-600"></i>
+                      </div>
+                      <span>Avg. Object Size</span>
                     </div>
-                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.avgObjSize %> KB</span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.avgObjSize %> KB</span>
                   </div>
                   
-                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                  <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
                     <div class="text-dark-700 font-medium flex items-center">
-                      <i class="fas fa-database text-primary-500 mr-2"></i>
+                      <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-database text-primary-600"></i>
+                      </div>
                       <span>Data Size</span>
                     </div>
-                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.dataSize %> MB</span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.dataSize %> MB</span>
                   </div>
                   
-                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                  <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
                     <div class="text-dark-700 font-medium flex items-center">
-                      <i class="fas fa-hdd text-primary-500 mr-2"></i>
+                      <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-hdd text-primary-600"></i>
+                      </div>
                       <span>Storage Size</span>
                     </div>
-                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.storageSize %> MB</span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.storageSize %> MB</span>
                   </div>
                   
-                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                  <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
                     <div class="text-dark-700 font-medium flex items-center">
-                      <i class="fas fa-sort-alpha-down text-primary-500 mr-2"></i>
+                      <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-sort-alpha-down text-primary-600"></i>
+                      </div>
                       <span>Indexes</span>
                     </div>
-                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.indexes %></span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.indexes %></span>
                   </div>
                   
-                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 transition-all duration-200 hover:bg-gray-100">
+                  <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:bg-gray-100 hover:scale-[1.02] transform shadow-sm">
                     <div class="text-dark-700 font-medium flex items-center">
-                      <i class="fas fa-weight-hanging text-primary-500 mr-2"></i>
+                      <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-weight-hanging text-primary-600"></i>
+                      </div>
                       <span>Index Size</span>
                     </div>
-                    <span class="px-3 py-1 bg-primary-600 text-white font-medium rounded-full"><%= statistics.indexSize %> MB</span>
+                    <span class="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-full shadow-sm"><%= statistics.indexSize %> MB</span>
                   </div>
+                </div>
+              </div>
+              
+              <div class="mt-10 p-5 bg-gray-50 rounded-lg border border-gray-200 shadow-inner">
+                <div class="flex items-center justify-center text-dark-600">
+                  <i class="fas fa-info-circle text-primary-500 mr-2"></i>
+                  <span class="text-sm">Statistics are updated in real-time as new magnets are discovered.</span>
                 </div>
               </div>
             </div>

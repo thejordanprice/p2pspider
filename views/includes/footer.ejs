@@ -1,29 +1,40 @@
 <footer class="bg-gradient-to-r from-dark-900 to-dark-800 text-white py-8 mt-auto">
   <div class="container mx-auto px-4">
     <div class="max-w-6xl mx-auto">
-      <div class="flex flex-col justify-between items-center space-y-6 md:flex-row md:space-y-0">
-        <div class="flex items-center">
-          <div class="transform transition-transform duration-300 hover:rotate-12">
+      <div class="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
+        <div class="flex items-center group">
+          <div class="transform transition-transform duration-500 group-hover:rotate-12">
             <i class="fas fa-magnet text-primary-500 text-2xl mr-3"></i>
           </div>
-          <h3 class="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-secondary-400">
+          <h3 class="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-secondary-400 font-display">
             <%= site_name || 'P2P Magnet Search' %>
           </h3>
         </div>
         
-        <div class="text-sm text-gray-400 flex items-center">
-          <span>Powered by</span>
-          <i class="fas fa-code mx-2 text-primary-500 animate-pulse"></i>
-          <a href="https://github.com/justinwalsh/p2pspider" 
-             target="_blank"
-             class="text-white font-medium hover:text-primary-400 transition-colors duration-200">
-            P2PSpider
-          </a>
-          <span class="mx-1">•</span>
-          <a href="/statistics"
-             class="text-white font-medium hover:text-primary-400 transition-colors duration-200">
-            Statistics
-          </a>
+        <div class="flex flex-col items-center md:items-end space-y-3">
+          <div class="text-sm text-gray-400 flex items-center flex-wrap justify-center md:justify-end gap-2">
+            <span>Powered by</span>
+            <i class="fas fa-code text-primary-500 animate-pulse"></i>
+            <a href="https://github.com/justinwalsh/p2pspider" 
+               target="_blank"
+               class="text-white font-medium hover:text-primary-400 transition-colors duration-200 underline decoration-primary-500/30 decoration-2 underline-offset-2 hover:decoration-primary-500">
+              P2PSpider
+            </a>
+          </div>
+          
+          <div class="flex items-center space-x-4">
+            <a href="/statistics"
+               class="text-sm text-white font-medium hover:text-primary-400 transition-colors duration-200 flex items-center gap-2 hover:translate-y-[-2px] transform transition-transform">
+              <i class="fas fa-chart-line text-primary-500"></i>
+              <span>Statistics</span>
+            </a>
+            <span class="text-dark-600">|</span>
+            <a href="/"
+               class="text-sm text-white font-medium hover:text-primary-400 transition-colors duration-200 flex items-center gap-2 hover:translate-y-[-2px] transform transition-transform">
+              <i class="fas fa-home text-primary-500"></i>
+              <span>Home</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
