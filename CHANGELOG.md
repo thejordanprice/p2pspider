@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2025-03-30
+
+### Bug Fixes
+- Fixed inconsistent page titles in search and infohash pages that were showing "Tordex" instead of the configured site name
+
 ## [1.0.0] - 2025-03-30
 
 ### Major Architectural Changes
