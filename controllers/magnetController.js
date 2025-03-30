@@ -5,6 +5,26 @@ const redis = require('redis');
 // Initialize database
 const db = new Database();
 
+// Track if full initialization is complete (not just connection)
+let dbInitialized = false;
+
+// Initialize database connection
+(async function initializeDatabase() {
+  try {
+    await db.connect();
+    // Set a flag once the counter is initialized to ensure all initialization is complete
+    // This ensures controllers won't report database not ready when it actually is
+    setTimeout(() => {
+      if (db.totalCount >= 0) {
+        dbInitialized = true;
+        console.log(`Database fully initialized with ${db.totalCount} records`);
+      }
+    }, 500); // Small delay to ensure counter is initialized
+  } catch (err) {
+    console.error('Error initializing database in controller:', err);
+  }
+})();
+
 // Initialize Redis client if enabled
 const USE_REDIS = process.env.USE_REDIS === 'true';
 const REDIS_URI = process.env.REDIS_URI;
@@ -86,6 +106,14 @@ async function getOrSetCache(key, ttl, dataFn) {
   return data;
 }
 
+// Helper function to check if database is ready
+function isDatabaseReady() {
+  // The database is ready if either of these conditions is true:
+  // 1. Connection is established AND the dbInitialized flag is true
+  // 2. Connection is established AND totalCount is positive
+  return db.connected && (dbInitialized || db.totalCount > 0);
+}
+
 const getTrackers = () => (
   '&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969' +
   '&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337' +
@@ -97,6 +125,15 @@ const getTrackers = () => (
 
 exports.index = async (req, res) => {
   try {
+    // Check if database is ready before proceeding
+    if (!isDatabaseReady()) {
+      console.log('Database not fully initialized when accessing index page');
+      return res.render('error', { 
+        title: res.locals.site_name, 
+        error: 'Database is still initializing, please try again in a few seconds.' 
+      });
+    }
+
     const count = await getOrSetCache('total_count', CACHE_DURATION, async () => {
       return db.totalCount; // Use cached counter instead of counting
     });
@@ -104,13 +141,25 @@ exports.index = async (req, res) => {
     res.render('index', { title: res.locals.site_name, count: count.toLocaleString() });
   } catch (err) {
     console.error('Error fetching count:', err);
-    res.status(500).send('Internal Server Error');
+    res.render('error', { 
+      title: res.locals.site_name, 
+      error: 'An error occurred while loading the page. Please try again shortly.' 
+    });
   }
 };
 
 exports.latest = async (req, res) => {
   const start = Date.now();
   try {
+    // Check if database is ready before proceeding
+    if (!isDatabaseReady()) {
+      console.log('Database not fully initialized when accessing latest page');
+      return res.render('error', { 
+        title: res.locals.site_name, 
+        error: 'Database is still initializing, please try again in a few seconds.' 
+      });
+    }
+
     const results = await getOrSetCache('latest_results', CACHE_DURATION, async () => {
       return await db.find({}, { sort: { fetchedAt: -1 }, limit: 25 });
     });
@@ -119,17 +168,23 @@ exports.latest = async (req, res) => {
     res.render('latest', { title: res.locals.site_name, results, trackers: getTrackers(), timer });
   } catch (err) {
     console.error('Error fetching latest:', err);
-    res.status(500).send('Internal Server Error');
+    res.render('error', { 
+      title: res.locals.site_name, 
+      error: 'An error occurred while loading the latest entries. Please try again shortly.' 
+    });
   }
 };
 
 exports.statistics = async (req, res) => {
   try {
-    // Check if database is connected before proceeding
-    if (!db.connected) {
+    // Check if database is ready before proceeding
+    if (!isDatabaseReady()) {
       // Handle case where database isn't connected yet
-      console.log('Database not connected yet when accessing statistics page');
-      return res.status(503).send('Database is still initializing, please try again in a few seconds.');
+      console.log('Database not fully initialized when accessing statistics page');
+      return res.render('error', { 
+        title: res.locals.site_name, 
+        error: 'Database is still initializing, please try again in a few seconds.' 
+      });
     }
 
     const stats = await getOrSetCache('db_statistics', CACHE_DURATION, async () => {
@@ -173,7 +228,10 @@ exports.statistics = async (req, res) => {
     res.render('statistics', { title: res.locals.site_name, statistics: stats });
   } catch (err) {
     console.error('Error fetching statistics:', err);
-    res.status(500).send('Internal Server Error');
+    res.render('error', {
+      title: res.locals.site_name,
+      error: 'An error occurred while loading statistics. Please try again shortly.'
+    });
   }
 };
 
@@ -186,6 +244,15 @@ exports.infohash = async (req, res) => {
   }
 
   try {
+    // Check if database is ready before proceeding
+    if (!isDatabaseReady()) {
+      console.log('Database not fully initialized when fetching infohash');
+      return res.render('error', { 
+        title: res.locals.site_name, 
+        error: 'Database is still initializing, please try again in a few seconds.' 
+      });
+    }
+
     // Cache key includes the infohash
     const cacheKey = `infohash_${infohash.toLowerCase()}`;
     
@@ -211,7 +278,10 @@ exports.infohash = async (req, res) => {
     });
   } catch (err) {
     console.error('Error fetching infohash:', err);
-    res.status(500).send('Internal Server Error');
+    res.render('error', { 
+      title: res.locals.site_name, 
+      error: 'An error occurred while fetching the infohash. Please try again shortly.' 
+    });
   }
 };
 
@@ -221,11 +291,20 @@ exports.search = async (req, res) => {
   const limit = 10;
 
   if (!query) {
-    return res.render('searchform', { title: res.locals.site_name });
+    return res.redirect('/');
   }
 
   if (query.length < 3) {
     return res.render('error', { title: res.locals.site_name, error: 'You must type a longer search query.' });
+  }
+
+  // Check if database is ready before proceeding
+  if (!isDatabaseReady()) {
+    console.log('Database not fully initialized when performing search');
+    return res.render('error', { 
+      title: res.locals.site_name, 
+      error: 'Database is still initializing, please try again in a few seconds.' 
+    });
   }
 
   let countQuery;
@@ -317,12 +396,21 @@ exports.search = async (req, res) => {
     });
   } catch (err) {
     console.error('Error during search:', err);
-    res.status(500).send('Internal Server Error');
+    res.render('error', { 
+      title: res.locals.site_name, 
+      error: 'An error occurred while searching. The database might still be initializing.' 
+    });
   }
 };
 
 exports.count = async (req, res) => {
   try {
+    // Check if database is ready before proceeding
+    if (!isDatabaseReady()) {
+      console.log('Database not fully initialized when fetching count');
+      return res.status(503).json({ error: 'Database is still initializing' });
+    }
+    
     const count = await getOrSetCache('total_count', CACHE_DURATION, async () => {
       return db.totalCount; // Use cached counter instead of counting
     });
@@ -330,6 +418,6 @@ exports.count = async (req, res) => {
     res.send(count.toLocaleString());
   } catch (err) {
     console.error('Error fetching count:', err);
-    res.status(500).send('Internal Server Error');
+    res.status(500).json({ error: 'Error fetching count' });
   }
 };

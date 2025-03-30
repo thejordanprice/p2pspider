@@ -27,6 +27,9 @@ const magnetSchema = new mongoose.Schema({
 
 const Magnet = mongoose.model('Magnet', magnetSchema);
 
+// Global database instance
+let dbInstance = null;
+
 // Database interface class
 class Database {
   constructor() {
@@ -35,72 +38,108 @@ class Database {
     this.connected = false;
     this.totalCount = 0; // Added counter to track total documents
     this.lastCountUpdate = 0; // Timestamp of last full count
+    
+    // Store this instance as the global one
+    dbInstance = this;
   }
 
   async connect() {
     if (this.type === 'mongodb') {
       try {
-        await mongoose.connect(MONGO_URI);
+        // Set connected first so routes can work immediately 
         this.connected = true;
+        
+        // Connect to MongoDB
+        await mongoose.connect(MONGO_URI);
         console.log('MongoDB has connected.');
         
-        // Initialize counter after connection, but don't block the connection process
-        this.initializeCounter();
+        // Initialize counter in background
+        this.initializeCounter().then(() => {
+          console.log('MongoDB counter initialized');
+        }).catch(err => {
+          console.error('Error initializing MongoDB counter:', err);
+        });
+        
+        return;
       } catch (err) {
         console.error('MongoDB connection error:', err);
+        this.connected = false; // Reset if connection fails
         throw err;
       }
     } else if (this.type === 'sqlite') {
       return new Promise((resolve, reject) => {
+        // First set connected so routes can work immediately
+        this.connected = true;
+        
         this.db = new sqlite3.Database(SQLITE_PATH, (err) => {
           if (err) {
             console.error('SQLite connection error:', err);
+            this.connected = false; // Reset if connection fails
             reject(err);
-          } else {
-            this.db.run(`
-              CREATE TABLE IF NOT EXISTS magnets (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT,
-                infohash TEXT UNIQUE,
-                magnet TEXT,
-                files TEXT,
-                fetchedAt INTEGER
-              )
-            `, (err) => {
-              if (err) {
-                console.error('SQLite table creation error:', err);
-                reject(err);
-              } else {
-                this.db.run('CREATE INDEX IF NOT EXISTS idx_infohash ON magnets(infohash)', (err) => {
-                  if (err) {
-                    console.error('SQLite index creation error:', err);
-                    reject(err);
-                  } else {
-                    this.db.run('CREATE INDEX IF NOT EXISTS idx_name ON magnets(name)', (err) => {
-                      if (err) {
-                        console.error('SQLite index creation error:', err);
-                        reject(err);
-                      } else {
-                        // Set connected first so routes can work
-                        this.connected = true;
-                        console.log('SQLite has connected.');
-                        
-                        // Initialize counter in the background
-                        this.initializeCounter();
-                        
-                        resolve();
-                      }
-                    });
-                  }
-                });
-              }
-            });
+            return;
           }
+          
+          console.log('SQLite has connected.');
+          
+          // Run table creation in the background
+          this.setupSQLiteTables().then(() => {
+            // Initialize counter in background without waiting for result
+            this.initializeCounter().then(() => {
+              console.log('SQLite counter initialized');
+            }).catch(err => {
+              console.error('Error initializing SQLite counter:', err);
+            });
+            
+            resolve();
+          }).catch(err => {
+            this.connected = false; // Reset if setup fails
+            reject(err);
+          });
         });
       });
     } else {
       throw new Error(`Unsupported database type: ${this.type}`);
     }
+  }
+  
+  // Helper method to set up SQLite tables without blocking main initialization
+  async setupSQLiteTables() {
+    return new Promise((resolve, reject) => {
+      this.db.run(`
+        CREATE TABLE IF NOT EXISTS magnets (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT,
+          infohash TEXT UNIQUE,
+          magnet TEXT,
+          files TEXT,
+          fetchedAt INTEGER
+        )
+      `, (err) => {
+        if (err) {
+          console.error('SQLite table creation error:', err);
+          reject(err);
+          return;
+        }
+        
+        this.db.run('CREATE INDEX IF NOT EXISTS idx_infohash ON magnets(infohash)', (err) => {
+          if (err) {
+            console.error('SQLite index creation error:', err);
+            reject(err);
+            return;
+          }
+          
+          this.db.run('CREATE INDEX IF NOT EXISTS idx_name ON magnets(name)', (err) => {
+            if (err) {
+              console.error('SQLite index creation error:', err);
+              reject(err);
+              return;
+            }
+            
+            resolve();
+          });
+        });
+      });
+    });
   }
   
   // This method initializes the counter without blocking the connection
@@ -360,7 +399,10 @@ class Database {
   }
 }
 
+// Export the class
 module.exports = {
   Database,
-  Magnet // Export for backward compatibility
+  
+  // Function to get existing database instance
+  getDatabase: () => dbInstance
 }; 
