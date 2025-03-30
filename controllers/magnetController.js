@@ -357,7 +357,7 @@ exports.infohash = async (req, res) => {
     const magnet = result.magnet + getTrackers();
 
     res.render('infohash', {
-      title: 'Tordex',
+      title: res.locals.site_name,
       result,
       trackers: getTrackers(),
       timer
@@ -474,7 +474,7 @@ exports.search = async (req, res) => {
     };
 
     res.render('search', {
-      title: 'Tordex',
+      title: res.locals.site_name,
       results: results,
       trackers: getTrackers(),
       pages,
