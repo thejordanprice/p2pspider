@@ -1,3 +1,24 @@
+# P2P Spider v1.0.1 Release Notes
+
+We're pleased to announce the release of P2P Spider v1.0.1, a maintenance update that fixes UI consistency issues across the application.
+
+## What's New
+
+### Bug Fixes
+- Fixed inconsistent page titles in search and infohash pages that were showing "Tordex" instead of the configured site name
+  - All pages now correctly display the site name configured in your environment settings
+  - This provides a more consistent and professional user experience
+
+## Upgrading
+
+This is a minor update focused on UI consistency. Upgrading requires:
+- Pull the latest changes from the repository
+- Restart the application
+
+No database changes or configuration updates are required for this release.
+
+---
+
 # P2P Spider v1.0.0 Release Notes
 
 We're excited to announce the official 1.0.0 release of P2P Spider, a powerful DHT network crawler and magnet link indexer with a modern web interface.
