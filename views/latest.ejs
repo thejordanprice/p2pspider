@@ -22,27 +22,6 @@
           </div>
         </div>
 
-        <% if (typeof pages !== 'undefined') { %>
-          <div class="max-w-5xl mx-auto mb-10">            
-            <div class="flex justify-center gap-4 my-8">
-              <% if (pages.current != 0) { %>
-                <button onclick="window.location.href='/latest?p=<%= pages.previous %>'" 
-                        class="bg-white py-2.5 px-6 rounded-lg shadow-sm hover:shadow-md border border-gray-100 text-dark-800 font-medium flex items-center gap-2 transition-all duration-300 hover:-translate-x-1 transform">
-                  <i class="fas fa-chevron-left text-primary-500"></i>
-                  <span>Previous</span>
-                </button>
-              <% } %>
-              <% if (pages.available >= pages.next) { %>
-                <button onclick="window.location.href='/latest?p=<%= pages.next %>'" 
-                        class="bg-white py-2.5 px-6 rounded-lg shadow-sm hover:shadow-md border border-gray-100 text-dark-800 font-medium flex items-center gap-2 transition-all duration-300 hover:translate-x-1 transform">
-                  <span>Next</span>
-                  <i class="fas fa-chevron-right text-primary-500"></i>
-                </button>
-              <% } %>
-            </div>
-          </div>
-        <% } %>
-
         <% if (typeof results !== 'undefined' && results.length > 0) { %>
           <div id="latest-container" 
                class="max-w-5xl mx-auto space-y-6"
@@ -92,25 +71,6 @@
                 </div>
               </div>
             <% }); %>
-          </div>
-        <% } %>
-
-        <% if (typeof pages !== 'undefined') { %>
-          <div class="flex justify-center gap-4 mt-10">
-            <% if (pages.current != 0) { %>
-              <button onclick="window.location.href='/latest?p=<%= pages.previous %>'" 
-                      class="bg-white py-2.5 px-6 rounded-lg shadow-sm hover:shadow-md border border-gray-100 text-dark-800 font-medium flex items-center gap-2 transition-all duration-300 hover:-translate-x-1 transform">
-                <i class="fas fa-chevron-left text-primary-500"></i>
-                <span>Previous</span>
-              </button>
-            <% } %>
-            <% if (pages.available >= pages.next) { %>
-              <button onclick="window.location.href='/latest?p=<%= pages.next %>'" 
-                      class="bg-white py-2.5 px-6 rounded-lg shadow-sm hover:shadow-md border border-gray-100 text-dark-800 font-medium flex items-center gap-2 transition-all duration-300 hover:translate-x-1 transform">
-                <span>Next</span>
-                <i class="fas fa-chevron-right text-primary-500"></i>
-              </button>
-            <% } %>
           </div>
         <% } %>
 
