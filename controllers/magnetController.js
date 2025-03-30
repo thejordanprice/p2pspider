@@ -33,6 +33,8 @@ let redisClient = null;
 // Cache duration in seconds
 const CACHE_DURATION = 300; // Changed from 60 to 300 (5 minutes)
 const LATEST_PAGE_CACHE_DURATION = 600; // 10 minutes for latest page
+const SEARCH_PAGE_CACHE_DURATION = 300; // 5 minutes for search results
+const STATISTICS_CACHE_DURATION = 600; // 10 minutes for statistics page
 
 // In-memory cache for when Redis is disabled
 const memoryCache = {
@@ -271,7 +273,7 @@ exports.statistics = async (req, res) => {
       });
     }
 
-    const stats = await getOrSetCache('db_statistics', CACHE_DURATION, async () => {
+    const stats = await getOrSetCache('db_statistics', STATISTICS_CACHE_DURATION, async () => {
       if (db.type === 'mongodb') {
         const mongoStats = await db.db.connection.db.stats({ scale: 1048576 });
         return {
@@ -410,7 +412,7 @@ exports.search = async (req, res) => {
   const cacheKey = `search_${query.toLowerCase()}_page_${page}`;
 
   try {
-    const searchResults = await getOrSetCache(cacheKey, CACHE_DURATION, async () => {
+    const searchResults = await getOrSetCache(cacheKey, SEARCH_PAGE_CACHE_DURATION, async () => {
       let count, results;
       
       if (db.type === 'mongodb') {
