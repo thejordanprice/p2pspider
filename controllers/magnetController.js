@@ -31,7 +31,8 @@ const REDIS_URI = process.env.REDIS_URI;
 let redisClient = null;
 
 // Cache duration in seconds
-const CACHE_DURATION = 60; // 1 minute
+const CACHE_DURATION = 300; // Changed from 60 to 300 (5 minutes)
+const LATEST_PAGE_CACHE_DURATION = 600; // 10 minutes for latest page
 
 // In-memory cache for when Redis is disabled
 const memoryCache = {
@@ -86,8 +87,14 @@ async function getOrSetCache(key, ttl, dataFn) {
       }
       
       // If not in cache, fetch and store
+      console.time(`Cache miss for ${key}`);
       const data = await dataFn();
-      await redisClient.set(key, JSON.stringify(data), { EX: ttl });
+      console.timeEnd(`Cache miss for ${key}`);
+      
+      // Don't wait for the set operation to complete
+      redisClient.set(key, JSON.stringify(data), { EX: ttl })
+        .catch(err => console.error(`Redis error setting ${key}:`, err));
+      
       return data;
     } catch (err) {
       console.error('Redis cache error:', err);
@@ -101,7 +108,10 @@ async function getOrSetCache(key, ttl, dataFn) {
     return cachedData;
   }
   
+  console.time(`Memory cache miss for ${key}`);
   const data = await dataFn();
+  console.timeEnd(`Memory cache miss for ${key}`);
+  
   memoryCache.set(key, data, ttl);
   return data;
 }
@@ -160,12 +170,86 @@ exports.latest = async (req, res) => {
       });
     }
 
-    const results = await getOrSetCache('latest_results', CACHE_DURATION, async () => {
-      return await db.find({}, { sort: { fetchedAt: -1 }, limit: 25 });
+    // Get page parameter for pagination
+    const page = parseInt(req.query.p) || 0;
+    const pageSize = 15; // Reduced from 25 to 15 for faster rendering
+    const skip = page * pageSize;
+    
+    // Use cache key that includes pagination parameters
+    const cacheKey = `latest_results_p${page}`;
+
+    const results = await getOrSetCache(cacheKey, LATEST_PAGE_CACHE_DURATION, async () => {
+      // For MongoDB, use projection to limit fields returned
+      // For SQLite, we'll still get all fields but it should be faster with proper indexing
+      const query = {};
+      const options = { 
+        sort: { fetchedAt: -1 }, 
+        limit: pageSize, 
+        skip: skip 
+      };
+      
+      // Only include specific fields we need to display
+      if (db.type === 'mongodb') {
+        options.projection = {
+          name: 1, 
+          infohash: 1, 
+          magnet: 1, 
+          fetchedAt: 1,
+          // Include a truncated version of files directly in projection
+          files: { $slice: 5 } // Limit to first 5 files
+        };
+      }
+      
+      const items = await db.find(query, options);
+      
+      // Pre-process file data for rendering to avoid doing it in the template
+      items.forEach(item => {
+        // Pre-format file strings for display
+        if (item.files && Array.isArray(item.files)) {
+          // Limit to first few files to improve rendering performance
+          if (item.files.length > 5) {
+            item.files = item.files.slice(0, 5);
+            item.hasMoreFiles = true;
+          }
+          item.filestring = item.files.join('\n');
+          if (item.filestring.length > 100) {
+            item.filestring = item.filestring.substring(0, 100) + '...';
+          }
+        } else if (typeof item.files === 'string') {
+          let fileString = item.files;
+          let formatString = fileString.split(',').join('\n');
+          if (formatString.length > 100) {
+            formatString = formatString.substring(0, 100) + '...';
+          }
+          item.filestring = formatString;
+        }
+      });
+      
+      return items;
     });
     
+    // Get total count for pagination
+    const totalCount = await getOrSetCache('total_count', CACHE_DURATION, async () => {
+      return db.totalCount;
+    });
+    
+    // Calculate pagination data
+    const totalPages = Math.ceil(totalCount / pageSize);
+    const pages = {
+      current: page,
+      previous: Math.max(0, page - 1),
+      next: page + 1,
+      available: totalPages - 1
+    };
+    
     const timer = Date.now() - start;
-    res.render('latest', { title: res.locals.site_name, results, trackers: getTrackers(), timer });
+    res.render('latest', { 
+      title: res.locals.site_name, 
+      results, 
+      trackers: getTrackers(), 
+      timer,
+      pages 
+    });
   } catch (err) {
     console.error('Error fetching latest:', err);
     res.render('error', { 

@@ -286,15 +286,37 @@ class Database {
       if (options.sort) mongoQuery = mongoQuery.sort(options.sort);
       if (options.limit) mongoQuery = mongoQuery.limit(options.limit);
       if (options.skip) mongoQuery = mongoQuery.skip(options.skip);
+      if (options.projection) mongoQuery = mongoQuery.select(options.projection);
       
-      return await mongoQuery.exec();
+      // Use lean() to get plain JavaScript objects instead of Mongoose documents
+      // This significantly improves performance by skipping document hydration
+      return await mongoQuery.lean().exec();
     } else {
       return new Promise((resolve, reject) => {
         // Convert MongoDB-style query to SQLite
         const whereClause = this.buildWhereClause(query);
-        const { sort, limit, skip } = options;
+        const { sort, limit, skip, projection } = options;
         
-        let sql = 'SELECT * FROM magnets';
+        // Optimize the fields selection for SQLite
+        let fieldSelection = '*';
+        if (projection) {
+          // Convert MongoDB-style projection to SQLite column selection
+          const fields = [];
+          for (const field in projection) {
+            if (projection[field] === 1 || projection[field] === true) {
+              fields.push(field);
+            }
+          }
+          if (fields.length > 0) {
+            // Always include id to ensure we have a primary key
+            if (!fields.includes('id')) {
+              fields.unshift('id');
+            }
+            fieldSelection = fields.join(', ');
+          }
+        }
+        
+        let sql = `SELECT ${fieldSelection} FROM magnets`;
         if (whereClause) sql += ` WHERE ${whereClause}`;
         
         if (sort) {
@@ -312,7 +334,13 @@ class Database {
           } else {
             // Convert files string to array for each row
             rows.forEach(row => {
-              row.files = row.files ? JSON.parse(row.files) : [];
+              if (row.files && typeof row.files === 'string') {
+                try {
+                  row.files = JSON.parse(row.files);
+                } catch (e) {
+                  row.files = [];
+                }
+              }
             });
             resolve(rows);
           }

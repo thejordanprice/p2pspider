@@ -4,7 +4,7 @@
   <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col">
     <%- include('includes/navbar') %>
     
-    <main class="flex-grow animate-fadeIn">
+    <main class="flex-grow">
       <div class="container mx-auto px-4 py-8">
         <% if (typeof pagesdebug !== 'undefined') { %>
           <pre class="bg-dark-800 text-gray-200 p-4 rounded-lg overflow-x-auto text-sm mb-8 font-mono shadow-md"><%= pagesdebug %></pre>
@@ -49,7 +49,7 @@
                data-is-first-page="<%= typeof pages === 'undefined' || (typeof pages !== 'undefined' && pages.current === 0) ? 'true' : 'false' %>"
                data-trackers="<%= trackers %>">
             <% results.forEach(function(item) { %>
-              <div class="bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg hover:-translate-y-1 transform border border-gray-100 group relative">
+              <div class="bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg border border-gray-100 group relative">
                 <!-- Pulse indicator for new items -->
                 <div class="absolute top-4 right-4 flex items-center">
                   <span class="animate-ping absolute h-3 w-3 rounded-full bg-primary-400 opacity-75"></span>
@@ -66,16 +66,14 @@
                     <span class="select-all font-mono bg-gray-50 px-2 py-1 rounded text-dark-600 border border-gray-200 text-xs md:text-sm"><%= item.infohash %></span>
                   </div>
                   
-                  <% 
-                    var filestring = typeof item.files === 'string' ? item.files : '';
-                    var formatstring = filestring.split(',').join('\n');
-                    if (formatstring.length > 100) { 
-                      formatstring = formatstring.substring(0, 100) + '...'; 
-                    }
-                  %>
-                  <% if (formatstring) { %>
+                  <% if (item.filestring) { %>
                     <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm text-dark-700 font-mono border border-gray-200 shadow-inner">
-                      <pre class="whitespace-pre-wrap break-words"><%= formatstring %></pre>
+                      <pre class="whitespace-pre-wrap break-words"><%= item.filestring %></pre>
+                      <% if (item.hasMoreFiles) { %>
+                        <div class="text-xs text-right mt-1 text-primary-600">
+                          <a href="/infohash?q=<%= item.infohash %>">More files...</a>
+                        </div>
+                      <% } %>
                     </div>
                   <% } %>
                   
@@ -131,39 +129,52 @@
     <%- include('includes/footer') %>
 
     <script>
-      // WebSocket connection for real-time updates
-      (function() {
-        // Get WebSocket address
-        const wsAddress = "<%= wsServerAddress %>";
+      document.addEventListener('DOMContentLoaded', function() {
+        // Lazy load the WebSocket connection with a slight delay
+        // This helps the page render first before establishing WebSocket
+        setTimeout(function() {
+          initializeWebSocket();
+        }, 1000);
         
-        // Make sure WebSocket address has proper protocol
-        let wsProtocolFixed = wsAddress;
-        if (!wsAddress.startsWith('ws')) {
-          wsProtocolFixed = wsAddress.replace(/^http/, 'ws');
-          if (!wsProtocolFixed.startsWith('ws')) {
-            wsProtocolFixed = `ws://${wsAddress}`;
+        function initializeWebSocket() {
+          // Only connect websocket on page 0 (latest page)
+          const container = document.getElementById('latest-container');
+          if (!container || container.dataset.isFirstPage !== 'true') {
+            return;
           }
-        }
-        
-        console.log('Connecting to WebSocket server at:', wsProtocolFixed);
-        const ws = new WebSocket(wsProtocolFixed);
-
-        ws.onmessage = function(event) {
-          const data = JSON.parse(event.data);
           
-          // Handle new magnet event
-          if (data.eventType === 'new_magnet') {
-            addNewMagnetToList(data.data);
+          // Get WebSocket address
+          const wsAddress = "<%= wsServerAddress %>";
+          
+          // Make sure WebSocket address has proper protocol
+          let wsProtocolFixed = wsAddress;
+          if (!wsAddress.startsWith('ws')) {
+            wsProtocolFixed = wsAddress.replace(/^http/, 'ws');
+            if (!wsProtocolFixed.startsWith('ws')) {
+              wsProtocolFixed = `ws://${wsAddress}`;
+            }
           }
-        };
-
-        ws.onopen = function() {
-          console.log('WebSocket connection established for Latest page.');
-        };
-
-        ws.onerror = function(error) {
-          console.error('WebSocket Error:', error);
-        };
+          
+          console.log('Connecting to WebSocket server at:', wsProtocolFixed);
+          const ws = new WebSocket(wsProtocolFixed);
+  
+          ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            
+            // Handle new magnet event
+            if (data.eventType === 'new_magnet') {
+              addNewMagnetToList(data.data);
+            }
+          };
+  
+          ws.onopen = function() {
+            console.log('WebSocket connection established for Latest page.');
+          };
+  
+          ws.onerror = function(error) {
+            console.error('WebSocket Error:', error);
+          };
+        }
         
         // Function to add a new magnet to the top of the list
         function addNewMagnetToList(magnetData) {
@@ -180,7 +191,7 @@
           if (isFirstPage) {
             // Create new magnet element
             const newElement = document.createElement('div');
-            newElement.className = 'bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg hover:-translate-y-1 transform border border-gray-100 group relative new-magnet';
+            newElement.className = 'bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg border border-gray-100 group relative new-magnet';
             newElement.style.opacity = '0';
             newElement.style.transform = 'translateY(-20px)';
             newElement.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
@@ -249,20 +260,14 @@
               newElement.style.transform = 'translateY(0)';
             }, 50);
             
-            // Remove oldest item if there are more than 25 displayed
-            const items = container.querySelectorAll('.bg-white');
-            if (items.length > 25) {
-              // Get the last item that's not just added
-              const oldestItem = items[items.length - 1];
-              oldestItem.style.opacity = '0';
-              oldestItem.style.transform = 'translateY(20px)';
-              setTimeout(function() {
-                oldestItem.remove();
-              }, 500);
+            // Remove oldest item if we have too many
+            const items = container.querySelectorAll('.shadow-elegant');
+            if (items.length > 15) { // Match the pageSize in controller
+              container.removeChild(items[items.length - 1]);
             }
           }
         }
-      })();
+      });
     </script>
   </body>
 </html> 
