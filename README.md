@@ -59,6 +59,13 @@ USE_REDIS=false
 
 # SQLite database file location (only used if DB_TYPE=sqlite)
 SQLITE_PATH=./data/magnet.db
+
+# Elasticsearch options: "true" or "false"
+USE_ELASTICSEARCH=false
+
+# Elasticsearch connection
+ELASTICSEARCH_NODE=http://localhost:9200
+ELASTICSEARCH_INDEX=magnets
 ```
 
 You can also fine-tune the crawler performance in the daemon.js file:
@@ -83,6 +90,21 @@ DHT Spider supports both MongoDB and SQLite as database options, and Redis usage
 
 SQLite is ideal for smaller deployments with reduced dependencies, while MongoDB is better for large-scale operations. Redis provides caching to prevent duplicate processing of recently seen infohashes.
 
+#### Elasticsearch Configuration
+
+DHT Spider now includes Elasticsearch integration for powerful full-text search capabilities:
+
+- **USE_ELASTICSEARCH**: Set to "true" to enable Elasticsearch integration
+- **ELASTICSEARCH_NODE**: URL of your Elasticsearch server (default: http://localhost:9200)
+- **ELASTICSEARCH_INDEX**: Name of the Elasticsearch index to use (default: magnets)
+
+To bulk index existing data into Elasticsearch, run:
+```bash
+node utils/bulkIndexToElasticsearch.js
+```
+
+Elasticsearch provides significantly improved search performance and relevance, especially for large datasets. When enabled, search queries will use Elasticsearch instead of database queries.
+
 ### Features
 
 - Real-time DHT network crawling and magnet link indexing
@@ -90,6 +112,8 @@ SQLite is ideal for smaller deployments with reduced dependencies, while MongoDB
 - Searchable database of discovered magnet links
 - Statistics page with database information
 - Support for both MongoDB and SQLite databases
+- Elasticsearch integration for powerful full-text search
+- Redis caching for improved performance
 - Responsive web interface with modern design
 
 ### Protocols
@@ -118,7 +142,6 @@ USE_REDIS=true
 #### 2. Production Mode
 Run the application in production mode for better performance:
 ```bash
-# Direct NodeJS execution
 npm run start:prod   # For the web server
 npm run daemon:prod  # For the DHT crawler
 
@@ -138,6 +161,13 @@ The WebSocket server includes:
 - Client connection health monitoring
 - Throttled broadcasts to prevent excessive updates
 
+#### 5. Elasticsearch Search Optimization
+When dealing with large datasets, enable Elasticsearch for improved search performance:
+```
+# Elasticsearch options: "true" or "false"
+USE_ELASTICSEARCH=true
+```
+
 #### Monitoring Performance
 Monitor system resources during operation:
 ```bash
@@ -148,7 +178,8 @@ If the application is still slow:
 1. Increase server resources (RAM/CPU)
 2. Use a CDN for static assets
 3. Consider using a dedicated Redis server
-4. Scale horizontally with a load balancer
+4. Consider using a dedicated Elasticsearch cluster
+5. Scale horizontally with a load balancer
 
 ## License
 

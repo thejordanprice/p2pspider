@@ -1,3 +1,45 @@
+# P2P Spider v1.0.2 Release Notes
+
+We're excited to announce the release of P2P Spider v1.0.2, which introduces Elasticsearch integration for significantly improved search capabilities.
+
+## What's New
+
+### Elasticsearch Integration
+- Added full Elasticsearch support for powerful and efficient full-text search
+- Implemented configuration options in the `.env` file for easy setup
+- Created a bulk indexing utility to migrate existing data to Elasticsearch
+- Enhanced search functionality to use Elasticsearch when available
+
+### Benefits
+- Significantly faster search performance, especially for large datasets
+- Improved search relevance with better ranking of results
+- Support for fuzzy matching and advanced search capabilities
+- Scalable search infrastructure for growing magnet collections
+
+## How to Use
+
+1. Install Elasticsearch on your system or use a managed service
+2. Update your `.env` file with the following settings:
+   ```
+   USE_ELASTICSEARCH=true
+   ELASTICSEARCH_NODE=http://localhost:9200
+   ELASTICSEARCH_INDEX=magnets
+   ```
+3. To migrate existing data to Elasticsearch, run:
+   ```
+   node utils/bulkIndexToElasticsearch.js
+   ```
+
+## Upgrading
+
+This update requires:
+- Pull the latest changes from the repository
+- Install the new dependencies: `npm install`
+- Update your `.env` file with Elasticsearch configuration
+- Restart the application
+
+---
+
 # P2P Spider v1.0.1 Release Notes
 
 We're pleased to announce the release of P2P Spider v1.0.1, a maintenance update that fixes UI consistency issues across the application.
