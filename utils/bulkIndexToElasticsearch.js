@@ -1,7 +1,7 @@
 'use strict';
 
 require('dotenv').config();
-const { getDatabase } = require('../models/db');
+const { getDatabase, Database } = require('../models/db');
 const elasticsearch = require('../models/elasticsearch');
 
 const BATCH_SIZE = 1000; // Process in batches to avoid memory issues
@@ -20,11 +20,18 @@ async function bulkIndexAll() {
       process.exit(1);
     }
     
-    // Get database instance
-    const db = getDatabase();
-    await db.connect();
+    // Get database instance or create a new one if needed
+    let db = getDatabase();
+    if (!db) {
+      console.log('No existing database instance found, creating a new one...');
+      db = new Database();
+    }
     
-    // Get total count for progress tracking
+    // Connect to the database
+    await db.connect();
+    console.log(`Connected to ${db.type} database.`);
+    
+    // Get total count for progress tracking - use totalCount instead of countDocuments
     const totalCount = db.totalCount;
     console.log(`Found ${totalCount.toLocaleString()} documents to index`);
     

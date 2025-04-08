@@ -21,8 +21,11 @@ async function initialize() {
   }
 
   try {
+    console.log(`Connecting to Elasticsearch at ${ELASTICSEARCH_NODE}...`);
     client = new Client({
       node: ELASTICSEARCH_NODE,
+      maxRetries: 3,
+      requestTimeout: 30000
     });
 
     // Test the connection
@@ -33,6 +36,7 @@ async function initialize() {
     const indexExists = await client.indices.exists({ index: ELASTICSEARCH_INDEX });
     
     if (!indexExists) {
+      console.log(`Creating Elasticsearch index: ${ELASTICSEARCH_INDEX}...`);
       await client.indices.create({
         index: ELASTICSEARCH_INDEX,
         body: {
@@ -89,15 +93,21 @@ async function indexDocument(document) {
   if (!USE_ELASTICSEARCH || !isConnected || !client) return null;
   
   try {
+    if (!document || !document.infohash) {
+      console.error('Invalid document for indexing:', document);
+      return null;
+    }
+    
     // Make sure infohash is used as the document ID for deduplication
     const result = await client.index({
       index: ELASTICSEARCH_INDEX,
       id: document.infohash,
       document: {
-        name: document.name,
+        name: document.name || '',
         infohash: document.infohash,
-        magnet: document.magnet,
-        files: Array.isArray(document.files) ? document.files : [],
+        magnet: document.magnet || '',
+        files: Array.isArray(document.files) ? document.files : 
+              (typeof document.files === 'string' ? [document.files] : []),
         fetchedAt: document.fetchedAt || Date.now()
       },
       refresh: true // Make document immediately searchable

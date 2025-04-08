@@ -33,14 +33,16 @@ let dbInstance = null;
 // Database interface class
 class Database {
   constructor() {
-    this.db = null;
     this.type = DB_TYPE;
+    this.db = null;
     this.connected = false;
-    this.totalCount = 0; // Added counter to track total documents
-    this.lastCountUpdate = 0; // Timestamp of last full count
+    this.totalCount = 0;
+    this.lastCountUpdate = 0;
     
-    // Store this instance as the global one
-    dbInstance = this;
+    // Only set as global instance if none exists
+    if (!dbInstance) {
+      dbInstance = this;
+    }
   }
 
   async connect() {
@@ -460,6 +462,11 @@ class Database {
 module.exports = {
   Database,
   
-  // Function to get existing database instance
-  getDatabase: () => dbInstance
+  // Function to get existing database instance or create a new one
+  getDatabase: () => {
+    if (!dbInstance) {
+      dbInstance = new Database();
+    }
+    return dbInstance;
+  }
 }; 
