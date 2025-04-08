@@ -44,6 +44,8 @@ class Database {
   }
 
   async connect() {
+    const elasticsearch = require('./elasticsearch');
+
     if (this.type === 'mongodb') {
       try {
         // Set connected first so routes can work immediately 
@@ -58,6 +60,11 @@ class Database {
           console.log('MongoDB counter initialized');
         }).catch(err => {
           console.error('Error initializing MongoDB counter:', err);
+        });
+        
+        // Initialize Elasticsearch in background if enabled
+        elasticsearch.initialize().catch(err => {
+          console.error('Error initializing Elasticsearch:', err);
         });
         
         return;
@@ -88,6 +95,11 @@ class Database {
               console.log('SQLite counter initialized');
             }).catch(err => {
               console.error('Error initializing SQLite counter:', err);
+            });
+            
+            // Initialize Elasticsearch in background if enabled
+            elasticsearch.initialize().catch(err => {
+              console.error('Error initializing Elasticsearch:', err);
             });
             
             resolve();
@@ -195,11 +207,20 @@ class Database {
   async saveMagnet(magnetData) {
     if (!this.connected) await this.connect();
 
+    const elasticsearch = require('./elasticsearch');
+
     if (this.type === 'mongodb') {
       const magnetDoc = new Magnet(magnetData);
       const result = await magnetDoc.save();
       if (result) {
         this.totalCount++; // Increment counter on successful save
+        
+        // Index in Elasticsearch if enabled
+        if (elasticsearch.isElasticsearchEnabled()) {
+          elasticsearch.indexDocument(magnetData).catch(err => {
+            console.error('Error indexing in Elasticsearch:', err);
+          });
+        }
       }
       return result;
     } else {
@@ -220,6 +241,14 @@ class Database {
               }
             } else {
               this.totalCount++; // Increment counter on successful save
+              
+              // Index in Elasticsearch if enabled
+              if (elasticsearch.isElasticsearchEnabled()) {
+                elasticsearch.indexDocument(magnetData).catch(err => {
+                  console.error('Error indexing in Elasticsearch:', err);
+                });
+              }
+              
               resolve({ id: this.lastID, ...magnetData });
             }
           }.bind(this) // Bind to access this.totalCount
