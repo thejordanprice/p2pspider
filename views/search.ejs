@@ -115,6 +115,18 @@
               <i class="fas fa-bolt text-yellow-500 mr-2"></i>
               <span>Query time:</span>
               <span class="font-medium ml-1"><%= timer %> ms</span>
+              <% if (typeof searchSource !== 'undefined') { %>
+                <span class="ml-2 text-dark-400">|</span>
+                <span class="ml-2">
+                  <% if (searchSource === 'elasticsearch') { %>
+                    <i class="fas fa-search-plus text-green-500 mr-1"></i>
+                    <span class="text-green-600 font-medium">Elasticsearch</span>
+                  <% } else { %>
+                    <i class="fas fa-database text-blue-500 mr-1"></i>
+                    <span class="text-blue-600 font-medium">Database</span>
+                  <% } %>
+                </span>
+              <% } %>
             </p>
           </div>
         <% } %>

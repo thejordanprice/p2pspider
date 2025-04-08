@@ -1,6 +1,7 @@
 // controllers/magnetController.js
 const { Database } = require('../models/db');
 const redis = require('redis');
+const elasticsearch = require('../models/elasticsearch');
 
 // Initialize database
 const db = new Database();
@@ -393,27 +394,47 @@ exports.search = async (req, res) => {
     });
   }
 
-  let countQuery;
-  // Simplify query for SQLite compatibility
-  if (query.length === 40) {
-    countQuery = { infohash: query.toLowerCase() };
-  } else {
-    // SQLite doesn't support RegExp, but we can use LIKE
-    // For MongoDB, we'll keep using the existing approach
-    if (db.type === 'mongodb') {
-      countQuery = { name: new RegExp(query, 'i') };
-    } else {
-      // For SQLite, we modify our database interface to handle this special case
-      countQuery = { name: `%${query}%` };
-    }
-  }
-
   const startTime = Date.now();
   const cacheKey = `search_${query.toLowerCase()}_page_${page}`;
 
   try {
+    // Check if Elasticsearch is enabled and connected
+    const useElasticsearch = elasticsearch.isElasticsearchEnabled();
+    
     const searchResults = await getOrSetCache(cacheKey, SEARCH_PAGE_CACHE_DURATION, async () => {
       let count, results;
+      
+      // Use Elasticsearch if available
+      if (useElasticsearch) {
+        console.log('Using Elasticsearch for search query:', query);
+        const esResults = await elasticsearch.search(query, page, limit);
+        
+        if (esResults) {
+          return {
+            count: esResults.count,
+            results: esResults.results,
+            source: 'elasticsearch'
+          };
+        }
+        // Fall back to database search if Elasticsearch fails
+        console.log('Elasticsearch search failed, falling back to database');
+      }
+      
+      // Regular database search logic
+      let countQuery;
+      // Simplify query for SQLite compatibility
+      if (query.length === 40) {
+        countQuery = { infohash: query.toLowerCase() };
+      } else {
+        // SQLite doesn't support RegExp, but we can use LIKE
+        // For MongoDB, we'll keep using the existing approach
+        if (db.type === 'mongodb') {
+          countQuery = { name: new RegExp(query, 'i') };
+        } else {
+          // For SQLite, we modify our database interface to handle this special case
+          countQuery = { name: `%${query}%` };
+        }
+      }
       
       if (db.type === 'mongodb') {
         count = await db.countDocuments(countQuery);
@@ -458,11 +479,15 @@ exports.search = async (req, res) => {
         }
       }
       
-      return { count, results };
+      return { 
+        count, 
+        results,
+        source: 'database'
+      };
     });
 
     const endTime = Date.now();
-    const { count, results } = searchResults;
+    const { count, results, source } = searchResults;
 
     const pages = {
       query: query || '',
@@ -478,7 +503,8 @@ exports.search = async (req, res) => {
       results: results,
       trackers: getTrackers(),
       pages,
-      timer: endTime - startTime
+      timer: endTime - startTime,
+      searchSource: source || 'database'
     });
   } catch (err) {
     console.error('Error during search:', err);

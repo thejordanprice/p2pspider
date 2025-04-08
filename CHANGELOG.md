@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.2] - 2025-04-08
+
+### Added
+- Integrated Elasticsearch for powerful full-text search capabilities
+- Added configuration options for Elasticsearch in `.env` file
+- Created bulk indexing utility for migrating existing data to Elasticsearch
+- Enhanced search functionality to use Elasticsearch when available
+
 ## [1.0.1] - 2025-03-30
 
 ### Bug Fixes
