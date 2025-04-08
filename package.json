@@ -15,9 +15,11 @@
     "watch:css": "tailwindcss -i ./src/input.css -o ./public/css/tailwind.css --watch",
     "start": "node app.js",
     "start:prod": "NODE_ENV=production node app.js",
-    "start:pm2": "pm2 start ecosystem.json"
+    "start:pm2": "pm2 start ecosystem.json",
+    "index:elastic": "node utils/bulkIndexToElasticsearch.js"
   },
   "dependencies": {
+    "@elastic/elasticsearch": "^8.12.1",
     "axios": "^1.8.4",
     "bencode": "^0.7.0",
     "bitfield": "^1.1.2",
