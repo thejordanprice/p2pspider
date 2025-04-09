@@ -250,6 +250,7 @@
                       }
                       .directory-tree .folder-toggle {
                         cursor: pointer;
+                        z-index: 1;
                       }
                       .directory-tree .folder-icon {
                         transition: transform 0.2s ease, color 0.2s ease;
@@ -258,18 +259,59 @@
                         transform: scale(1.1);
                       }
                       .directory-item {
-                        transition: transform 0.2s ease, opacity 0.2s ease;
+                        transition: all 0.3s ease;
                         transform-origin: top left;
+                        max-height: 50px; /* Default height for items */
+                        overflow: hidden;
                       }
                       .directory-item.collapsed {
+                        max-height: 0;
                         opacity: 0;
-                        height: 0 !important;
-                        overflow: hidden;
-                        margin: 0 !important;
-                        padding: 0 !important;
+                        margin-top: 0 !important;
+                        margin-bottom: 0 !important;
+                        padding-top: 0 !important;
+                        padding-bottom: 0 !important;
                         transform: translateY(-5px);
-                        display: none;
+                        pointer-events: none;
                       }
+                      
+                      /* Define a group container for folder contents */
+                      .folder-contents {
+                        overflow: hidden;
+                        transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                                   opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                        max-height: 9999px; /* Large enough to contain contents */
+                        opacity: 1;
+                        position: relative;
+                      }
+                      .folder-contents.collapsed {
+                        max-height: 0;
+                        opacity: 0;
+                        margin: 0;
+                        padding: 0;
+                      }
+                      
+                      /* Add visual feedback effect when expanding/collapsing */
+                      @keyframes pulse {
+                        0% { background-color: transparent; }
+                        50% { background-color: rgba(59, 130, 246, 0.08); }
+                        100% { background-color: transparent; }
+                      }
+                      .folder-toggle.active {
+                        animation: pulse 0.6s ease;
+                      }
+                      
+                      /* Make folder icons rotate slightly when toggling */
+                      .folder-icon {
+                        transition: transform 0.3s ease;
+                      }
+                      .fa-folder-open {
+                        transform: rotateZ(-5deg);
+                      }
+                      .fa-folder {
+                        transform: rotateZ(0);
+                      }
+                      
                       /* Tree lines for better visual hierarchy */
                       .directory-tree .flex.items-start::before {
                         content: '';
@@ -329,6 +371,12 @@
                             
                             // Find all descendant elements (with greater padding/indent)
                             const childElements = [];
+                            let folderContents = document.createElement('div');
+                            folderContents.className = 'folder-contents';
+                            
+                            // Insert the container after the folder
+                            folderDiv.insertAdjacentElement('afterend', folderContents);
+                            
                             for (let i = folderIndex + 1; i < allItems.length; i++) {
                               const currentElement = allItems[i];
                               const currentLevel = parseFloat(currentElement.style.paddingLeft) || 0;
@@ -341,44 +389,49 @@
                               // Add class for animation
                               currentElement.classList.add('directory-item');
                               childElements.push(currentElement);
+                              
+                              // Move this element into the folder-contents div
+                              folderContents.appendChild(currentElement);
                             }
                             
                             // Click handler to toggle visibility
                             folderDiv.addEventListener('click', function(e) {
                               e.stopPropagation(); // Prevent parent folder click events
                               
+                              // Add a visual feedback animation
+                              folderDiv.classList.add('active');
+                              setTimeout(() => folderDiv.classList.remove('active'), 600);
+                              
                               // Toggle between folder and folder-open icons
                               const folderIcon = folderDiv.querySelector('.fa-folder, .fa-folder-open');
                               const isClosing = folderIcon.classList.contains('fa-folder-open');
+                              
+                              // Toggle the container's collapsed state
+                              folderContents.classList.toggle('collapsed', isClosing);
                               
                               if (isClosing) {
                                 folderIcon.classList.remove('fa-folder-open');
                                 folderIcon.classList.add('fa-folder');
                                 
-                                // When closing, also close all child folders to prevent spacing issues
-                                childElements.forEach(element => {
-                                  // Add collapsed class to all children
-                                  element.classList.add('collapsed');
-                                  
-                                  // If this child is a folder, update its icon too
-                                  const childFolderIcon = element.querySelector('.fa-folder-open');
-                                  if (childFolderIcon) {
-                                    childFolderIcon.classList.remove('fa-folder-open');
-                                    childFolderIcon.classList.add('fa-folder');
-                                  }
+                                // When closing, find and collapse all nested folders too
+                                const nestedFolderContainers = folderContents.querySelectorAll('.folder-contents:not(.collapsed)');
+                                const nestedFolderIcons = folderContents.querySelectorAll('.fa-folder-open');
+                                
+                                nestedFolderContainers.forEach(container => {
+                                  container.classList.add('collapsed');
+                                });
+                                
+                                nestedFolderIcons.forEach(icon => {
+                                  icon.classList.remove('fa-folder-open');
+                                  icon.classList.add('fa-folder');
                                 });
                               } else {
                                 folderIcon.classList.remove('fa-folder');
                                 folderIcon.classList.add('fa-folder-open');
-                                
-                                // When opening, just show direct children
-                                childElements.forEach(element => {
-                                  element.classList.remove('collapsed');
-                                });
                               }
                               
                               // Update tree lines after toggling visibility
-                              setTimeout(updateTreeLines, 10);
+                              setTimeout(updateTreeLines, 300);
                             });
                           }
                         });
