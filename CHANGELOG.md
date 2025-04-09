@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.3] - 2025-04-15
+
+### Performance & Stability
+- Fixed deadlock issues occurring during resource-intensive search operations
+- Implemented comprehensive timeout handling for database and cache operations
+- Enhanced memory management in the caching system:
+  - Added LRU (Least Recently Used) eviction policy to prevent memory leaks
+  - Implemented cache size limits with automatic pruning
+  - Added periodic cleanup of expired cache items
+- Improved database handling:
+  - Enhanced SQLite configuration with WAL mode for better concurrency
+  - Added query timeouts to prevent long-running operations from blocking
+  - Optimized connection handling for high-load scenarios
+- Redis improvements:
+  - Added robust connection management with automatic reconnection
+  - Implemented connection health checks to detect and recover from zombied connections
+  - Added timeout handling for Redis operations
+
+### Search Enhancements
+- Optimized search handling for large datasets with better error recovery
+- Improved handling of resource-intensive search queries
+- Added graceful fallbacks for search operations that exceed timeout thresholds
+
 ## [1.0.2] - 2025-04-08
 
 ### Added

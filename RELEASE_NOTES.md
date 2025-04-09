@@ -1,3 +1,37 @@
+# P2P Spider v1.0.3 Release Notes
+
+We're pleased to announce the release of P2P Spider v1.0.3, which focuses on significant performance improvements and stability enhancements, particularly for resource-intensive operations.
+
+## What's New
+
+### Performance & Stability Improvements
+- Implemented robust timeout mechanisms for database and Redis operations to prevent deadlocks
+- Added LRU eviction policy to the memory cache system with size limits to prevent memory leaks
+- Enhanced SQLite configuration for better concurrency handling using WAL mode
+- Improved Redis connection handling with automatic health checks and recovery
+- Added graceful error handling for long-running queries that could cause system instability
+
+### Search Optimization
+- Optimized search functionality for large datasets with improved query timeouts
+- Enhanced pagination handling for better performance with large result sets
+- Implemented graceful fallbacks for search operations to prevent system lockups
+
+## Benefits
+- Significantly improved stability under heavy load and with large datasets
+- Better memory management preventing resource exhaustion
+- More responsive search experience, even for uncommon search terms
+- Reduced likelihood of application deadlocks during resource-intensive operations
+
+## Upgrading
+
+This update requires:
+- Pull the latest changes from the repository
+- Install any dependencies if needed: `npm install`
+- No database schema changes are required
+- Restart the application
+
+---
+
 # P2P Spider v1.0.2 Release Notes
 
 We're excited to announce the release of P2P Spider v1.0.2, which introduces Elasticsearch integration for significantly improved search capabilities.
