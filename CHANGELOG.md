@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.8] - 2025-04-09
+
+### New Features
+- Added environment variable controls for independent daemon and webserver operation
+  - `RUN_DAEMON=true/false` to control P2P Spider daemon
+  - `RUN_WEBSERVER=true/false` to control web server
+  - Both components can now run independently or together
+
 ## [1.0.7] - 2025-04-09
 
 ### UI Enhancements
