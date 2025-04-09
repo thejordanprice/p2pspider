@@ -37,9 +37,13 @@ const LATEST_PAGE_CACHE_DURATION = 600; // 10 minutes for latest page
 const SEARCH_PAGE_CACHE_DURATION = 300; // 5 minutes for search results
 const STATISTICS_CACHE_DURATION = 600; // 10 minutes for statistics page
 
+// Maximum number of items to store in memory cache
+const MEMORY_CACHE_MAX_ITEMS = 1000;
+
 // In-memory cache for when Redis is disabled
 const memoryCache = {
   cache: {},
+  keys: [], // Track keys for LRU eviction
   get: function(key) {
     const item = this.cache[key];
     if (!item) return null;
@@ -47,29 +51,120 @@ const memoryCache = {
     // Check if expired
     if (item.expiry < Date.now()) {
       delete this.cache[key];
+      this.keys = this.keys.filter(k => k !== key);
       return null;
     }
+    
+    // Update key position in LRU tracking
+    this.keys = this.keys.filter(k => k !== key);
+    this.keys.push(key);
     
     return item.value;
   },
   set: function(key, value, ttlSeconds) {
+    // Check if we need to evict
+    if (this.keys.length >= MEMORY_CACHE_MAX_ITEMS && !this.cache[key]) {
+      const oldestKey = this.keys.shift(); // Remove oldest key
+      delete this.cache[oldestKey];
+    }
+    
     this.cache[key] = {
       value,
       expiry: Date.now() + (ttlSeconds * 1000)
     };
+    
+    // Add/update key in tracked keys
+    this.keys = this.keys.filter(k => k !== key);
+    this.keys.push(key);
+  },
+  // Debug method to check cache size
+  size: function() {
+    return this.keys.length;
+  },
+  // Clear all expired items
+  prune: function() {
+    const now = Date.now();
+    const expiredKeys = this.keys.filter(key => 
+      this.cache[key] && this.cache[key].expiry < now
+    );
+    
+    expiredKeys.forEach(key => {
+      delete this.cache[key];
+    });
+    
+    this.keys = this.keys.filter(key => !expiredKeys.includes(key));
+    return expiredKeys.length;
   }
 };
+
+// Periodically prune expired items to avoid memory growth
+setInterval(() => {
+  const pruned = memoryCache.prune();
+  if (pruned > 0) {
+    console.log(`Pruned ${pruned} expired cache items`);
+  }
+}, 60000); // Prune every minute
 
 // Initialize Redis if enabled
 async function setupRedis() {
   if (!USE_REDIS) return;
   
   try {
-    redisClient = redis.createClient({ url: REDIS_URI });
-    redisClient.on('error', err => console.error('Redis error:', err));
+    redisClient = redis.createClient({ 
+      url: REDIS_URI,
+      socket: {
+        reconnectStrategy: (retries) => {
+          // Maximum reconnection attempts 
+          if (retries > 10) {
+            console.error('Redis max reconnection attempts reached');
+            return new Error('Redis max reconnection attempts reached');
+          }
+          // Exponential backoff with jitter
+          return Math.min(Math.pow(2, retries) * 100 + Math.random() * 100, 10000);
+        },
+        connectTimeout: 5000, // 5 seconds timeout
+      }
+    });
+    
+    redisClient.on('error', err => {
+      console.error('Redis error:', err);
+    });
+    
+    redisClient.on('reconnecting', () => {
+      console.log('Redis client reconnecting...');
+    });
+    
+    redisClient.on('ready', () => {
+      console.log('Redis client ready');
+    });
     
     await redisClient.connect();
     console.log('Redis connected in controller');
+    
+    // Add a periodic health check to detect zombied connections
+    setInterval(async () => {
+      try {
+        if (redisClient && redisClient.isOpen) {
+          // Simple ping to verify connection is still responsive
+          await Promise.race([
+            redisClient.ping(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Redis ping timeout')), 2000))
+          ]);
+        }
+      } catch (err) {
+        console.error('Redis health check failed:', err);
+        // Force reconnect if ping fails
+        if (redisClient) {
+          try {
+            await redisClient.quit();
+          } catch (e) {
+            // Ignore quit errors
+          }
+          setupRedis().catch(e => console.error('Redis reconnect error:', e));
+        }
+      }
+    }, 30000); // Check every 30 seconds
+    
   } catch (err) {
     console.error('Failed to connect to Redis:', err);
     redisClient = null;
@@ -84,14 +179,24 @@ async function getOrSetCache(key, ttl, dataFn) {
   // Try Redis first if available
   if (USE_REDIS && redisClient && redisClient.isOpen) {
     try {
-      const cached = await redisClient.get(key);
+      const cached = await Promise.race([
+        redisClient.get(key),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Redis get timeout')), 5000))
+      ]);
+      
       if (cached) {
         return JSON.parse(cached);
       }
       
       // If not in cache, fetch and store
       console.time(`Cache miss for ${key}`);
-      const data = await dataFn();
+      
+      // Set a timeout for the data function
+      const data = await Promise.race([
+        dataFn(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Data function timeout')), 15000))
+      ]);
+      
       console.timeEnd(`Cache miss for ${key}`);
       
       // Don't wait for the set operation to complete
@@ -112,7 +217,23 @@ async function getOrSetCache(key, ttl, dataFn) {
   }
   
   console.time(`Memory cache miss for ${key}`);
-  const data = await dataFn();
+  
+  // Set a timeout for the data function when using memory cache
+  let data;
+  try {
+    data = await Promise.race([
+      dataFn(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Data function timeout (memory cache)')), 15000))
+    ]);
+  } catch (err) {
+    console.error(`Error fetching data for ${key}:`, err);
+    // Return an empty result instead of deadlocking
+    if (key.startsWith('search_')) {
+      return { count: 0, results: [], source: 'error' };
+    }
+    throw err;
+  }
+  
   console.timeEnd(`Memory cache miss for ${key}`);
   
   memoryCache.set(key, data, ttl);
@@ -401,93 +522,122 @@ exports.search = async (req, res) => {
     // Check if Elasticsearch is enabled and connected
     const useElasticsearch = elasticsearch.isElasticsearchEnabled();
     
-    const searchResults = await getOrSetCache(cacheKey, SEARCH_PAGE_CACHE_DURATION, async () => {
-      let count, results;
-      
-      // Use Elasticsearch if available
-      if (useElasticsearch) {
-        console.log('Using Elasticsearch for search query:', query);
-        const esResults = await elasticsearch.search(query, page, limit);
+    let searchResults;
+    try {
+      searchResults = await getOrSetCache(cacheKey, SEARCH_PAGE_CACHE_DURATION, async () => {
+        let count, results;
         
-        if (esResults) {
-          return {
-            count: esResults.count,
-            results: esResults.results,
-            source: 'elasticsearch'
-          };
-        }
-        // Fall back to database search if Elasticsearch fails
-        console.log('Elasticsearch search failed, falling back to database');
-      }
-      
-      // Regular database search logic
-      let countQuery;
-      // Simplify query for SQLite compatibility
-      if (query.length === 40) {
-        countQuery = { infohash: query.toLowerCase() };
-      } else {
-        // SQLite doesn't support RegExp, but we can use LIKE
-        // For MongoDB, we'll keep using the existing approach
-        if (db.type === 'mongodb') {
-          countQuery = { name: new RegExp(query, 'i') };
-        } else {
-          // For SQLite, we modify our database interface to handle this special case
-          countQuery = { name: `%${query}%` };
-        }
-      }
-      
-      if (db.type === 'mongodb') {
-        count = await db.countDocuments(countQuery);
-        results = await db.find(countQuery, {
-          skip: page * limit,
-          limit: limit
-        });
-      } else {
-        // For SQLite, we need special handling for the LIKE operator
-        if (query.length !== 40) {
-          // Use custom SQLite search for name
-          count = await new Promise((resolve, reject) => {
-            db.db.get('SELECT COUNT(*) as count FROM magnets WHERE name LIKE ?', [`%${query}%`], (err, row) => {
-              if (err) reject(err);
-              else resolve(row ? row.count : 0);
-            });
-          });
+        // Use Elasticsearch if available
+        if (useElasticsearch) {
+          console.log('Using Elasticsearch for search query:', query);
+          const esResults = await elasticsearch.search(query, page, limit);
           
-          results = await new Promise((resolve, reject) => {
-            db.db.all(
-              'SELECT * FROM magnets WHERE name LIKE ? LIMIT ? OFFSET ?',
-              [`%${query}%`, limit, page * limit],
-              (err, rows) => {
-                if (err) reject(err);
-                else {
-                  // Convert files string to array for each row
-                  rows.forEach(row => {
-                    row.files = row.files ? JSON.parse(row.files) : [];
-                  });
-                  resolve(rows);
-                }
-              }
-            );
-          });
+          if (esResults) {
+            return {
+              count: esResults.count,
+              results: esResults.results,
+              source: 'elasticsearch'
+            };
+          }
+          // Fall back to database search if Elasticsearch fails
+          console.log('Elasticsearch search failed, falling back to database');
+        }
+        
+        // Regular database search logic
+        let countQuery;
+        // Simplify query for SQLite compatibility
+        if (query.length === 40) {
+          countQuery = { infohash: query.toLowerCase() };
         } else {
-          // Direct infohash search
+          // SQLite doesn't support RegExp, but we can use LIKE
+          // For MongoDB, we'll keep using the existing approach
+          if (db.type === 'mongodb') {
+            countQuery = { name: new RegExp(query, 'i') };
+          } else {
+            // For SQLite, we modify our database interface to handle this special case
+            countQuery = { name: `%${query}%` };
+          }
+        }
+        
+        // Estimate count instead of exact counting for performance
+        // For large datasets, exact counting can be expensive
+        const MAX_COUNT_ESTIMATE = 10000;
+        
+        if (db.type === 'mongodb') {
+          // For MongoDB, use countDocuments but with a limit
           count = await db.countDocuments(countQuery);
+          if (count > MAX_COUNT_ESTIMATE) count = MAX_COUNT_ESTIMATE;
+          
           results = await db.find(countQuery, {
             skip: page * limit,
             limit: limit
           });
+        } else {
+          // For SQLite, we need special handling for the LIKE operator
+          if (query.length !== 40) {
+            // Use custom SQLite search for name with a maximum count constraint
+            count = await new Promise((resolve, reject) => {
+              const countTimer = setTimeout(() => {
+                console.warn('Count query took too long, using estimate');
+                resolve(MAX_COUNT_ESTIMATE);
+              }, 5000);
+              
+              db.db.get('SELECT COUNT(*) as count FROM magnets WHERE name LIKE ? LIMIT ?', 
+                [`%${query}%`, MAX_COUNT_ESTIMATE], 
+                (err, row) => {
+                  clearTimeout(countTimer);
+                  if (err) reject(err);
+                  else resolve(row ? row.count : 0);
+                }
+              );
+            });
+            
+            results = await new Promise((resolve, reject) => {
+              const queryTimer = setTimeout(() => {
+                console.warn('Search query took too long, aborting');
+                reject(new Error('Query timeout'));
+              }, 10000);
+              
+              db.db.all(
+                'SELECT * FROM magnets WHERE name LIKE ? LIMIT ? OFFSET ?',
+                [`%${query}%`, limit, page * limit],
+                (err, rows) => {
+                  clearTimeout(queryTimer);
+                  if (err) reject(err);
+                  else {
+                    // Convert files string to array for each row
+                    rows.forEach(row => {
+                      row.files = row.files ? JSON.parse(row.files) : [];
+                    });
+                    resolve(rows);
+                  }
+                }
+              );
+            });
+          } else {
+            // Direct infohash search
+            count = await db.countDocuments(countQuery);
+            results = await db.find(countQuery, {
+              skip: page * limit,
+              limit: limit
+            });
+          }
         }
-      }
-      
-      return { 
-        count, 
-        results,
-        source: 'database'
-      };
-    });
+        
+        return { 
+          count, 
+          results,
+          source: 'database'
+        };
+      });
+    } catch (err) {
+      console.error('Search error:', err);
+      // Provide fallback for UI in case of a search error
+      searchResults = { count: 0, results: [], source: 'error' };
+    }
 
     const endTime = Date.now();
-    const { count, results, source } = searchResults;
+    const { count = 0, results = [], source = 'database' } = searchResults || {};
 
     const pages = {
       query: query || '',
@@ -504,7 +654,7 @@ exports.search = async (req, res) => {
       trackers: getTrackers(),
       pages,
       timer: endTime - startTime,
-      searchSource: source || 'database'
+      searchSource: source
     });
   } catch (err) {
     console.error('Error during search:', err);
