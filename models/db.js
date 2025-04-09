@@ -80,36 +80,53 @@ class Database {
         // First set connected so routes can work immediately
         this.connected = true;
         
-        this.db = new sqlite3.Database(SQLITE_PATH, (err) => {
-          if (err) {
-            console.error('SQLite connection error:', err);
-            this.connected = false; // Reset if connection fails
-            reject(err);
-            return;
+        // Configure SQLite for better concurrency
+        this.db = new sqlite3.Database(SQLITE_PATH, 
+          // Use WAL mode for better concurrency
+          sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE | sqlite3.OPEN_FULLMUTEX, 
+          (err) => {
+            if (err) {
+              console.error('SQLite connection error:', err);
+              this.connected = false; // Reset if connection fails
+              reject(err);
+              return;
+            }
+            
+            console.log('SQLite has connected.');
+            
+            // Set pragmas for better performance
+            this.db.serialize(() => {
+              // Enable WAL mode for better concurrency
+              this.db.run('PRAGMA journal_mode = WAL;');
+              // Set a reasonable busy timeout
+              this.db.run('PRAGMA busy_timeout = 5000;');
+              // Increase cache size for better performance
+              this.db.run('PRAGMA cache_size = -20000;'); // ~20MB cache
+              // Set synchronous mode to NORMAL for better performance
+              this.db.run('PRAGMA synchronous = NORMAL;');
+              
+              // Run table creation
+              this.setupSQLiteTables().then(() => {
+                // Initialize counter in background without waiting for result
+                this.initializeCounter().then(() => {
+                  console.log('SQLite counter initialized');
+                }).catch(err => {
+                  console.error('Error initializing SQLite counter:', err);
+                });
+                
+                // Initialize Elasticsearch in background if enabled
+                elasticsearch.initialize().catch(err => {
+                  console.error('Error initializing Elasticsearch:', err);
+                });
+                
+                resolve();
+              }).catch(err => {
+                this.connected = false; // Reset if setup fails
+                reject(err);
+              });
+            });
           }
-          
-          console.log('SQLite has connected.');
-          
-          // Run table creation in the background
-          this.setupSQLiteTables().then(() => {
-            // Initialize counter in background without waiting for result
-            this.initializeCounter().then(() => {
-              console.log('SQLite counter initialized');
-            }).catch(err => {
-              console.error('Error initializing SQLite counter:', err);
-            });
-            
-            // Initialize Elasticsearch in background if enabled
-            elasticsearch.initialize().catch(err => {
-              console.error('Error initializing Elasticsearch:', err);
-            });
-            
-            resolve();
-          }).catch(err => {
-            this.connected = false; // Reset if setup fails
-            reject(err);
-          });
-        });
+        );
       });
     } else {
       throw new Error(`Unsupported database type: ${this.type}`);
@@ -323,60 +340,61 @@ class Database {
       // This significantly improves performance by skipping document hydration
       return await mongoQuery.lean().exec();
     } else {
-      return new Promise((resolve, reject) => {
-        // Convert MongoDB-style query to SQLite
-        const whereClause = this.buildWhereClause(query);
-        const { sort, limit, skip, projection } = options;
-        
-        // Optimize the fields selection for SQLite
-        let fieldSelection = '*';
-        if (projection) {
-          // Convert MongoDB-style projection to SQLite column selection
-          const fields = [];
-          for (const field in projection) {
-            if (projection[field] === 1 || projection[field] === true) {
-              fields.push(field);
-            }
-          }
-          if (fields.length > 0) {
-            // Always include id to ensure we have a primary key
-            if (!fields.includes('id')) {
-              fields.unshift('id');
-            }
-            fieldSelection = fields.join(', ');
+      // Convert MongoDB-style query to SQLite
+      const whereClause = this.buildWhereClause(query);
+      const { sort, limit, skip, projection } = options;
+      
+      // Optimize the fields selection for SQLite
+      let fieldSelection = '*';
+      if (projection) {
+        // Convert MongoDB-style projection to SQLite column selection
+        const fields = [];
+        for (const field in projection) {
+          if (projection[field] === 1 || projection[field] === true) {
+            fields.push(field);
           }
         }
-        
-        let sql = `SELECT ${fieldSelection} FROM magnets`;
-        if (whereClause) sql += ` WHERE ${whereClause}`;
-        
-        if (sort) {
-          const sortField = Object.keys(sort)[0];
-          const sortOrder = sort[sortField] === 1 ? 'ASC' : 'DESC';
-          sql += ` ORDER BY ${sortField} ${sortOrder}`;
+        if (fields.length > 0) {
+          // Always include id to ensure we have a primary key
+          if (!fields.includes('id')) {
+            fields.unshift('id');
+          }
+          fieldSelection = fields.join(', ');
         }
+      }
+      
+      let sql = `SELECT ${fieldSelection} FROM magnets`;
+      if (whereClause) sql += ` WHERE ${whereClause}`;
+      
+      if (sort) {
+        const sortField = Object.keys(sort)[0];
+        const sortOrder = sort[sortField] === 1 ? 'ASC' : 'DESC';
+        sql += ` ORDER BY ${sortField} ${sortOrder}`;
+      }
+      
+      if (limit) sql += ` LIMIT ${limit}`;
+      if (skip) sql += ` OFFSET ${skip}`;
+      
+      try {
+        // Use our new timeout method
+        const rows = await this.querySQLiteWithTimeout('all', sql, [], 15000);
         
-        if (limit) sql += ` LIMIT ${limit}`;
-        if (skip) sql += ` OFFSET ${skip}`;
-        
-        this.db.all(sql, [], (err, rows) => {
-          if (err) {
-            reject(err);
-          } else {
-            // Convert files string to array for each row
-            rows.forEach(row => {
-              if (row.files && typeof row.files === 'string') {
-                try {
-                  row.files = JSON.parse(row.files);
-                } catch (e) {
-                  row.files = [];
-                }
-              }
-            });
-            resolve(rows);
+        // Convert files string to array for each row
+        rows.forEach(row => {
+          if (row.files && typeof row.files === 'string') {
+            try {
+              row.files = JSON.parse(row.files);
+            } catch (e) {
+              row.files = [];
+            }
           }
         });
-      });
+        return rows;
+      } catch (err) {
+        console.error('SQLite query error:', err);
+        // Return empty array rather than crashing
+        return [];
+      }
     }
   }
 
@@ -455,6 +473,24 @@ class Database {
     this.lastCountUpdate = Date.now();
     console.log(`Refreshed document count: ${this.totalCount}`);
     return this.totalCount;
+  }
+
+  // Helper method to execute SQLite queries with a timeout
+  async querySQLiteWithTimeout(method, sql, params = [], timeout = 10000) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error(`SQLite query timeout after ${timeout}ms: ${sql}`));
+      }, timeout);
+      
+      this.db[method](sql, params, (err, result) => {
+        clearTimeout(timer);
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
+        }
+      });
+    });
   }
 }
 
