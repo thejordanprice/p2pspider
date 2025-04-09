@@ -42,12 +42,25 @@
               </div>
               
               <div class="mt-8">
-                <h3 class="text-sm font-semibold text-dark-600 uppercase flex items-center mb-4">
-                  <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-2">
-                    <i class="fas fa-folder-open text-primary-600"></i>
+                <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-sm font-semibold text-dark-600 uppercase flex items-center">
+                    <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-2">
+                      <i class="fas fa-folder-open text-primary-600"></i>
+                    </div>
+                    <span>Files</span>
+                  </h3>
+                  <div class="flex items-center space-x-4">
+                    <button id="collapse-all" class="text-xs bg-primary-50 hover:bg-primary-100 text-primary-700 py-2 px-4 rounded-md transition-colors duration-200 flex items-center border border-primary-100 shadow-sm">
+                      <i class="fas fa-compress-alt mr-2 text-primary-500"></i>
+                      <span>Collapse All</span>
+                    </button>
+                    <button id="expand-all" class="text-xs bg-primary-50 hover:bg-primary-100 text-primary-700 py-2 px-4 rounded-md transition-colors duration-200 flex items-center border border-primary-100 shadow-sm">
+                      <i class="fas fa-expand-alt mr-2 text-primary-500"></i>
+                      <span>Expand All</span>
+                    </button>
                   </div>
-                  <span>Files</span>
-                </h3>
+                </div>
+                
                 <% 
                   // Transform file paths into a tree structure
                   var fileTree = {};
@@ -406,6 +419,32 @@
                         
                         // Initial update
                         updateTreeLines();
+                        
+                        // Setup collapse all / expand all buttons
+                        const collapseAllBtn = document.getElementById('collapse-all');
+                        const expandAllBtn = document.getElementById('expand-all');
+                        
+                        collapseAllBtn.addEventListener('click', function(e) {
+                          e.preventDefault();
+                          const folderToggles = document.querySelectorAll('.directory-tree .folder-toggle');
+                          folderToggles.forEach(folder => {
+                            const folderIcon = folder.querySelector('.fa-folder-open');
+                            if (folderIcon) {
+                              folder.click();
+                            }
+                          });
+                        });
+                        
+                        expandAllBtn.addEventListener('click', function(e) {
+                          e.preventDefault();
+                          const folderToggles = document.querySelectorAll('.directory-tree .folder-toggle');
+                          folderToggles.forEach(folder => {
+                            const folderIcon = folder.querySelector('.fa-folder');
+                            if (folderIcon) {
+                              folder.click();
+                            }
+                          });
+                        });
                       });
                     </script>
                   <% } else { %>
