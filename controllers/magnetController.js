@@ -249,12 +249,26 @@ function isDatabaseReady() {
 }
 
 const getTrackers = () => (
-  '&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969' +
-  '&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337' +
-  '&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337' +
-  '&tr=udp%3A%2F%2Ftracker.skyts.net%3A6969' +
-  '&tr=udp%3A%2F%2Ftracker.safe.moe%3A6969' +
-  '&tr=udp%3A%2F%2Ftracker.piratepublic.com%3A1337'
+  '&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce' +
+  '&tr=udp%3A%2F%2Fopen.demonii.com%3A1337%2Fannounce' +
+  '&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce' +
+  '&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce' +
+  '&tr=udp%3A%2F%2Fexplodie.org%3A6969%2Fannounce' +
+  '&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce' +
+  '&tr=udp%3A%2F%2Ftracker.skyts.net%3A6969%2Fannounce' +
+  '&tr=udp%3A%2F%2Ftracker.ololosh.space%3A6969%2Fannounce' +
+  '&tr=udp%3A%2F%2Ftracker.dump.cl%3A6969%2Fannounce' +
+  '&tr=udp%3A%2F%2Fopentracker.io%3A6969%2Fannounce' +
+  '&tr=udp%3A%2F%2Fopen.free-tracker.ga%3A6969%2Fannounce' +
+  '&tr=udp%3A%2F%2Fns-1.x-fins.com%3A6969%2Fannounce' +
+  '&tr=udp%3A%2F%2Fisk.richardsw.club%3A6969%2Fannounce' +
+  '&tr=udp%3A%2F%2Fdiscord.heihachi.pw%3A6969%2Fannounce' +
+  '&tr=udp%3A%2F%2Fbt.ktrackers.com%3A6666%2Fannounce' +
+  '&tr=http%3A%2F%2Fwww.torrentsnipe.info%3A2701%2Fannounce' +
+  '&tr=http%3A%2F%2Fwww.genesis-sp.org%3A2710%2Fannounce' +
+  '&tr=http%3A%2F%2Ftracker810.xyz%3A11450%2Fannounce' +
+  '&tr=http%3A%2F%2Ftracker.xiaoduola.xyz%3A6969%2Fannounce' +
+  '&tr=http%3A%2F%2Ftracker.vanitycore.co%3A6969%2Fannounce'
 );
 
 exports.index = async (req, res) => {
