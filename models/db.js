@@ -7,8 +7,8 @@ const path = require('path');
 const ensureDataDir = require('../utils/ensureDataDir');
 
 // Database configuration
-const DB_TYPE = process.env.DB_TYPE || 'mongodb';
-const MONGO_URI = process.env.MONGO_URI;
+const DB_TYPE = process.env.DB_TYPE || 'sqlite';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1/magnetdb';
 const SQLITE_PATH = process.env.SQLITE_PATH || './data/magnet.db';
 
 // Ensure data directory exists for SQLite

@@ -2,7 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.3] - 2025-04-15
+## [1.0.4] - 2025-04-08
+
+### Connectivity Improvements
+- Updated tracker URLs in magnetController.js to include additional and updated torrent trackers for improved connectivity
+
+### Database Configuration
+- Updated database configuration to use SQLite as default and set fallback MongoDB URI
+- Simplified local development setup with SQLite as the default database
+- Enhanced compatibility across different environments
+
+### Development Improvements
+- Updated .gitignore to include additional database and environment files
+- Added entries for database shared memory and write-ahead log files
+- Organized system files for clarity
+
+## [1.0.3] - 2025-04-08
 
 ### Performance & Stability
 - Fixed deadlock issues occurring during resource-intensive search operations

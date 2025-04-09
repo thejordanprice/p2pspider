@@ -1,3 +1,36 @@
+# P2P Spider v1.0.4 Release Notes
+
+We're pleased to announce the upcoming release of P2P Spider v1.0.4, which focuses on connectivity improvements, configuration enhancements, and better development experience.
+
+## What's New
+
+### Connectivity Improvements
+- Updated tracker URLs in magnetController.js to include additional and updated torrent trackers
+  - Enhanced torrent discovery by adding more reliable trackers
+  - Updated outdated tracker URLs to their current endpoints
+  - Improved connection success rates for DHT operations
+
+### Database Configuration
+- Updated database configuration to use SQLite as default with fallback MongoDB URI
+  - Simplified local development setup with SQLite as the default database
+  - Enhanced compatibility across different environments
+  - Maintained MongoDB support for production deployments
+
+### Development Experience
+- Updated .gitignore to include additional database and environment files
+  - Added entries for SQLite shared memory and write-ahead log files
+  - Organized system files for clarity
+  - Improved cleanliness of repository for developers
+
+## Upgrading
+
+This update requires:
+- Pull the latest changes from the repository
+- No database schema changes are required
+- Restart the application
+
+---
+
 # P2P Spider v1.0.3 Release Notes
 
 We're pleased to announce the release of P2P Spider v1.0.3, which focuses on significant performance improvements and stability enhancements, particularly for resource-intensive operations.
