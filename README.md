@@ -66,6 +66,10 @@ USE_ELASTICSEARCH=false
 # Elasticsearch connection
 ELASTICSEARCH_NODE=http://localhost:9200
 ELASTICSEARCH_INDEX=magnets
+
+# Component control options: "true" or "false"
+RUN_DAEMON=true
+RUN_WEBSERVER=true
 ```
 
 You can also fine-tune the crawler performance in the daemon.js file:
@@ -79,6 +83,30 @@ const p2p = P2PSpider({
 ```
 
 It's not recommended to change the `nodesMaxSize` or `maxConnections`, but adjusting the `timeout` may increase indexing speed. Higher timeout values may require more RAM; the maximum recommended value is 5000ms.
+
+#### Component Control
+
+DHT Spider now allows you to run the daemon and webserver components independently:
+
+- **RUN_DAEMON**: Set to "true" to run the P2P Spider daemon, or "false" to disable it
+- **RUN_WEBSERVER**: Set to "true" to run the web server, or "false" to disable it
+
+This flexibility allows you to:
+- Run only the daemon for dedicated crawling
+- Run only the webserver for serving existing data
+- Run both components together (default behavior)
+
+Example usage:
+```bash
+# Run both components (default)
+node app.js
+
+# Run only the daemon
+RUN_WEBSERVER=false node app.js
+
+# Run only the webserver
+RUN_DAEMON=false node app.js
+```
 
 #### Database and Redis Configuration
 

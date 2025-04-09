@@ -21,6 +21,8 @@ const SITE_HOSTNAME = process.env.SITE_HOSTNAME;
 const SITE_NAME = process.env.SITE_NAME;
 const SITE_PORT = process.env.SITE_PORT;
 const PRODUCTION = process.env.NODE_ENV === 'production';
+const RUN_DAEMON = process.env.RUN_DAEMON !== 'false'; // Default to true if not set
+const RUN_WEBSERVER = process.env.RUN_WEBSERVER !== 'false'; // Default to true if not set
 
 // WebSocket server instance
 let wss = null;
@@ -432,41 +434,57 @@ async function main() {
     // Connect to Redis if enabled
     const redisClient = await initializeRedis();
     
-    // Configure Express app
-    const app = configureExpressApp(db);
+    let server = null;
+    let p2p = null;
     
-    // Create HTTP server
-    const server = http.createServer(app);
+    // Initialize and start webserver if enabled
+    if (RUN_WEBSERVER) {
+      // Configure Express app
+      const app = configureExpressApp(db);
+      
+      // Create HTTP server
+      server = http.createServer(app);
+      
+      // Initialize WebSocket server
+      initializeWebSocket(server, db);
+      
+      // Start HTTP server
+      server.listen(SITE_PORT, () => {
+        console.log(`Web server is listening on port ${SITE_PORT}!`);
+      });
+    } else {
+      console.log('Webserver is disabled via RUN_WEBSERVER=false');
+    }
     
-    // Initialize WebSocket server
-    initializeWebSocket(server, db);
-    
-    // Initialize P2P Spider
-    const p2p = initializeP2PSpider(db, redisClient);
-    
-    // Start HTTP server
-    server.listen(SITE_PORT, () => {
-      console.log(`Web server is listening on port ${SITE_PORT}!`);
-    });
-    
-    // Start P2P Spider
-    p2p.listen(P2P_PORT, P2P_HOST, () => {
-      console.log(`P2P Spider is listening on ${P2P_HOST}:${P2P_PORT}!`);
-    });
+    // Initialize and start P2P Spider if enabled
+    if (RUN_DAEMON) {
+      p2p = initializeP2PSpider(db, redisClient);
+      
+      // Start P2P Spider
+      p2p.listen(P2P_PORT, P2P_HOST, () => {
+        console.log(`P2P Spider is listening on ${P2P_HOST}:${P2P_PORT}!`);
+      });
+    } else {
+      console.log('P2P Spider daemon is disabled via RUN_DAEMON=false');
+    }
     
     // Handle process exit
     process.on('SIGINT', () => {
       console.log('Shutting down gracefully...');
       
-      // Close HTTP server
-      server.close(() => {
-        console.log('HTTP server closed');
-      });
+      // Close HTTP server if it exists
+      if (server) {
+        server.close(() => {
+          console.log('HTTP server closed');
+        });
+      }
       
-      // Close P2P Spider
-      p2p.close(() => {
-        console.log('P2P Spider closed');
-      });
+      // Close P2P Spider if it exists
+      if (p2p) {
+        p2p.close(() => {
+          console.log('P2P Spider closed');
+        });
+      }
       
       // Close Redis if enabled
       if (redisClient) {

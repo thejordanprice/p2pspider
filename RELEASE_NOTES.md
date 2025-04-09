@@ -1,3 +1,38 @@
+# P2P Spider v1.0.8 Release Notes
+
+We're pleased to announce the release of P2P Spider v1.0.8, which introduces flexible control over the daemon and webserver components, allowing them to run independently or together.
+
+## What's New
+
+### Component Independence
+- Added environment variable controls for independent operation of daemon and webserver
+- New configuration options in .env file:
+  - `RUN_DAEMON=true/false` - Controls whether the P2P Spider daemon runs
+  - `RUN_WEBSERVER=true/false` - Controls whether the web server runs
+- Both components can now be run independently or together based on your needs
+
+## Benefits
+- More flexible deployment options
+- Reduced resource usage when only one component is needed
+- Better control over system resources
+- Easier debugging and maintenance of individual components
+
+## Usage Examples
+1. Run both daemon and webserver (default):
+   ```bash
+   node app.js
+   ```
+
+2. Run only the daemon:
+   ```bash
+   RUN_WEBSERVER=false node app.js
+   ```
+
+3. Run only the webserver:
+   ```bash
+   RUN_DAEMON=false node app.js
+   ```
+
 # P2P Spider v1.0.7 Release Notes
 
 We're pleased to announce the release of P2P Spider v1.0.7, which enhances the file browsing experience and improves the robustness of the directory tree component.
