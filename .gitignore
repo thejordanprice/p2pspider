@@ -1,6 +1,14 @@
+# Dependencies
 node_modules/*
-.env
-data/magnet.db
 
-docs/.DS_Store
+# Environment variables
+.env
+
+# Database files
+data/magnet.db
+data/magnet.db-shm
+data/magnet.db-wal
+
+# System files
 .DS_Store
+docs/.DS_Store
