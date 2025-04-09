@@ -178,14 +178,10 @@
             
             // Format files for display (if any)
             let filesHtml = '';
-            if (magnetData.files) {
-              // Basic format of files for display
-              let fileString = typeof magnetData.files === 'string' ? magnetData.files : magnetData.files.join(',');
-              let formatString = fileString.split(',').join('\n');
-              if (formatString.length > 100) {
-                formatString = formatString.substring(0, 100) + '...';
-              }
-              
+            if (magnetData.files && (
+                (Array.isArray(magnetData.files) && magnetData.files.length > 0) || 
+                (typeof magnetData.files === 'string' && magnetData.files.trim() !== '')
+              )) {
               // Create simple files display - we'll initialize the tree after insertion
               filesHtml = `
                 <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm border border-gray-200 shadow-inner">
@@ -238,39 +234,45 @@
             }
             
             // Initialize directory tree for this new element
-            if (magnetData.files) {
+            if (magnetData.files && (
+                (Array.isArray(magnetData.files) && magnetData.files.length > 0) || 
+                (typeof magnetData.files === 'string' && magnetData.files.trim() !== '')
+              )) {
               try {
                 const directoryTreeContainer = newElement.querySelector('.directory-tree');
                 if (directoryTreeContainer) {
                   // Limit files display - similar to server-side logic
                   const fileLimit = 10; // Match the server-side limit
                   const allFiles = Array.isArray(magnetData.files) ? magnetData.files : magnetData.files.split(',').map(f => f.trim()).filter(f => f);
-                  const hasMoreFiles = allFiles.length > fileLimit;
-                  const moreFilesCount = hasMoreFiles ? allFiles.length - fileLimit : 0;
                   
-                  // Only display limited files for tree rendering
-                  const limitedFiles = hasMoreFiles ? allFiles.slice(0, fileLimit) : allFiles;
-                  const treeHtml = renderFileTreeForUI(limitedFiles);
-                  
-                  directoryTreeContainer.innerHTML = treeHtml;
-                  
-                  // Add "more files" link if needed
-                  if (hasMoreFiles) {
-                    const moreFilesDiv = document.createElement('div');
-                    moreFilesDiv.className = 'text-xs text-right mt-1 text-primary-600';
-                    moreFilesDiv.innerHTML = `
-                      <a href="/infohash?q=${magnetData.infohash}">
-                        <i class="fas fa-ellipsis-h mr-1"></i>
-                        ${moreFilesCount} more files...
-                      </a>
-                    `;
-                    directoryTreeContainer.appendChild(moreFilesDiv);
+                  if (allFiles.length > 0) {
+                    const hasMoreFiles = allFiles.length > fileLimit;
+                    const moreFilesCount = hasMoreFiles ? allFiles.length - fileLimit : 0;
+                    
+                    // Only display limited files for tree rendering
+                    const limitedFiles = hasMoreFiles ? allFiles.slice(0, fileLimit) : allFiles;
+                    const treeHtml = renderFileTreeForUI(limitedFiles);
+                    
+                    directoryTreeContainer.innerHTML = treeHtml;
+                    
+                    // Add "more files" link if needed
+                    if (hasMoreFiles) {
+                      const moreFilesDiv = document.createElement('div');
+                      moreFilesDiv.className = 'text-xs text-right mt-1 text-primary-600';
+                      moreFilesDiv.innerHTML = `
+                        <a href="/infohash?q=${magnetData.infohash}">
+                          <i class="fas fa-ellipsis-h mr-1"></i>
+                          ${moreFilesCount} more files...
+                        </a>
+                      `;
+                      directoryTreeContainer.appendChild(moreFilesDiv);
+                    }
+                    
+                    // Initialize the tree after a short delay
+                    setTimeout(() => {
+                      initializeTreesInElement(newElement);
+                    }, 100);
                   }
-                  
-                  // Initialize the tree after a short delay
-                  setTimeout(() => {
-                    initializeTreesInElement(newElement);
-                  }, 100);
                 }
               } catch (e) {
                 console.error('Error initializing file tree:', e);
