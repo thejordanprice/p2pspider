@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <%- include('includes/header') %>
+  <link rel="stylesheet" href="public/css/directory-tree.css">
   <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col">
     <%- include('includes/navbar') %>
     
@@ -51,34 +52,65 @@
         <% if (typeof results !== 'undefined' && results.length > 0) { %>
           <div class="max-w-5xl mx-auto space-y-6">
             <% results.forEach(function(item) { %>
-              <div class="bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg hover:-translate-y-1 transform border border-gray-100 group">
+              <div class="bg-white rounded-xl shadow-elegant overflow-hidden transition-all duration-300 hover:shadow-elegant-lg border border-gray-100 group relative">
                 <div class="p-6 md:p-8">
-                  <h2 class="text-xl font-bold text-dark-900 mb-3 break-words group-hover:text-primary-600 transition-colors duration-300"><%= item.name %></h2>
+                  <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-xl font-bold text-dark-900 break-words group-hover:text-primary-600 transition-colors duration-300"><%= item.name %></h2>
+                  </div>
+                  
                   <div class="flex flex-wrap items-center text-sm font-medium text-dark-500 mb-4 gap-2">
                     <span class="bg-gray-100 rounded-md px-2 py-1 font-mono">Infohash:</span>
                     <span class="select-all font-mono bg-gray-50 px-2 py-1 rounded text-dark-600 border border-gray-200 text-xs md:text-sm"><%= item.infohash %></span>
                   </div>
                   
-                  <% 
-                    var filestring = typeof item.files === 'string' ? item.files : '';
-                    var formatstring = filestring.split(',').join('\n');
-                    if (formatstring.length > 100) { 
-                      formatstring = formatstring.substring(0, 100) + '...'; 
-                    }
-                  %>
-                  <% if (formatstring) { %>
+                  <% if (item.fileTree && Object.keys(item.fileTree).length > 0 && 
+                        ((item.files && Array.isArray(item.files) && item.files.length > 0) || 
+                         (typeof item.files === 'string' && item.files.trim() !== ''))) { %>
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm border border-gray-200 shadow-inner">
+                      <div class="directory-tree" data-infohash="<%= item.infohash %>">
+                        <%- item.treeHtml %>
+                      </div>
+                      <% if (item.hasMoreFiles) { %>
+                        <div class="text-xs text-right mt-1 text-primary-600">
+                          <a href="/infohash?q=<%= item.infohash %>">
+                            <i class="fas fa-ellipsis-h mr-1"></i>
+                            <% if (item.moreFilesCount) { %>
+                              <%= item.moreFilesCount %> more files...
+                            <% } else { %>
+                              More files...
+                            <% } %>
+                          </a>
+                        </div>
+                      <% } %>
+                    </div>
+                  <% } else if (item.files && 
+                               ((Array.isArray(item.files) && item.files.length > 0) || 
+                                (typeof item.files === 'string' && item.files.trim() !== ''))) { %>
+                    <% 
+                      // Fallback for when file tree processing failed
+                      const displayFiles = Array.isArray(item.files) ? item.files : item.files.split(',');
+                      const filestring = Array.isArray(displayFiles) ? displayFiles.join('\n') : displayFiles;
+                    %>
                     <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm text-dark-700 font-mono border border-gray-200 shadow-inner">
-                      <pre class="whitespace-pre-wrap break-words"><%= formatstring %></pre>
+                      <pre class="whitespace-pre-wrap break-words"><%= filestring %></pre>
+                      <% if (item.hasMoreFiles) { %>
+                        <div class="text-xs text-right mt-1 text-primary-600">
+                          <a href="/infohash?q=<%= item.infohash %>">
+                            <i class="fas fa-ellipsis-h mr-1"></i>
+                            <%= item.moreFilesCount %> more files...
+                          </a>
+                        </div>
+                      <% } %>
                     </div>
                   <% } %>
                   
                   <div class="flex flex-wrap justify-between items-center gap-4 mt-6">
-                    <a class="flex items-center transition-all duration-300 py-2 px-4 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg shadow-sm hover:shadow-md"
+                    <a class="flex items-center transition-all duration-300 py-2.5 px-5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg shadow-sm hover:shadow-md"
                        href="/infohash?q=<%= item.infohash %>">
                       <i class="fas fa-info-circle mr-2"></i>
-                      <span>Details</span>
+                      <span>View Details</span>
                     </a>
-                    <a class="flex items-center transition-all duration-300 py-2 px-4 bg-dark-700 hover:bg-dark-800 text-white font-medium rounded-lg shadow-sm hover:shadow-md"
+                    <a class="flex items-center transition-all duration-300 py-2.5 px-5 bg-dark-700 hover:bg-dark-800 text-white font-medium rounded-lg shadow-sm hover:shadow-md"
                        href="<%= item.magnet + trackers %>">
                       <i class="fas fa-magnet mr-2 text-primary-500"></i>
                       <span>Magnet URI</span>
@@ -134,5 +166,6 @@
     </main>
 
     <%- include('includes/footer') %>
+    <script src="public/js/directory-tree.js"></script>
   </body>
 </html> 
