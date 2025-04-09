@@ -1,3 +1,28 @@
+# P2P Spider v1.0.6 Release Notes
+
+We're pleased to announce the release of P2P Spider v1.0.6, which addresses a minor HTML structure issue on the search page.
+
+## What's New
+
+### HTML Structure Fix
+- Fixed an issue where the directory-tree.css stylesheet was being loaded outside the HTML head block
+- Properly relocated the stylesheet link to the header include file
+- Improved page load reliability and rendering consistency
+
+## Benefits
+- More efficient HTML structure and proper stylesheet loading
+- Ensures consistent styling across different browsers
+- Maintains HTML standards compliance
+
+## Upgrading
+
+This update requires:
+- Pull the latest changes from the repository
+- No database schema changes are required
+- Restart the application
+
+---
+
 # P2P Spider v1.0.5 Release Notes
 
 We're pleased to announce the release of P2P Spider v1.0.5, which delivers significant UI enhancements for file browsing and improvements to rendering performance.
