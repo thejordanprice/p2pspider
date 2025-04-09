@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.6] - 2025-04-09
+
+### Bug Fixes
+- Fixed stylesheet inclusion issue on search page where directory-tree.css was loaded outside the head block
+- Properly moved directory-tree.css link to the header include file for better HTML structure
+
 ## [1.0.5] - 2025-04-08
 
 ### UI Enhancements
