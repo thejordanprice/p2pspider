@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <%- include('includes/header') %>
+  <link rel="stylesheet" href="public/css/directory-tree.css">
   <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col">
     <%- include('includes/navbar') %>
     
@@ -45,7 +46,25 @@
                     <span class="select-all font-mono bg-gray-50 px-2 py-1 rounded text-dark-600 border border-gray-200 text-xs md:text-sm"><%= item.infohash %></span>
                   </div>
                   
-                  <% if (item.filestring) { %>
+                  <% if (item.fileTree && Object.keys(item.fileTree).length > 0) { %>
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm border border-gray-200 shadow-inner">
+                      <div class="directory-tree" data-infohash="<%= item.infohash %>">
+                        <%- item.treeHtml %>
+                      </div>
+                      <% if (item.hasMoreFiles) { %>
+                        <div class="text-xs text-right mt-1 text-primary-600">
+                          <a href="/infohash?q=<%= item.infohash %>">
+                            <i class="fas fa-ellipsis-h mr-1"></i>
+                            <% if (item.moreFilesCount) { %>
+                              <%= item.moreFilesCount %> more files...
+                            <% } else { %>
+                              More files...
+                            <% } %>
+                          </a>
+                        </div>
+                      <% } %>
+                    </div>
+                  <% } else if (item.filestring) { %>
                     <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm text-dark-700 font-mono border border-gray-200 shadow-inner">
                       <pre class="whitespace-pre-wrap break-words"><%= item.filestring %></pre>
                       <% if (item.hasMoreFiles) { %>
@@ -87,6 +106,7 @@
     </main>
 
     <%- include('includes/footer') %>
+    <script src="public/js/directory-tree.js"></script>
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {
@@ -159,18 +179,21 @@
             // Format files for display (if any)
             let filesHtml = '';
             if (magnetData.files) {
+              // Basic format of files for display
               let fileString = typeof magnetData.files === 'string' ? magnetData.files : magnetData.files.join(',');
               let formatString = fileString.split(',').join('\n');
               if (formatString.length > 100) {
                 formatString = formatString.substring(0, 100) + '...';
               }
-              if (formatString) {
-                filesHtml = `
-                  <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm text-dark-700 font-mono border border-gray-200 shadow-inner">
-                    <pre class="whitespace-pre-wrap break-words">${formatString}</pre>
+              
+              // Create simple files display - we'll initialize the tree after insertion
+              filesHtml = `
+                <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm border border-gray-200 shadow-inner">
+                  <div class="directory-tree" data-infohash="${magnetData.infohash}">
+                    <div class="placeholder">Loading directory structure...</div>
                   </div>
-                `;
-              }
+                </div>
+              `;
             }
             
             // Populate the HTML content
@@ -214,6 +237,24 @@
               container.appendChild(newElement);
             }
             
+            // Initialize directory tree for this new element
+            if (magnetData.files) {
+              try {
+                const directoryTreeContainer = newElement.querySelector('.directory-tree');
+                if (directoryTreeContainer) {
+                  const treeHtml = renderFileTreeForUI(magnetData.files);
+                  directoryTreeContainer.innerHTML = treeHtml;
+                  
+                  // Initialize the tree after a short delay
+                  setTimeout(() => {
+                    initializeTreesInElement(newElement);
+                  }, 100);
+                }
+              } catch (e) {
+                console.error('Error initializing file tree:', e);
+              }
+            }
+            
             // Trigger animation
             setTimeout(function() {
               newElement.style.opacity = '1';
@@ -226,6 +267,177 @@
               container.removeChild(items[items.length - 1]);
             }
           }
+        }
+        
+        // Function to render a file tree for UI display
+        function renderFileTreeForUI(filePaths) {
+          // Simple but limited implementation for client-side use
+          if (!filePaths || filePaths.length === 0) return '';
+          
+          const fileTree = {};
+          const files = Array.isArray(filePaths) ? filePaths : filePaths.split(',').map(f => f.trim()).filter(f => f);
+          
+          files.forEach(filePath => {
+            // Check if we have comma-separated paths instead of slashes
+            const hasCommas = filePath.includes(',');
+            const hasPaths = filePath.includes('/');
+            const separator = hasPaths ? '/' : (hasCommas ? ',' : '/');
+            
+            // Create a simplified directory structure
+            const parts = filePath.split(separator);
+            let currentLevel = fileTree;
+            
+            for (let i = 0; i < parts.length; i++) {
+              const part = parts[i].trim();
+              if (part === '') continue;
+              
+              if (i === parts.length - 1) {
+                // File
+                if (!currentLevel.files) currentLevel.files = [];
+                currentLevel.files.push(part);
+              } else {
+                // Directory
+                if (!currentLevel.dirs) currentLevel.dirs = {};
+                if (!currentLevel.dirs[part]) currentLevel.dirs[part] = {};
+                currentLevel = currentLevel.dirs[part];
+              }
+            }
+          });
+          
+          // Render the tree structure (simplified version)
+          return renderTreeToHtml(fileTree);
+        }
+        
+        // Helper function to render tree to HTML
+        function renderTreeToHtml(node, level = 0) {
+          let html = '';
+          const indent = level * 1.5;
+          
+          // Directories first
+          if (node.dirs) {
+            Object.keys(node.dirs).sort().forEach(dir => {
+              html += '<div class="flex items-start py-1 directory" style="padding-left: ' + indent + 'rem; --indent-level: ' + indent + ';">' +
+                '<div class="flex-shrink-0 text-dark-700 mr-2">' +
+                  '<i class="fas fa-folder text-primary-500"></i>' +
+                '</div>' +
+                '<div class="font-medium text-dark-700">' + dir + '/</div>' +
+              '</div>';
+              html += renderTreeToHtml(node.dirs[dir], level + 1);
+            });
+          }
+          
+          // Then files
+          if (node.files) {
+            node.files.sort().forEach(file => {
+              let fileIcon = 'fa-file';
+              let iconColor = 'text-gray-500';
+              
+              const fileExt = file.split('.').pop().toLowerCase();
+              
+              // File type icons - simplified version for client-side
+              if (['mp4', 'mkv', 'avi', 'mov'].includes(fileExt)) {
+                fileIcon = 'fa-file-video';
+                iconColor = 'text-red-500';
+              } else if (['mp3', 'wav', 'ogg'].includes(fileExt)) {
+                fileIcon = 'fa-file-audio';
+                iconColor = 'text-blue-500';
+              } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
+                fileIcon = 'fa-file-image';
+                iconColor = 'text-green-500';
+              } else if (['zip', 'rar', 'tar', 'gz'].includes(fileExt)) {
+                fileIcon = 'fa-file-archive';
+                iconColor = 'text-yellow-500';
+              }
+              
+              html += '<div class="flex items-start py-1" style="padding-left: ' + indent + 'rem; --indent-level: ' + indent + ';">' +
+                '<div class="flex-shrink-0 mr-2 ' + iconColor + '">' +
+                  '<i class="fas ' + fileIcon + '"></i>' +
+                '</div>' +
+                '<div class="text-dark-600">' + file + '</div>' +
+              '</div>';
+            });
+          }
+          
+          return html;
+        }
+        
+        // Function to initialize trees in a specific element
+        function initializeTreesInElement(element) {
+          const directoryTrees = element.querySelectorAll('.directory-tree');
+          directoryTrees.forEach(tree => {
+            const folderIcons = tree.querySelectorAll('.fa-folder');
+            
+            folderIcons.forEach(icon => {
+              // Convert to open folder icon initially
+              icon.classList.remove('fa-folder');
+              icon.classList.add('fa-folder-open');
+              
+              const folderDiv = icon.closest('.flex.items-start');
+              if (folderDiv) {
+                folderDiv.classList.add('folder-toggle');
+                icon.classList.add('folder-icon');
+                
+                // Handle child elements
+                handleFolderToggle(folderDiv, tree);
+              }
+            });
+          });
+        }
+        
+        // Helper for folder toggle functionality
+        function handleFolderToggle(folderDiv, treeContainer) {
+          const allItems = Array.from(treeContainer.querySelectorAll('.flex.items-start'));
+          const folderIndex = allItems.indexOf(folderDiv);
+          const folderLevel = parseFloat(folderDiv.style.paddingLeft) || 0;
+          
+          // Create container for children
+          let folderContents = document.createElement('div');
+          folderContents.className = 'folder-contents';
+          folderDiv.insertAdjacentElement('afterend', folderContents);
+          
+          // Find child elements
+          const childElements = [];
+          for (let i = folderIndex + 1; i < allItems.length; i++) {
+            const currentElement = allItems[i];
+            const currentLevel = parseFloat(currentElement.style.paddingLeft) || 0;
+            
+            if (currentLevel <= folderLevel) break;
+            
+            currentElement.classList.add('directory-item');
+            childElements.push(currentElement);
+            folderContents.appendChild(currentElement);
+          }
+          
+          // Click handler
+          folderDiv.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            folderDiv.classList.add('active');
+            setTimeout(() => folderDiv.classList.remove('active'), 600);
+            
+            const folderIcon = folderDiv.querySelector('.fa-folder, .fa-folder-open');
+            const isClosing = folderIcon.classList.contains('fa-folder-open');
+            
+            folderContents.classList.toggle('collapsed', isClosing);
+            
+            if (isClosing) {
+              folderIcon.classList.remove('fa-folder-open');
+              folderIcon.classList.add('fa-folder');
+              
+              // Close nested folders
+              const nestedContainers = folderContents.querySelectorAll('.folder-contents:not(.collapsed)');
+              const nestedIcons = folderContents.querySelectorAll('.fa-folder-open');
+              
+              nestedContainers.forEach(c => c.classList.add('collapsed'));
+              nestedIcons.forEach(i => {
+                i.classList.remove('fa-folder-open');
+                i.classList.add('fa-folder');
+              });
+            } else {
+              folderIcon.classList.remove('fa-folder');
+              folderIcon.classList.add('fa-folder-open');
+            }
+          });
         }
       });
     </script>

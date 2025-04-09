@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.5] - 2025-04-08
+
+### UI Enhancements
+- Implemented tree structure for file paths in magnetController.js and associated views
+- Added collapsible directory tree with visual feedback for better user interaction
+- Enhanced folder interaction with "Collapse All" and "Expand All" buttons
+- Improved rendering performance by limiting displayed files
+- Added CSS for directory tree styling and JavaScript for dynamic functionality
+- Integrated file tree utilities for better file path management
+
+### Performance Improvements
+- Updated cache durations for improved performance in magnetController.js
+- Enhanced rendering logic in views for better performance with large file lists
+- Optimized file display with support for both tree view and simple list formats
+
 ## [1.0.4] - 2025-04-08
 
 ### Connectivity Improvements

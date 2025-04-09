@@ -1,3 +1,38 @@
+# P2P Spider v1.0.5 Release Notes
+
+We're pleased to announce the release of P2P Spider v1.0.5, which delivers significant UI enhancements for file browsing and improvements to rendering performance.
+
+## What's New
+
+### Enhanced File Navigation
+- Implemented a tree structure for file paths across all relevant views:
+  - Added an interactive, collapsible directory tree for intuitive file navigation
+  - Introduced "Collapse All" and "Expand All" buttons for improved user control
+  - Enhanced visual feedback during folder interactions for better user experience
+- Improved file path management with dedicated file tree utilities
+- Added support for both tree view and simple list formats to accommodate different user preferences
+
+### Performance Optimizations
+- Updated cache durations in magnetController.js for faster response times
+- Enhanced rendering logic to handle large file lists more efficiently
+- Optimized file display to limit initially displayed files for faster page loading
+- Improved overall rendering performance with better structured file data
+
+## Benefits
+- More intuitive navigation of torrent file structures
+- Significantly improved user experience when browsing torrents with many files
+- Faster page loading and smoother interactions
+- Better visual hierarchy for complex file structures
+
+## Upgrading
+
+This update requires:
+- Pull the latest changes from the repository
+- No database schema changes are required
+- Restart the application
+
+---
+
 # P2P Spider v1.0.4 Release Notes
 
 We're pleased to announce the upcoming release of P2P Spider v1.0.4, which focuses on connectivity improvements, configuration enhancements, and better development experience.

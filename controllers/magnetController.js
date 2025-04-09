@@ -1,3 +1,5 @@
+'use strict';
+
 // controllers/magnetController.js
 const { Database } = require('../models/db');
 const redis = require('redis');
@@ -32,9 +34,9 @@ const REDIS_URI = process.env.REDIS_URI;
 let redisClient = null;
 
 // Cache duration in seconds
-const CACHE_DURATION = 300; // Changed from 60 to 300 (5 minutes)
-const LATEST_PAGE_CACHE_DURATION = 600; // 10 minutes for latest page
-const SEARCH_PAGE_CACHE_DURATION = 300; // 5 minutes for search results
+const CACHE_DURATION = 60 * 60; // 1 hour in seconds
+const LATEST_PAGE_CACHE_DURATION = 60 * 5; // 5 minutes in seconds
+const SEARCH_CACHE_DURATION = 60 * 30; // 30 minutes in seconds
 const STATISTICS_CACHE_DURATION = 600; // 10 minutes for statistics page
 
 // Maximum number of items to store in memory cache
@@ -268,8 +270,18 @@ const getTrackers = () => (
   '&tr=http%3A%2F%2Fwww.genesis-sp.org%3A2710%2Fannounce' +
   '&tr=http%3A%2F%2Ftracker810.xyz%3A11450%2Fannounce' +
   '&tr=http%3A%2F%2Ftracker.xiaoduola.xyz%3A6969%2Fannounce' +
-  '&tr=http%3A%2F%2Ftracker.vanitycore.co%3A6969%2Fannounce'
+  '&tr=http%3A%2F%2Ftracker.vanitycore.co%3A6969%2Fannounce' +
+  '&tr=http%3A%2F%2Ftracker.dump.cl%3A6969%2Fannounce' +
+  '&tr=http%3A%2F%2Fopentracker.io%3A6969%2Fannounce' +
+  '&tr=http%3A%2F%2Fopen.free-tracker.ga%3A6969%2Fannounce' +
+  '&tr=http%3A%2F%2Fns-1.x-fins.com%3A6969%2Fannounce' +
+  '&tr=http%3A%2F%2Fisk.richardsw.club%3A6969%2Fannounce' +
+  '&tr=http%3A%2F%2Fdiscord.heihachi.pw%3A6969%2Fannounce' +
+  '&tr=http%3A%2F%2Fbt.ktrackers.com%3A6666%3A6969%2Fannounce'
 );
+
+// File tree utils for directory structure
+const fileTreeUtils = require('../utils/fileTreeUtils');
 
 exports.index = async (req, res) => {
   try {
@@ -342,24 +354,43 @@ exports.latest = async (req, res) => {
       
       // Pre-process file data for rendering to avoid doing it in the template
       items.forEach(item => {
-        // Pre-format file strings for display
+        // Process files for both display formats - tree view and simple list
         if (item.files && Array.isArray(item.files)) {
+          // Store original file count to show "more files" link if needed
+          const originalCount = item.files.length;
+          
           // Limit to first few files to improve rendering performance
           if (item.files.length > 5) {
             item.files = item.files.slice(0, 5);
             item.hasMoreFiles = true;
           }
+          
+          // Create a simple string representation for the old format
           item.filestring = item.files.join('\n');
           if (item.filestring.length > 100) {
             item.filestring = item.filestring.substring(0, 100) + '...';
           }
+          
+          // Create tree structure for the new format
+          item.fileTree = fileTreeUtils.buildFileTree(item.files);
+          item.treeHtml = fileTreeUtils.renderFileTree(item.fileTree);
+          
+          // Add a note about truncated files
+          if (item.hasMoreFiles) {
+            item.moreFilesCount = originalCount - 5;
+          }
         } else if (typeof item.files === 'string') {
+          // Handle string representation
           let fileString = item.files;
           let formatString = fileString.split(',').join('\n');
           if (formatString.length > 100) {
             formatString = formatString.substring(0, 100) + '...';
           }
           item.filestring = formatString;
+          
+          // Create tree structure for string format as well
+          item.fileTree = fileTreeUtils.buildFileTree(item.files);
+          item.treeHtml = fileTreeUtils.renderFileTree(item.fileTree);
         }
       });
       
@@ -490,11 +521,20 @@ exports.infohash = async (req, res) => {
     }
 
     const [result] = results;
+    
+    // Process file tree data
+    const fileTree = fileTreeUtils.buildFileTree(result.files);
+    const treeHtml = fileTreeUtils.renderFileTree(fileTree);
+    
+    // Add the processed data to the result
+    result.fileTree = fileTree;
+    
     const magnet = result.magnet + getTrackers();
 
     res.render('infohash', {
       title: res.locals.site_name,
       result,
+      treeHtml,
       trackers: getTrackers(),
       timer
     });
@@ -538,7 +578,7 @@ exports.search = async (req, res) => {
     
     let searchResults;
     try {
-      searchResults = await getOrSetCache(cacheKey, SEARCH_PAGE_CACHE_DURATION, async () => {
+      searchResults = await getOrSetCache(cacheKey, SEARCH_CACHE_DURATION, async () => {
         let count, results;
         
         // Use Elasticsearch if available
@@ -637,6 +677,48 @@ exports.search = async (req, res) => {
             });
           }
         }
+        
+        // Process file data for rendering to avoid doing it in the template
+        results.forEach(item => {
+          // Process files for both display formats - tree view and simple list
+          if (item.files && Array.isArray(item.files)) {
+            // Store original file count to show "more files" link if needed
+            const originalCount = item.files.length;
+            
+            // Limit to first few files to improve rendering performance
+            if (item.files.length > 5) {
+              item.files = item.files.slice(0, 5);
+              item.hasMoreFiles = true;
+            }
+            
+            // Create a simple string representation for the old format
+            item.filestring = item.files.join('\n');
+            if (item.filestring.length > 100) {
+              item.filestring = item.filestring.substring(0, 100) + '...';
+            }
+            
+            // Create tree structure for the new format
+            item.fileTree = fileTreeUtils.buildFileTree(item.files);
+            item.treeHtml = fileTreeUtils.renderFileTree(item.fileTree);
+            
+            // Add a note about truncated files
+            if (item.hasMoreFiles) {
+              item.moreFilesCount = originalCount - 5;
+            }
+          } else if (typeof item.files === 'string') {
+            // Handle string representation
+            let fileString = item.files;
+            let formatString = fileString.split(',').join('\n');
+            if (formatString.length > 100) {
+              formatString = formatString.substring(0, 100) + '...';
+            }
+            item.filestring = formatString;
+            
+            // Create tree structure for string format as well
+            item.fileTree = fileTreeUtils.buildFileTree(item.files);
+            item.treeHtml = fileTreeUtils.renderFileTree(item.fileTree);
+          }
+        });
         
         return { 
           count, 
