@@ -1,3 +1,36 @@
+# P2P Spider v1.0.7 Release Notes
+
+We're pleased to announce the release of P2P Spider v1.0.7, which enhances the file browsing experience and improves the robustness of the directory tree component.
+
+## What's New
+
+### Enhanced File Browsing Experience
+- Improved handling of file data in latest.ejs with better validation and error handling
+- Added intelligent file count limiting with "more files" link for cleaner UI presentation
+- Enhanced directory tree component with better container-specific interactions
+- Improved error recovery with retry capability for dynamic content loading
+
+### Directory Tree Component Improvements
+- Refactored directory tree JavaScript with IIFE pattern for proper encapsulation
+- Enhanced folder icon management for more consistent visual experience
+- Updated event handling for better component-level isolation
+- Improved error handling throughout the file browser components
+
+## Benefits
+- More reliable file browsing experience with better error handling
+- Improved performance when navigating torrents with large file counts
+- Enhanced code organization with better encapsulation of component logic
+- Consistent behavior across different parts of the application
+
+## Upgrading
+
+This update requires:
+- Pull the latest changes from the repository
+- No database schema changes are required
+- Restart the application
+
+---
+
 # P2P Spider v1.0.6 Release Notes
 
 We're pleased to announce the release of P2P Spider v1.0.6, which addresses a minor HTML structure issue on the search page.

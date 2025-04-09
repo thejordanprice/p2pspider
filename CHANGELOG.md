@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.7] - 2025-04-09
+
+### UI Enhancements
+- Enhanced file display logic in latest.ejs for improved handling of magnetData.files
+- Added file count limiting in directory tree with "more files" link for better UI performance
+- Refactored directory tree initialization with IIFE pattern to prevent global scope pollution
+- Implemented retry capability for dynamic content loading in directory tree component
+- Updated event listeners for directory controls to work within specific tree containers
+- Enhanced error handling and folder icon management in file browser components
+
 ## [1.0.6] - 2025-04-09
 
 ### Bug Fixes
