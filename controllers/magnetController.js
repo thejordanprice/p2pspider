@@ -354,24 +354,43 @@ exports.latest = async (req, res) => {
       
       // Pre-process file data for rendering to avoid doing it in the template
       items.forEach(item => {
-        // Pre-format file strings for display
+        // Process files for both display formats - tree view and simple list
         if (item.files && Array.isArray(item.files)) {
+          // Store original file count to show "more files" link if needed
+          const originalCount = item.files.length;
+          
           // Limit to first few files to improve rendering performance
           if (item.files.length > 5) {
             item.files = item.files.slice(0, 5);
             item.hasMoreFiles = true;
           }
+          
+          // Create a simple string representation for the old format
           item.filestring = item.files.join('\n');
           if (item.filestring.length > 100) {
             item.filestring = item.filestring.substring(0, 100) + '...';
           }
+          
+          // Create tree structure for the new format
+          item.fileTree = fileTreeUtils.buildFileTree(item.files);
+          item.treeHtml = fileTreeUtils.renderFileTree(item.fileTree);
+          
+          // Add a note about truncated files
+          if (item.hasMoreFiles) {
+            item.moreFilesCount = originalCount - 5;
+          }
         } else if (typeof item.files === 'string') {
+          // Handle string representation
           let fileString = item.files;
           let formatString = fileString.split(',').join('\n');
           if (formatString.length > 100) {
             formatString = formatString.substring(0, 100) + '...';
           }
           item.filestring = formatString;
+          
+          // Create tree structure for string format as well
+          item.fileTree = fileTreeUtils.buildFileTree(item.files);
+          item.treeHtml = fileTreeUtils.renderFileTree(item.fileTree);
         }
       });
       
