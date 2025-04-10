@@ -21,7 +21,11 @@ const magnetSchema = new mongoose.Schema({
   name: { type: String, index: true },
   infohash: { type: String, index: true },
   magnet: String,
-  files: [String],
+  files: [{ 
+    path: String, 
+    size: Number 
+  }],
+  totalSize: { type: Number, default: 0 },
   fetchedAt: { type: Number, default: Date.now }
 });
 
@@ -143,6 +147,7 @@ class Database {
           infohash TEXT UNIQUE,
           magnet TEXT,
           files TEXT,
+          totalSize INTEGER DEFAULT 0,
           fetchedAt INTEGER
         )
       `, (err) => {
@@ -174,7 +179,16 @@ class Database {
                 return;
               }
               
-              resolve();
+              // Add an index for totalSize
+              this.db.run('CREATE INDEX IF NOT EXISTS idx_totalSize ON magnets(totalSize)', (err) => {
+                if (err) {
+                  console.error('SQLite index creation error:', err);
+                  reject(err);
+                  return;
+                }
+                
+                resolve();
+              });
             });
           });
         });
@@ -253,12 +267,12 @@ class Database {
       return result;
     } else {
       return new Promise((resolve, reject) => {
-        const { name, infohash, magnet, files, fetchedAt } = magnetData;
+        const { name, infohash, magnet, files, totalSize, fetchedAt } = magnetData;
         const filesJson = JSON.stringify(files || []);
         
         this.db.run(
-          'INSERT INTO magnets (name, infohash, magnet, files, fetchedAt) VALUES (?, ?, ?, ?, ?)',
-          [name, infohash, magnet, filesJson, fetchedAt],
+          'INSERT INTO magnets (name, infohash, magnet, files, totalSize, fetchedAt) VALUES (?, ?, ?, ?, ?, ?)',
+          [name, infohash, magnet, filesJson, totalSize || 0, fetchedAt],
           function(err) {
             if (err) {
               // Handle UNIQUE constraint error

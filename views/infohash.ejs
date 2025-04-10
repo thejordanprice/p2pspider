@@ -49,6 +49,11 @@
                     </div>
                     <span>Files</span>
                   </h3>
+                  <% if (result.totalSize && result.formattedTotalSize) { %>
+                    <div class="text-sm text-dark-500">
+                      <span class="font-medium">Total Size:</span> <%= result.formattedTotalSize %>
+                    </div>
+                  <% } %>
                 </div>
                 
                 <% 

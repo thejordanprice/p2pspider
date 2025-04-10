@@ -1,3 +1,38 @@
+# P2P Spider v1.0.13 Release Notes
+
+We're pleased to announce the release of P2P Spider v1.0.13, which enhances the metadata extraction capabilities with file size tracking and improves the file tree display UI.
+
+## What's New
+
+### File Size Tracking
+- Added file size extraction from torrent metadata
+- Updated the database schema to store individual file sizes and total torrent size
+- Enhanced the UI to display file sizes in human-readable format (B, KB, MB, GB, TB)
+- Improved file tree view to show individual file sizes
+- Added total torrent size display on all views (search, latest, infohash)
+
+### File Tree UI Improvements
+- Fixed vertical alignment issues in file tree display
+- Enhanced CSS to ensure consistent alignment between filenames and file sizes
+- Updated folder toggle functionality to work with both directory and file elements
+- Improved tree rendering for better visual consistency
+
+## Benefits
+- Better understanding of content size before downloading
+- More comprehensive metadata for torrents
+- Enhanced file browsing experience with detailed size information
+- Improved search experience with at-a-glance size information
+- More useful metadata for archival and analysis purposes
+- Consistent visual alignment across all UI elements
+
+## Upgrading
+This update requires:
+- Pull the latest changes from the repository
+- Database schema updates will be automatically applied
+- Restart the application
+
+---
+
 # P2P Spider v1.0.12 Release Notes
 
 We're pleased to announce the release of P2P Spider v1.0.12, which improves the file listing experience on individual infohash pages.

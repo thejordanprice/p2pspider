@@ -43,6 +43,9 @@
                   <div class="flex flex-wrap items-center text-sm font-medium text-dark-500 mb-4 gap-2">
                     <span class="bg-gray-100 rounded-md px-2 py-1 font-mono">Infohash:</span>
                     <span class="select-all font-mono bg-gray-50 px-2 py-1 rounded text-dark-600 border border-gray-200 text-xs md:text-sm"><%= item.infohash %></span>
+                    <% if (item.totalSize && item.formattedTotalSize) { %>
+                      <span class="bg-gray-100 rounded-md px-2 py-1">Size: <%= item.formattedTotalSize %></span>
+                    <% } %>
                   </div>
                   
                   <% if (item.fileTree && Object.keys(item.fileTree).length > 0) { %>
@@ -206,6 +209,7 @@
                 <div class="flex flex-wrap items-center text-sm font-medium text-dark-500 mb-4 gap-2">
                   <span class="bg-gray-100 rounded-md px-2 py-1 font-mono">Infohash:</span>
                   <span class="select-all font-mono bg-gray-50 px-2 py-1 rounded text-dark-600 border border-gray-200 text-xs md:text-sm">${magnetData.infohash}</span>
+                  ${magnetData.totalSize ? `<span class="bg-gray-100 rounded-md px-2 py-1">Size: ${formatFileSize(magnetData.totalSize)}</span>` : ''}
                 </div>
                 
                 ${filesHtml}
@@ -300,7 +304,17 @@
           const fileTree = {};
           const files = Array.isArray(filePaths) ? filePaths : filePaths.split(',').map(f => f.trim()).filter(f => f);
           
-          files.forEach(filePath => {
+          files.forEach(fileItem => {
+            // Handle both string paths and {path, size} objects
+            let filePath, fileSize = 0;
+            
+            if (typeof fileItem === 'object' && fileItem !== null) {
+              filePath = fileItem.path || '';
+              fileSize = fileItem.size || 0;
+            } else {
+              filePath = fileItem;
+            }
+            
             // Check if we have comma-separated paths instead of slashes
             const hasCommas = filePath.includes(',');
             const hasPaths = filePath.includes('/');
@@ -317,7 +331,10 @@
               if (i === parts.length - 1) {
                 // File
                 if (!currentLevel.files) currentLevel.files = [];
-                currentLevel.files.push(part);
+                currentLevel.files.push({
+                  name: part,
+                  size: fileSize
+                });
               } else {
                 // Directory
                 if (!currentLevel.dirs) currentLevel.dirs = {};
@@ -351,37 +368,65 @@
           
           // Then files
           if (node.files) {
-            node.files.sort().forEach(file => {
+            // Sort files by name
+            node.files.sort((a, b) => {
+              const nameA = typeof a === 'object' ? a.name : a;
+              const nameB = typeof b === 'object' ? b.name : b;
+              return nameA.localeCompare(nameB);
+            }).forEach(file => {
+              // Handle both string files and {name, size} objects
+              let fileName, fileSize = 0;
+              
+              if (typeof file === 'object' && file !== null) {
+                fileName = file.name || '';
+                fileSize = file.size || 0;
+              } else {
+                fileName = file;
+              }
+              
               let fileIcon = 'fa-file';
               let iconColor = 'text-gray-500';
               
-              const fileExt = file.split('.').pop().toLowerCase();
+              // Simplified file icon detection based on extension
+              const fileExt = fileName.split('.').pop().toLowerCase();
               
-              // File type icons - simplified version for client-side
+              // Simple icon mapping for common file types
               if (['mp4', 'mkv', 'avi', 'mov'].includes(fileExt)) {
                 fileIcon = 'fa-file-video';
                 iconColor = 'text-red-500';
-              } else if (['mp3', 'wav', 'ogg'].includes(fileExt)) {
+              } else if (['mp3', 'wav', 'ogg', 'flac'].includes(fileExt)) {
                 fileIcon = 'fa-file-audio';
                 iconColor = 'text-blue-500';
-              } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
+              } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
                 fileIcon = 'fa-file-image';
                 iconColor = 'text-green-500';
-              } else if (['zip', 'rar', 'tar', 'gz'].includes(fileExt)) {
+              } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(fileExt)) {
                 fileIcon = 'fa-file-archive';
                 iconColor = 'text-yellow-500';
               }
               
-              html += '<div class="flex items-start py-1" style="padding-left: ' + indent + 'rem; --indent-level: ' + indent + ';">' +
+              const formattedSize = formatFileSize(fileSize);
+              
+              html += '<div class="flex items-center py-1" style="padding-left: ' + indent + 'rem; --indent-level: ' + indent + ';">' +
                 '<div class="flex-shrink-0 mr-2 ' + iconColor + '">' +
                   '<i class="fas ' + fileIcon + '"></i>' +
                 '</div>' +
-                '<div class="text-dark-600">' + file + '</div>' +
+                '<div class="flex-grow text-dark-600">' + fileName + '</div>' +
+                '<div class="text-dark-400 text-xs ml-2">' + formattedSize + '</div>' +
               '</div>';
             });
           }
           
           return html;
+        }
+        
+        // Helper function to format file size
+        function formatFileSize(size) {
+          if (!size || size === 0) return '0 B';
+          
+          const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+          const i = Math.floor(Math.log(size) / Math.log(1024));
+          return (size / Math.pow(1024, i)).toFixed(i > 0 ? 2 : 0) + ' ' + units[i];
         }
         
         // Function to initialize trees in a specific element
@@ -409,7 +454,7 @@
         
         // Helper for folder toggle functionality
         function handleFolderToggle(folderDiv, treeContainer) {
-          const allItems = Array.from(treeContainer.querySelectorAll('.flex.items-start'));
+          const allItems = Array.from(treeContainer.querySelectorAll('.flex.items-start, .flex.items-center'));
           const folderIndex = allItems.indexOf(folderDiv);
           const folderLevel = parseFloat(folderDiv.style.paddingLeft) || 0;
           

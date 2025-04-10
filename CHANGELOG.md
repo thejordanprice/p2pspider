@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.13] - 2025-04-10
+
+### Feature Enhancements
+- Added file size extraction from torrent metadata in processMetadata function
+- Updated MongoDB schema and SQLite database to support file size storage
+- Added totalSize field to store and display the complete torrent size
+- Enhanced fileTreeUtils.js with file size formatting utilities
+- Updated UI in all views (search, latest, infohash) to display file sizes
+- Added file size formatting helper function for both server and client-side use
+- Improved WebSocket handling to support file size information in real-time updates
+
+### UI Improvements
+- Fixed vertical alignment issues between filenames and file sizes in directory tree
+- Updated CSS selectors to target both items-start and items-center classes
+- Enhanced file tree rendering for better visual consistency
+- Fixed folder toggle functionality to work with both directory and file elements
+- Improved client-side JS to handle both string files and object files with name/size
+
 ## [1.0.12] - 2025-04-10
 
 ### UI Enhancements

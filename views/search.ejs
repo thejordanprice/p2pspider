@@ -60,6 +60,9 @@
                   <div class="flex flex-wrap items-center text-sm font-medium text-dark-500 mb-4 gap-2">
                     <span class="bg-gray-100 rounded-md px-2 py-1 font-mono">Infohash:</span>
                     <span class="select-all font-mono bg-gray-50 px-2 py-1 rounded text-dark-600 border border-gray-200 text-xs md:text-sm"><%= item.infohash %></span>
+                    <% if (item.totalSize && item.formattedTotalSize) { %>
+                      <span class="bg-gray-100 rounded-md px-2 py-1">Size: <%= item.formattedTotalSize %></span>
+                    <% } %>
                   </div>
                   
                   <% if (item.fileTree && Object.keys(item.fileTree).length > 0 && 

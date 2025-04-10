@@ -1,11 +1,13 @@
 /* Directory tree view styles */
-.directory-tree .flex.items-start {
+.directory-tree .flex.items-start, 
+.directory-tree .flex.items-center {
   transition: background-color 0.2s ease;
   border-radius: 0.25rem;
   margin-bottom: 0.125rem;
   position: relative;
 }
-.directory-tree .flex.items-start:hover {
+.directory-tree .flex.items-start:hover,
+.directory-tree .flex.items-center:hover {
   background-color: rgba(156, 163, 175, 0.1);
 }
 .directory-tree .folder-toggle {
@@ -102,7 +104,8 @@
 }
 
 /* Tree lines for better visual hierarchy */
-.directory-tree .flex.items-start::before {
+.directory-tree .flex.items-start::before,
+.directory-tree .flex.items-center::before {
   content: '';
   position: absolute;
   top: 0;
@@ -112,7 +115,8 @@
   background-color: rgba(209, 213, 219, 0.6);
   pointer-events: none; /* Ensure line doesn't interfere with clicks */
 }
-.directory-tree .flex.items-start::after {
+.directory-tree .flex.items-start::after,
+.directory-tree .flex.items-center::after {
   content: '';
   position: absolute;
   top: 1rem;
@@ -124,11 +128,22 @@
 }
 /* Don't show vertical line for last items */
 .directory-tree .flex.items-start:last-child::before,
-.directory-tree .flex.items-start.last-at-level::before {
+.directory-tree .flex.items-start.last-at-level::before,
+.directory-tree .flex.items-center:last-child::before,
+.directory-tree .flex.items-center.last-at-level::before {
   height: 1rem;
 }
 /* Don't show lines for root items */
 .directory-tree > .flex.items-start::before,
-.directory-tree > .flex.items-start::after {
+.directory-tree > .flex.items-start::after,
+.directory-tree > .flex.items-center::before,
+.directory-tree > .flex.items-center::after {
   display: none;
+}
+
+/* Ensure file size is aligned with file name */
+.directory-tree .text-dark-400.text-xs {
+  display: flex;
+  align-items: center;
+  line-height: 1;
 } 
