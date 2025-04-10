@@ -248,6 +248,8 @@ if (window.directoryTreeInitialized) {
             if (folderDiv.dataset.processing === 'true') {
               return;
             }
+            
+            // Set processing flag immediately and keep it for the duration of the operation
             folderDiv.dataset.processing = 'true';
             
             // Add visual feedback animation
@@ -255,69 +257,113 @@ if (window.directoryTreeInitialized) {
             
             // When closing a folder
             if (isClosing) {
-              // 1. First update the icon
-              folderIcon.classList.remove('fa-folder-open');
-              folderIcon.classList.add('fa-folder');
-              
-              // 2. Set display:none immediately to prevent any visual glitches
-              folderContents.style.display = 'none';
-              
-              // 3. Add collapsed class
-              folderContents.classList.add('collapsed');
-              
-              // 4. Process any nested folders
-              const nestedFolderContainers = folderContents.querySelectorAll('.folder-contents:not(.collapsed)');
-              const nestedFolderIcons = folderContents.querySelectorAll('.fa-folder-open');
-              
-              // Close each nested folder container
-              nestedFolderContainers.forEach(container => {
-                container.classList.add('collapsed');
-                container.style.display = 'none';
-              });
-              
-              // Update each nested folder icon
-              nestedFolderIcons.forEach(icon => {
-                icon.classList.remove('fa-folder-open');
-                icon.classList.add('fa-folder');
-              });
-              
-              // 5. Final check to ensure it stays closed
-              setTimeout(() => {
-                folderContents.classList.add('collapsed');
+              // Create a non-animated close function that can be reused
+              const closeFolder = () => {
+                // 1. First update the icon
+                folderIcon.classList.remove('fa-folder-open');
+                folderIcon.classList.add('fa-folder');
+                
+                // 2. Set display:none immediately to prevent any visual glitches
                 folderContents.style.display = 'none';
+                
+                // 3. Add collapsed class
+                folderContents.classList.add('collapsed');
+                
+                // 4. Apply all other CSS properties to ensure it stays closed
+                folderContents.style.visibility = 'hidden';
+                folderContents.style.height = '0';
+                folderContents.style.position = 'absolute';
+                folderContents.style.zIndex = '-1';
+                folderContents.style.opacity = '0';
+                folderContents.style.maxHeight = '0';
+                
+                // 5. Process any nested folders
+                const nestedFolderContainers = folderContents.querySelectorAll('.folder-contents:not(.collapsed)');
+                const nestedFolderIcons = folderContents.querySelectorAll('.fa-folder-open');
+                
+                // Close each nested folder container
+                nestedFolderContainers.forEach(container => {
+                  container.classList.add('collapsed');
+                  container.style.display = 'none';
+                  container.style.visibility = 'hidden';
+                  container.style.height = '0';
+                });
+                
+                // Update each nested folder icon
+                nestedFolderIcons.forEach(icon => {
+                  icon.classList.remove('fa-folder-open');
+                  icon.classList.add('fa-folder');
+                });
+              };
+              
+              // Close the folder immediately
+              closeFolder();
+              
+              // Apply the update tree lines after DOM updates have been applied
+              setTimeout(() => {
+                // Force close again to handle any race condition
+                closeFolder();
+                
+                // Update tree lines
                 updateTreeLines(container);
                 
-                // Reset processing flag
-                folderDiv.dataset.processing = 'false';
-                folderDiv.classList.remove('active');
+                // Wait a bit more before removing the processing state to prevent immediate reopening
+                setTimeout(() => {
+                  // Reset processing flag
+                  folderDiv.dataset.processing = 'false';
+                  folderDiv.classList.remove('active');
+                  
+                  // Final check that it stayed closed
+                  if (!folderIcon.classList.contains('fa-folder')) {
+                    closeFolder();
+                  }
+                }, 100);
               }, 50);
             } 
             // When opening a folder
             else {
-              // 1. First update the icon
-              folderIcon.classList.remove('fa-folder');
-              folderIcon.classList.add('fa-folder-open');
+              // Create a non-animated open function that can be reused
+              const openFolder = () => {
+                // 1. First update the icon
+                folderIcon.classList.remove('fa-folder');
+                folderIcon.classList.add('fa-folder-open');
+                
+                // 2. Ensure all the CSS properties for collapsed state are removed
+                folderContents.classList.remove('collapsed');
+                folderContents.style.display = 'block';
+                folderContents.style.visibility = 'visible';
+                folderContents.style.height = 'auto';
+                folderContents.style.position = 'relative';
+                folderContents.style.zIndex = 'auto';
+                folderContents.style.opacity = '1';
+                folderContents.style.maxHeight = 'none';
+              };
               
-              // 2. Ensure all the CSS properties for collapsed state are removed
-              folderContents.classList.remove('collapsed');
-              folderContents.style.display = 'block';
-              folderContents.style.visibility = 'visible';
-              folderContents.style.height = 'auto';
-              folderContents.style.position = 'relative';
-              folderContents.style.zIndex = 'auto';
-              folderContents.style.opacity = '1';
-              folderContents.style.maxHeight = 'none';
+              // Open the folder immediately
+              openFolder();
               
-              // 3. Force a browser reflow to ensure styles are applied
+              // Force a browser reflow to ensure styles are applied
               void folderContents.offsetHeight;
               
-              // 4. Update tree lines
+              // Update tree lines after DOM updates have been applied
               setTimeout(() => {
+                // Force open again to handle any race condition
+                openFolder();
+                
+                // Update tree lines
                 updateTreeLines(container);
                 
-                // Reset processing flag
-                folderDiv.dataset.processing = 'false';
-                folderDiv.classList.remove('active');
+                // Wait a bit more before removing the processing state
+                setTimeout(() => {
+                  // Reset processing flag
+                  folderDiv.dataset.processing = 'false';
+                  folderDiv.classList.remove('active');
+                  
+                  // Final check that it stayed open
+                  if (!folderIcon.classList.contains('fa-folder-open')) {
+                    openFolder();
+                  }
+                }, 100);
               }, 50);
             }
           });

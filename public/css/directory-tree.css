@@ -23,8 +23,11 @@
 .directory-tree .folder-toggle:hover .folder-icon {
   transform: scale(1.1);
 }
+.directory-tree .folder-toggle[data-processing="true"] {
+  pointer-events: none; /* Prevent clicks during processing */
+}
 .directory-item {
-  transition: all 0.2s ease;
+  transition: none !important; /* Disable transitions for better reliability */
   transform-origin: top left;
   max-height: 50px; /* Default height for items */
   overflow: hidden;
@@ -46,12 +49,14 @@
   height: 0 !important;
   position: absolute !important;
   z-index: -1 !important;
+  clip: rect(0, 0, 0, 0) !important; /* Additional way to hide content */
+  overflow: hidden !important;
 }
 
 /* Define a group container for folder contents */
 .folder-contents {
   overflow: hidden;
-  transition: opacity 0.2s ease; /* Only animate opacity for smoother experience */
+  transition: none !important; /* Disable transitions for better reliability */
   max-height: none; /* Don't limit height */
   opacity: 1;
   position: relative;
@@ -70,6 +75,8 @@
   height: 0 !important;
   position: absolute !important;
   z-index: -1 !important;
+  clip: rect(0, 0, 0, 0) !important; /* Additional way to hide content */
+  pointer-events: none !important;
 }
 
 /* Add visual feedback effect when expanding/collapsing */
