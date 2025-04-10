@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.10] - 2025-04-09
+
+### UI Enhancements
+- Refactored directory tree initialization and state management for enhanced reliability
+- Implemented promise-based approach for waiting on directory tree initialization
+- Added processing state management to prevent user interactions during folder operations
+- Enhanced folder state checks to prevent visual glitches and ensure consistency
+- Improved DOM event handling for better responsiveness with dynamically loaded content
+- Integrated MutationObserver to automatically initialize directory trees added to the DOM
+- Updated CSS to disable transitions during operations for improved performance
+- Enhanced error handling with detailed logging and retry mechanisms
+- Removed unused collapse/expand buttons from infohash.ejs and search.ejs for cleaner UI
+
 ## [1.0.9] - 2025-04-09
 
 ### Performance Improvements

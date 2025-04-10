@@ -1,3 +1,35 @@
+# P2P Spider v1.0.10 Release Notes
+
+We're pleased to announce the release of P2P Spider v1.0.10, which focuses on enhancing the directory tree functionality for a more reliable and responsive user experience.
+
+## What's New
+
+### Directory Tree Enhancements
+- Completely refactored directory tree initialization and state management to prevent duplicate initializations
+- Implemented a promise-based approach for waiting on directory trees to ensure proper loading
+- Added processing state management to prevent user interactions during folder operations
+- Improved folder open/close logic to eliminate visual glitches and ensure consistency
+- Enhanced DOM event handling for better responsiveness with dynamically loaded content
+- Added MutationObserver to automatically initialize trees added to the DOM
+- Updated CSS to disable transitions during operations for better performance
+- Improved error handling and retry mechanisms for more reliable initialization
+
+## Benefits
+- More reliable directory tree functionality across the application
+- Better visual consistency when opening and closing folders
+- Improved user experience with proper state management during operations
+- Enhanced performance with optimized transitions and event handling
+- More robust handling of dynamically loaded content
+- Prevented duplicate event handlers and initialization issues
+
+## Upgrading
+This update requires:
+- Pull the latest changes from the repository
+- No database schema changes are required
+- Restart the application
+
+---
+
 # P2P Spider v1.0.9 Release Notes
 
 We're pleased to announce the release of P2P Spider v1.0.9, which focuses on significant performance improvements to the /latest page for a faster and more responsive user experience.

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <%- include('includes/header') %>
+  <link rel="stylesheet" href="public/css/directory-tree.css">
+  <script src="public/js/directory-tree.js"></script>
   <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col">
     <%- include('includes/navbar') %>
     
@@ -65,22 +67,32 @@
                   <% if (item.fileTree && Object.keys(item.fileTree).length > 0 && 
                         ((item.files && Array.isArray(item.files) && item.files.length > 0) || 
                          (typeof item.files === 'string' && item.files.trim() !== ''))) { %>
-                    <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm border border-gray-200 shadow-inner">
-                      <div class="directory-tree" data-infohash="<%= item.infohash %>">
-                        <%- item.treeHtml %>
+                    <div class="mb-4">
+                      <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-semibold text-dark-600 uppercase flex items-center">
+                          <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-2">
+                            <i class="fas fa-folder-open text-primary-600"></i>
+                          </div>
+                          <span>Files</span>
+                        </h3>
                       </div>
-                      <% if (item.hasMoreFiles) { %>
-                        <div class="text-xs text-right mt-1 text-primary-600">
-                          <a href="/infohash?q=<%= item.infohash %>">
-                            <i class="fas fa-ellipsis-h mr-1"></i>
-                            <% if (item.moreFilesCount) { %>
-                              <%= item.moreFilesCount %> more files...
-                            <% } else { %>
-                              More files...
-                            <% } %>
-                          </a>
+                      <div class="bg-gray-50 rounded-lg p-5 overflow-auto max-h-96 text-sm border border-gray-200 shadow-inner">
+                        <div class="directory-tree" data-infohash="<%= item.infohash %>">
+                          <%- item.treeHtml %>
                         </div>
-                      <% } %>
+                        <% if (item.hasMoreFiles) { %>
+                          <div class="text-xs text-right mt-1 text-primary-600">
+                            <a href="/infohash?q=<%= item.infohash %>">
+                              <i class="fas fa-ellipsis-h mr-1"></i>
+                              <% if (item.moreFilesCount) { %>
+                                <%= item.moreFilesCount %> more files...
+                              <% } else { %>
+                                More files...
+                              <% } %>
+                            </a>
+                          </div>
+                        <% } %>
+                      </div>
                     </div>
                   <% } else if (item.files && 
                                ((Array.isArray(item.files) && item.files.length > 0) || 
@@ -165,6 +177,5 @@
     </main>
 
     <%- include('includes/footer') %>
-    <script src="public/js/directory-tree.js"></script>
   </body>
 </html> 
