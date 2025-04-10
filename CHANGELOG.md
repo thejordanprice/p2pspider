@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.10] - 2025-04-10
+## [1.0.10] - 2025-04-09
 
 ### UI Enhancements
 - Refactored directory tree initialization and state management for enhanced reliability
