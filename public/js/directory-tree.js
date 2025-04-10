@@ -13,26 +13,41 @@ if (window.directoryTreeInitialized) {
   (function() {
     // Track initialization state to prevent duplicate initialization
     let isInitialized = false;
+    let initAttempts = 0;
+    const MAX_INIT_ATTEMPTS = 20; // Maximum number of retry attempts
+    let initRetryTimeout = null;
     
     // Main initialization function with retry capability
-    function initializeDirectoryTrees() {
+    function initializeDirectoryTrees(forceReinit = false) {
       try {
         console.log("Initializing directory trees...");
         const containers = document.querySelectorAll('.directory-tree');
         
         if (containers.length === 0) {
-          console.log("No directory tree containers found, will retry later");
+          initAttempts++;
+          if (initAttempts > MAX_INIT_ATTEMPTS) {
+            console.log(`Maximum initialization attempts (${MAX_INIT_ATTEMPTS}) reached, giving up.`);
+            return;
+          }
+          
+          console.log(`No directory tree containers found, will retry later (attempt ${initAttempts}/${MAX_INIT_ATTEMPTS})`);
           // Retry after a delay if no containers found
-          setTimeout(initializeDirectoryTrees, 300);
+          clearTimeout(initRetryTimeout);
+          initRetryTimeout = setTimeout(() => initializeDirectoryTrees(), 300);
           return;
         }
         
         console.log(`Found ${containers.length} directory tree containers`);
         
+        // Check if any containers need initialization
+        let containersInitialized = 0;
+        let containersSkipped = 0;
+        
         // Initialize each directory tree container
         containers.forEach((container, index) => {
-          // Skip if this container has already been initialized
-          if (container.dataset.initialized === 'true') {
+          // Skip if this container has already been initialized and we're not forcing reinit
+          if (container.dataset.initialized === 'true' && !forceReinit) {
+            containersSkipped++;
             return;
           }
           
@@ -52,11 +67,20 @@ if (window.directoryTreeInitialized) {
           
           // Initialize the folder structure
           initDirectoryTree(container);
+          containersInitialized++;
         });
+        
+        console.log(`Directory trees initialization complete: ${containersInitialized} initialized, ${containersSkipped} skipped`);
+        
+        // If we found containers but couldn't initialize any, try once more with force=true
+        if (containersInitialized === 0 && containersSkipped > 0 && !forceReinit) {
+          console.log("No containers were initialized but some were found, attempting force reinitialization...");
+          setTimeout(() => initializeDirectoryTrees(true), 500);
+          return;
+        }
         
         // Mark global initialization as complete
         isInitialized = true;
-        console.log("Directory trees initialization complete");
       } catch (err) {
         console.error("Error initializing directory trees:", err);
       }
@@ -432,7 +456,37 @@ if (window.directoryTreeInitialized) {
     // Re-initialize on window load to catch any late-loading content
     window.addEventListener('load', function() {
       setTimeout(initializeDirectoryTrees, 300);
+      
+      // Try once more after a longer delay
+      setTimeout(initializeDirectoryTrees, 2000);
     });
+    
+    // Use MutationObserver to watch for directory trees being added to the DOM
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+          // Check if any of the added nodes are directory trees or contain directory trees
+          let hasDirectoryTree = false;
+          
+          mutation.addedNodes.forEach(function(node) {
+            if (node.nodeType === 1 && (
+                node.classList && node.classList.contains('directory-tree') || 
+                node.querySelector && node.querySelector('.directory-tree')
+              )) {
+              hasDirectoryTree = true;
+            }
+          });
+          
+          if (hasDirectoryTree) {
+            console.log("Directory tree added to DOM, initializing...");
+            setTimeout(initializeDirectoryTrees, 100);
+          }
+        }
+      });
+    });
+    
+    // Start observing the document with the configured parameters
+    observer.observe(document.body, { childList: true, subtree: true });
 
     // Provide a global function that can be called manually if needed
     window.reinitializeDirectoryTrees = initializeDirectoryTrees;

@@ -2,6 +2,7 @@
 <html lang="en">
   <%- include('includes/header') %>
   <link rel="stylesheet" href="public/css/directory-tree.css">
+  <script src="public/js/directory-tree.js"></script>
   <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col">
     <%- include('includes/navbar') %>
     
@@ -80,8 +81,18 @@
                       <div class="directory-tree" data-infohash="<%= item.infohash %>">
                         <%- item.treeHtml %>
                         <script>
+                          // Log tree HTML content for debugging
                           console.log("Tree HTML for <%= item.infohash %>:", 
                             document.querySelector('.directory-tree[data-infohash="<%= item.infohash %>"]').innerHTML);
+                            
+                          // Ensure this specific tree is initialized after a slight delay
+                          setTimeout(function() {
+                            const container = document.querySelector('.directory-tree[data-infohash="<%= item.infohash %>"]');
+                            if (container && container.dataset.initialized !== 'true' && typeof window.reinitializeDirectoryTrees === 'function') {
+                              console.log("Directly initializing tree for <%= item.infohash %>");
+                              window.reinitializeDirectoryTrees();
+                            }
+                          }, 1500);
                         </script>
                       </div>
                       <% if (item.hasMoreFiles) { %>
@@ -180,6 +191,5 @@
     </main>
 
     <%- include('includes/footer') %>
-    <script src="public/js/directory-tree.js"></script>
   </body>
 </html> 
