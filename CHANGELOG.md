@@ -13,6 +13,13 @@ All notable changes to this project will be documented in this file.
 - Added file size formatting helper function for both server and client-side use
 - Improved WebSocket handling to support file size information in real-time updates
 
+### UI Improvements
+- Fixed vertical alignment issues between filenames and file sizes in directory tree
+- Updated CSS selectors to target both items-start and items-center classes
+- Enhanced file tree rendering for better visual consistency
+- Fixed folder toggle functionality to work with both directory and file elements
+- Improved client-side JS to handle both string files and object files with name/size
+
 ## [1.0.12] - 2025-04-10
 
 ### UI Enhancements
