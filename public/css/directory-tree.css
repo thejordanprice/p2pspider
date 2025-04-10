@@ -11,44 +11,65 @@
 .directory-tree .folder-toggle {
   cursor: pointer;
   z-index: 1;
+  /* Improve click area */
+  padding: 2px;
+  margin: -2px;
+  user-select: none;
 }
 .directory-tree .folder-icon {
   transition: transform 0.2s ease, color 0.2s ease;
+  pointer-events: none; /* Prevent icon from capturing clicks */
 }
 .directory-tree .folder-toggle:hover .folder-icon {
   transform: scale(1.1);
 }
 .directory-item {
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   transform-origin: top left;
   max-height: 50px; /* Default height for items */
   overflow: hidden;
+  will-change: transform, opacity, max-height;
+  pointer-events: auto; /* Ensure items are clickable when visible */
 }
 .directory-item.collapsed {
-  max-height: 0;
-  opacity: 0;
+  max-height: 0 !important;
+  opacity: 0 !important;
   margin-top: 0 !important;
   margin-bottom: 0 !important;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
-  transform: translateY(-5px);
-  pointer-events: none;
+  transform: translateY(-5px) !important;
+  pointer-events: none !important;
+  transition: none !important; /* Use no transition when collapsing for instant effect */
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  position: absolute !important;
+  z-index: -1 !important;
 }
 
 /* Define a group container for folder contents */
 .folder-contents {
   overflow: hidden;
-  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-            opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  max-height: 9999px; /* Large enough to contain contents */
+  transition: opacity 0.2s ease; /* Only animate opacity for smoother experience */
+  max-height: none; /* Don't limit height */
   opacity: 1;
   position: relative;
+  display: block;
+  will-change: opacity, display;
 }
 .folder-contents.collapsed {
-  max-height: 0;
-  opacity: 0;
-  margin: 0;
-  padding: 0;
+  max-height: 0 !important;
+  opacity: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  transition: none !important; /* Use no transition when collapsing for instant effect */
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  position: absolute !important;
+  z-index: -1 !important;
 }
 
 /* Add visual feedback effect when expanding/collapsing */
@@ -58,12 +79,13 @@
   100% { background-color: transparent; }
 }
 .folder-toggle.active {
-  animation: pulse 0.6s ease;
+  animation: pulse 0.3s ease; /* Faster feedback */
+  pointer-events: none; /* Prevent additional clicks during animation */
 }
 
 /* Make folder icons rotate slightly when toggling */
 .folder-icon {
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 .fa-folder-open {
   transform: rotateZ(-5deg);
@@ -81,6 +103,7 @@
   left: calc(var(--indent-level, 0.5) * 1rem - 0.75rem);
   width: 1px;
   background-color: rgba(209, 213, 219, 0.6);
+  pointer-events: none; /* Ensure line doesn't interfere with clicks */
 }
 .directory-tree .flex.items-start::after {
   content: '';
@@ -90,6 +113,7 @@
   width: 0.75rem;
   height: 1px;
   background-color: rgba(209, 213, 219, 0.6);
+  pointer-events: none; /* Ensure line doesn't interfere with clicks */
 }
 /* Don't show vertical line for last items */
 .directory-tree .flex.items-start:last-child::before,
@@ -100,16 +124,4 @@
 .directory-tree > .flex.items-start::before,
 .directory-tree > .flex.items-start::after {
   display: none;
-}
-
-/* Button active state */
-@keyframes btn-pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
-.active-btn {
-  animation: btn-pulse 0.3s ease;
-  background-color: rgba(59, 130, 246, 0.2) !important;
 } 

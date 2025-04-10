@@ -17,6 +17,92 @@ if (window.directoryTreeInitialized) {
     const MAX_INIT_ATTEMPTS = 20; // Maximum number of retry attempts
     let initRetryTimeout = null;
     
+    // Global helper to force close any folder that might have gotten stuck open
+    function ensureProperFolderState() {
+      // Find any open folders with collapsed state that shouldn't be visible
+      const invalidFolders = document.querySelectorAll('.folder-contents.collapsed:not([style*="display: none"])');
+      if (invalidFolders.length > 0) {
+        invalidFolders.forEach(folder => {
+          // Fix display style
+          folder.style.display = 'none';
+          folder.style.visibility = 'hidden';
+          folder.style.height = '0';
+          folder.style.position = 'absolute';
+          folder.style.zIndex = '-1';
+          
+          // Also fix the icon if possible
+          const prevElement = folder.previousElementSibling;
+          if (prevElement && prevElement.classList.contains('folder-toggle')) {
+            const icon = prevElement.querySelector('.fa-folder-open');
+            if (icon) {
+              icon.classList.remove('fa-folder-open');
+              icon.classList.add('fa-folder');
+            }
+          }
+        });
+      }
+      
+      // Find any folders with open icon but collapsed contents
+      const mismatchedIcons = document.querySelectorAll('.folder-toggle .fa-folder-open');
+      mismatchedIcons.forEach(icon => {
+        const folderToggle = icon.closest('.folder-toggle');
+        if (folderToggle) {
+          const nextElement = folderToggle.nextElementSibling;
+          if (nextElement && 
+              nextElement.classList.contains('folder-contents') && 
+              nextElement.classList.contains('collapsed')) {
+            // Fix the icon to match the collapsed state
+            icon.classList.remove('fa-folder-open');
+            icon.classList.add('fa-folder');
+          }
+        }
+      });
+      
+      // Find any closed folders with non-collapsed contents
+      const closedWithOpenContent = document.querySelectorAll('.folder-toggle .fa-folder');
+      closedWithOpenContent.forEach(icon => {
+        const folderToggle = icon.closest('.folder-toggle');
+        if (folderToggle) {
+          const nextElement = folderToggle.nextElementSibling;
+          if (nextElement && 
+              nextElement.classList.contains('folder-contents') && 
+              !nextElement.classList.contains('collapsed') &&
+              nextElement.style.display !== 'none') {
+            // Open the folder properly
+            ensureFolderOpen(folderToggle, nextElement, icon);
+          }
+        }
+      });
+      
+      // Schedule the next check
+      setTimeout(ensureProperFolderState, 2000);
+    }
+    
+    // Helper function to ensure a folder is fully open
+    function ensureFolderOpen(folderToggle, folderContents, folderIcon) {
+      if (!folderToggle || !folderContents || !folderIcon) return;
+      
+      // Update icon
+      folderIcon.classList.remove('fa-folder');
+      folderIcon.classList.add('fa-folder-open');
+      
+      // Ensure full visibility
+      folderContents.classList.remove('collapsed');
+      folderContents.style.display = 'block';
+      folderContents.style.visibility = 'visible';
+      folderContents.style.height = 'auto';
+      folderContents.style.position = 'relative';
+      folderContents.style.zIndex = 'auto';
+      folderContents.style.opacity = '1';
+      folderContents.style.maxHeight = 'none';
+      
+      // Reset any processing state
+      folderToggle.dataset.processing = 'false';
+    }
+    
+    // Start the background folder state checker
+    setTimeout(ensureProperFolderState, 1000);
+    
     // Main initialization function with retry capability
     function initializeDirectoryTrees(forceReinit = false) {
       try {
@@ -144,114 +230,104 @@ if (window.directoryTreeInitialized) {
           // Click handler to toggle visibility
           folderDiv.addEventListener('click', function(e) {
             e.stopPropagation(); // Prevent parent folder click events
+            e.preventDefault(); // Prevent any default behavior
             
-            // Add a visual feedback animation
-            folderDiv.classList.add('active');
-            setTimeout(() => folderDiv.classList.remove('active'), 600);
-            
-            // Toggle between folder and folder-open icons
+            // Get a reference to the folder contents and icon
             const folderIcon = folderDiv.querySelector('.fa-folder, .fa-folder-open');
-            if (!folderIcon) return;
+            const folderContents = folderDiv.nextElementSibling;
             
+            // Safety check - if no icon or contents found, exit
+            if (!folderIcon || !folderContents || !folderContents.classList.contains('folder-contents')) {
+              return;
+            }
+            
+            // Determine if we're closing or opening
             const isClosing = folderIcon.classList.contains('fa-folder-open');
             
-            // Toggle the container's collapsed state
-            folderContents.classList.toggle('collapsed', isClosing);
+            // Prevent multiple rapid clicks
+            if (folderDiv.dataset.processing === 'true') {
+              return;
+            }
+            folderDiv.dataset.processing = 'true';
             
+            // Add visual feedback animation
+            folderDiv.classList.add('active');
+            
+            // When closing a folder
             if (isClosing) {
+              // 1. First update the icon
               folderIcon.classList.remove('fa-folder-open');
               folderIcon.classList.add('fa-folder');
               
-              // When closing, find and collapse all nested folders too
+              // 2. Set display:none immediately to prevent any visual glitches
+              folderContents.style.display = 'none';
+              
+              // 3. Add collapsed class
+              folderContents.classList.add('collapsed');
+              
+              // 4. Process any nested folders
               const nestedFolderContainers = folderContents.querySelectorAll('.folder-contents:not(.collapsed)');
               const nestedFolderIcons = folderContents.querySelectorAll('.fa-folder-open');
               
+              // Close each nested folder container
               nestedFolderContainers.forEach(container => {
                 container.classList.add('collapsed');
+                container.style.display = 'none';
               });
               
+              // Update each nested folder icon
               nestedFolderIcons.forEach(icon => {
                 icon.classList.remove('fa-folder-open');
                 icon.classList.add('fa-folder');
               });
-            } else {
+              
+              // 5. Final check to ensure it stays closed
+              setTimeout(() => {
+                folderContents.classList.add('collapsed');
+                folderContents.style.display = 'none';
+                updateTreeLines(container);
+                
+                // Reset processing flag
+                folderDiv.dataset.processing = 'false';
+                folderDiv.classList.remove('active');
+              }, 50);
+            } 
+            // When opening a folder
+            else {
+              // 1. First update the icon
               folderIcon.classList.remove('fa-folder');
               folderIcon.classList.add('fa-folder-open');
+              
+              // 2. Ensure all the CSS properties for collapsed state are removed
+              folderContents.classList.remove('collapsed');
+              folderContents.style.display = 'block';
+              folderContents.style.visibility = 'visible';
+              folderContents.style.height = 'auto';
+              folderContents.style.position = 'relative';
+              folderContents.style.zIndex = 'auto';
+              folderContents.style.opacity = '1';
+              folderContents.style.maxHeight = 'none';
+              
+              // 3. Force a browser reflow to ensure styles are applied
+              void folderContents.offsetHeight;
+              
+              // 4. Update tree lines
+              setTimeout(() => {
+                updateTreeLines(container);
+                
+                // Reset processing flag
+                folderDiv.dataset.processing = 'false';
+                folderDiv.classList.remove('active');
+              }, 50);
             }
-            
-            // Update tree lines after toggling visibility
-            setTimeout(() => updateTreeLines(container), 300);
           });
         } catch (err) {
           console.error("Error processing folder icon:", err);
         }
       });
       
-      // Initialize collapse/expand all buttons that affect this container
-      initCollapseExpandButtons(container);
-      
       // Initial update of tree lines
       updateTreeLines(container);
-    }
-
-    // Initialize collapse/expand all buttons
-    function initCollapseExpandButtons(container) {
-      // Find closest parent container that might contain the buttons
-      const directoryTreeContainer = container.closest('.bg-gray-50') || container.closest('.container') || document;
-      
-      // Look for buttons by ID or class within this container
-      const collapseAllBtnById = directoryTreeContainer.querySelector('#collapse-all');
-      const expandAllBtnById = directoryTreeContainer.querySelector('#expand-all');
-      const collapseAllBtnByClass = directoryTreeContainer.querySelector('.collapse-all');
-      const expandAllBtnByClass = directoryTreeContainer.querySelector('.expand-all');
-      
-      // Use ID buttons if available, otherwise use class-based buttons
-      const collapseAllBtn = collapseAllBtnById || collapseAllBtnByClass;
-      const expandAllBtn = expandAllBtnById || expandAllBtnByClass;
-      
-      if (collapseAllBtn) {
-        // Skip if the button already has a click handler
-        if (collapseAllBtn.hasClickHandler) return;
-        
-        collapseAllBtn.hasClickHandler = true;
-        collapseAllBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          
-          // Add visual feedback
-          collapseAllBtn.classList.add('active-btn');
-          setTimeout(() => collapseAllBtn.classList.remove('active-btn'), 300);
-          
-          const folderIcons = container.querySelectorAll('.folder-toggle .fa-folder-open');
-          folderIcons.forEach(folderIcon => {
-            const folderDiv = folderIcon.closest('.folder-toggle');
-            if (folderDiv) {
-              folderDiv.click();
-            }
-          });
-        });
-      }
-      
-      if (expandAllBtn) {
-        // Skip if the button already has a click handler
-        if (expandAllBtn.hasClickHandler) return;
-        
-        expandAllBtn.hasClickHandler = true;
-        expandAllBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          
-          // Add visual feedback
-          expandAllBtn.classList.add('active-btn');
-          setTimeout(() => expandAllBtn.classList.remove('active-btn'), 300);
-          
-          const folderIcons = container.querySelectorAll('.folder-toggle .fa-folder');
-          folderIcons.forEach(folderIcon => {
-            const folderDiv = folderIcon.closest('.folder-toggle');
-            if (folderDiv) {
-              folderDiv.click();
-            }
-          });
-        });
-      }
     }
 
     // Helper function to ensure tree line consistency
