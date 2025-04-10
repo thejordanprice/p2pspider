@@ -707,8 +707,17 @@ exports.search = async (req, res) => {
               item.filestring = item.filestring.substring(0, 100) + '...';
             }
             
-            // Create tree structure for the new format
-            item.fileTree = fileTreeUtils.buildFileTree(item.files);
+            // Create tree structure for the new format - make sure we're handling paths correctly
+            // Convert any comma-separated paths to proper directory structure
+            const processedFiles = item.files.map(file => {
+              // If the file has comma separators, try to convert them to slashes for better tree structure
+              if (file.includes(',') && !file.includes('/')) {
+                return file.replace(/,/g, '/');
+              }
+              return file;
+            });
+            
+            item.fileTree = fileTreeUtils.buildFileTree(processedFiles);
             item.treeHtml = fileTreeUtils.renderFileTree(item.fileTree);
             
             // Add a note about truncated files
@@ -725,7 +734,10 @@ exports.search = async (req, res) => {
             item.filestring = formatString;
             
             // Create tree structure for string format as well
-            item.fileTree = fileTreeUtils.buildFileTree(item.files);
+            // Convert comma-separated paths to slash-separated for better tree structure
+            const processedFiles = fileString.replace(/,/g, '/');
+            
+            item.fileTree = fileTreeUtils.buildFileTree(processedFiles);
             item.treeHtml = fileTreeUtils.renderFileTree(item.fileTree);
           }
         });
