@@ -11,17 +11,94 @@ if (window.directoryTreeInitialized) {
 
   // Wrap everything in an IIFE to avoid global scope pollution
   (function() {
-    // Track initialization state to prevent duplicate initialization
+    // Track initialization state
     let isInitialized = false;
-    let initAttempts = 0;
-    const MAX_INIT_ATTEMPTS = 20; // Maximum number of retry attempts
-    let initRetryTimeout = null;
     
-    // Global helper to force close any folder that might have gotten stuck open
+    // Store directory tree container references to avoid reinitializing them
+    const initializedContainers = new Set();
+    
+    // Promise-based approach to wait for directory trees
+    function waitForDirectoryTrees(timeout = 5000) {
+      return new Promise((resolve, reject) => {
+        // Check if directory trees already exist
+        const containers = document.querySelectorAll('.directory-tree');
+        if (containers.length > 0) {
+          return resolve(containers);
+        }
+        
+        // Set a timeout to avoid waiting indefinitely
+        const timeoutId = setTimeout(() => {
+          // Disconnect the observer to avoid memory leaks
+          if (observer) observer.disconnect();
+          // Resolve with whatever containers we can find, even if none
+          resolve(document.querySelectorAll('.directory-tree'));
+        }, timeout);
+        
+        // Create a mutation observer to watch for directory trees
+        const observer = new MutationObserver((mutations) => {
+          const containers = document.querySelectorAll('.directory-tree');
+          if (containers.length > 0) {
+            clearTimeout(timeoutId);
+            observer.disconnect();
+            resolve(containers);
+          }
+        });
+        
+        // Start observing
+        observer.observe(document.body, { childList: true, subtree: true });
+      });
+    }
+    
+    // Main initialization function (returns a Promise)
+    function initializeDirectoryTrees() {
+      // Only proceed if body exists
+      if (!document.body) {
+        return Promise.resolve(false);
+      }
+      
+      return waitForDirectoryTrees()
+        .then(containers => {
+          if (containers.length === 0) {
+            console.log("No directory tree containers found");
+            return false;
+          }
+          
+          // Initialize each directory tree container that hasn't been initialized yet
+          containers.forEach(container => {
+            // Skip if already initialized
+            if (initializedContainers.has(container) || container.dataset.initialized === 'true') {
+              return;
+            }
+            
+            // Skip if empty container
+            if (container.innerHTML.trim() === '') {
+              return;
+            }
+            
+            // Mark as initialized
+            container.dataset.initialized = 'true';
+            initializedContainers.add(container);
+            
+            // Initialize the folder structure
+            initDirectoryTree(container);
+          });
+          
+          // Mark global initialization as complete
+          isInitialized = true;
+          return true;
+        })
+        .catch(err => {
+          console.error("Error initializing directory trees:", err);
+          return false;
+        });
+    }
+    
+    // Helper function to fix any invalid folder states (run once after initialization)
     function ensureProperFolderState() {
-      // Find any open folders with collapsed state that shouldn't be visible
-      const invalidFolders = document.querySelectorAll('.folder-contents.collapsed:not([style*="display: none"])');
-      if (invalidFolders.length > 0) {
+      // Only run this once after a short delay
+      setTimeout(() => {
+        // Find any open folders with collapsed state that shouldn't be visible
+        const invalidFolders = document.querySelectorAll('.folder-contents.collapsed:not([style*="display: none"])');
         invalidFolders.forEach(folder => {
           // Fix display style
           folder.style.display = 'none';
@@ -40,123 +117,23 @@ if (window.directoryTreeInitialized) {
             }
           }
         });
-      }
-      
-      // Find any folders with open icon but collapsed contents
-      const mismatchedIcons = document.querySelectorAll('.folder-toggle .fa-folder-open');
-      mismatchedIcons.forEach(icon => {
-        const folderToggle = icon.closest('.folder-toggle');
-        if (folderToggle) {
-          const nextElement = folderToggle.nextElementSibling;
-          if (nextElement && 
-              nextElement.classList.contains('folder-contents') && 
-              nextElement.classList.contains('collapsed')) {
-            // Fix the icon to match the collapsed state
-            icon.classList.remove('fa-folder-open');
-            icon.classList.add('fa-folder');
-          }
-        }
-      });
-      
-      // Find any closed folders with non-collapsed contents
-      const closedWithOpenContent = document.querySelectorAll('.folder-toggle .fa-folder');
-      closedWithOpenContent.forEach(icon => {
-        const folderToggle = icon.closest('.folder-toggle');
-        if (folderToggle) {
-          const nextElement = folderToggle.nextElementSibling;
-          if (nextElement && 
-              nextElement.classList.contains('folder-contents') && 
-              !nextElement.classList.contains('collapsed') &&
-              nextElement.style.display !== 'none') {
-            // Open the folder properly
-            ensureFolderOpen(folderToggle, nextElement, icon);
-          }
-        }
-      });
-      
-      // Schedule the next check
-      setTimeout(ensureProperFolderState, 2000);
-    }
-    
-    // Helper function to ensure a folder is fully open
-    function ensureFolderOpen(folderToggle, folderContents, folderIcon) {
-      if (!folderToggle || !folderContents || !folderIcon) return;
-      
-      // Update icon
-      folderIcon.classList.remove('fa-folder');
-      folderIcon.classList.add('fa-folder-open');
-      
-      // Ensure full visibility
-      folderContents.classList.remove('collapsed');
-      folderContents.style.display = 'block';
-      folderContents.style.visibility = 'visible';
-      folderContents.style.height = 'auto';
-      folderContents.style.position = 'relative';
-      folderContents.style.zIndex = 'auto';
-      folderContents.style.opacity = '1';
-      folderContents.style.maxHeight = 'none';
-      
-      // Reset any processing state
-      folderToggle.dataset.processing = 'false';
-    }
-    
-    // Start the background folder state checker
-    setTimeout(ensureProperFolderState, 1000);
-    
-    // Main initialization function with retry capability
-    function initializeDirectoryTrees(forceReinit = false) {
-      try {
-        const containers = document.querySelectorAll('.directory-tree');
         
-        if (containers.length === 0) {
-          initAttempts++;
-          if (initAttempts > MAX_INIT_ATTEMPTS) {
-            console.log(`Maximum directory tree initialization attempts reached.`);
-            return;
+        // Find any folders with open icon but collapsed contents
+        const mismatchedIcons = document.querySelectorAll('.folder-toggle .fa-folder-open');
+        mismatchedIcons.forEach(icon => {
+          const folderToggle = icon.closest('.folder-toggle');
+          if (folderToggle) {
+            const nextElement = folderToggle.nextElementSibling;
+            if (nextElement && 
+                nextElement.classList.contains('folder-contents') && 
+                nextElement.classList.contains('collapsed')) {
+              // Fix the icon to match the collapsed state
+              icon.classList.remove('fa-folder-open');
+              icon.classList.add('fa-folder');
+            }
           }
-          
-          // Retry after a delay if no containers found
-          clearTimeout(initRetryTimeout);
-          initRetryTimeout = setTimeout(() => initializeDirectoryTrees(), 300);
-          return;
-        }
-        
-        // Check if any containers need initialization
-        let containersInitialized = 0;
-        let containersSkipped = 0;
-        
-        // Initialize each directory tree container
-        containers.forEach((container, index) => {
-          // Skip if this container has already been initialized and we're not forcing reinit
-          if (container.dataset.initialized === 'true' && !forceReinit) {
-            containersSkipped++;
-            return;
-          }
-          
-          // Check if container has content
-          if (container.innerHTML.trim() === '') {
-            return;
-          }
-          
-          // Mark as initialized
-          container.dataset.initialized = 'true';
-          
-          // Initialize the folder structure
-          initDirectoryTree(container);
-          containersInitialized++;
         });
-        
-        // If we found containers but couldn't initialize any, try once more with force=true
-        if (containersInitialized === 0 && containersSkipped > 0 && !forceReinit) {
-          setTimeout(() => initializeDirectoryTrees(true), 500);
-          return;
-        }
-        
-        // Mark global initialization as complete
-        isInitialized = true;
-      } catch (err) {
-        console.error("Error initializing directory trees:", err);
-      }
+      }, 1000);
     }
 
     // Initialize the directory tree for a specific container
@@ -544,55 +521,66 @@ if (window.directoryTreeInitialized) {
       return html;
     }
 
-    // Initialize when the DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-      // Initial initialization attempt
-      initializeDirectoryTrees();
-      
-      // Also try again after a delay to handle dynamically loaded content
-      setTimeout(initializeDirectoryTrees, 1000);
-    });
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        initializeDirectoryTrees().then(success => {
+          if (success) ensureProperFolderState();
+        });
+      });
+    } else {
+      // DOM already loaded, initialize immediately
+      initializeDirectoryTrees().then(success => {
+        if (success) ensureProperFolderState();
+      });
+    }
 
-    // Re-initialize on window load to catch any late-loading content
+    // Also try one more time after the window fully loads
     window.addEventListener('load', function() {
-      setTimeout(initializeDirectoryTrees, 300);
-      
-      // Try once more after a longer delay
-      setTimeout(initializeDirectoryTrees, 2000);
-    });
-    
-    // Use MutationObserver to watch for directory trees being added to the DOM
-    const observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        if (mutation.addedNodes && mutation.addedNodes.length > 0) {
-          // Check if any of the added nodes are directory trees or contain directory trees
-          let hasDirectoryTree = false;
-          
-          mutation.addedNodes.forEach(function(node) {
-            if (node.nodeType === 1 && (
-                node.classList && node.classList.contains('directory-tree') || 
-                node.querySelector && node.querySelector('.directory-tree')
-              )) {
-              hasDirectoryTree = true;
-            }
-          });
-          
-          if (hasDirectoryTree) {
-            console.log("Directory tree added to DOM, initializing...");
-            setTimeout(initializeDirectoryTrees, 100);
-          }
-        }
+      initializeDirectoryTrees().then(success => {
+        if (success) ensureProperFolderState();
       });
     });
     
-    // Start observing the document with the configured parameters
-    // Only observe if body is available
+    // Use MutationObserver to watch for new directory trees added to the DOM after initialization
+    const contentObserver = new MutationObserver(function(mutations) {
+      let hasNewTrees = false;
+      
+      mutations.forEach(function(mutation) {
+        if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+          mutation.addedNodes.forEach(function(node) {
+            // Check if this node is a directory tree or contains one
+            if (node.nodeType === 1) {
+              const newTrees = node.classList && node.classList.contains('directory-tree') ? 
+                [node] : node.querySelectorAll && Array.from(node.querySelectorAll('.directory-tree'));
+              
+              if (newTrees && newTrees.length > 0) {
+                // Check if any of these trees are not yet initialized
+                const uninitializedTrees = newTrees.filter(tree => 
+                  !initializedContainers.has(tree) && tree.dataset.initialized !== 'true'
+                );
+                
+                if (uninitializedTrees.length > 0) {
+                  hasNewTrees = true;
+                }
+              }
+            }
+          });
+        }
+      });
+      
+      // Only reinitialize if we found new uninitialized trees
+      if (hasNewTrees) {
+        initializeDirectoryTrees();
+      }
+    });
+    
+    // Start observing after initial initialization
     if (document.body) {
-      observer.observe(document.body, { childList: true, subtree: true });
+      contentObserver.observe(document.body, { childList: true, subtree: true });
     } else {
-      // If body isn't available yet, wait for it
       document.addEventListener('DOMContentLoaded', function() {
-        observer.observe(document.body, { childList: true, subtree: true });
+        contentObserver.observe(document.body, { childList: true, subtree: true });
       });
     }
 
