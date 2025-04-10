@@ -166,7 +166,16 @@ class Database {
               return;
             }
             
-            resolve();
+            // Add an index for fetchedAt to improve 'latest' page performance
+            this.db.run('CREATE INDEX IF NOT EXISTS idx_fetchedAt ON magnets(fetchedAt DESC)', (err) => {
+              if (err) {
+                console.error('SQLite index creation error:', err);
+                reject(err);
+                return;
+              }
+              
+              resolve();
+            });
           });
         });
       });
@@ -478,12 +487,21 @@ class Database {
   // Helper method to execute SQLite queries with a timeout
   async querySQLiteWithTimeout(method, sql, params = [], timeout = 10000) {
     return new Promise((resolve, reject) => {
+      // Add query start time tracking for performance monitoring
+      const startTime = Date.now();
       const timer = setTimeout(() => {
+        console.error(`SQLite query timeout after ${timeout}ms: ${sql}`);
         reject(new Error(`SQLite query timeout after ${timeout}ms: ${sql}`));
       }, timeout);
       
       this.db[method](sql, params, (err, result) => {
         clearTimeout(timer);
+        // Log slow queries for debugging
+        const queryTime = Date.now() - startTime;
+        if (queryTime > 500) { // Log queries taking more than 500ms
+          console.warn(`Slow SQLite query (${queryTime}ms): ${sql}`);
+        }
+        
         if (err) {
           reject(err);
         } else {

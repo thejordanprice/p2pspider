@@ -35,7 +35,7 @@ let redisClient = null;
 
 // Cache duration in seconds
 const CACHE_DURATION = 60 * 60; // 1 hour in seconds
-const LATEST_PAGE_CACHE_DURATION = 60 * 5; // 5 minutes in seconds
+const LATEST_PAGE_CACHE_DURATION = 60 * 15; // 15 minutes in seconds (increased from 5)
 const SEARCH_CACHE_DURATION = 60 * 30; // 30 minutes in seconds
 const STATISTICS_CACHE_DURATION = 600; // 10 minutes for statistics page
 
@@ -347,6 +347,16 @@ exports.latest = async (req, res) => {
           fetchedAt: 1,
           // Include a truncated version of files directly in projection
           files: { $slice: 5 } // Limit to first 5 files
+        };
+      } else if (db.type === 'sqlite') {
+        // For SQLite, use specific field selection to reduce data transfer
+        options.projection = {
+          id: 1,
+          name: 1,
+          infohash: 1,
+          magnet: 1,
+          fetchedAt: 1,
+          files: 1 // We'll handle file truncation after query
         };
       }
       
