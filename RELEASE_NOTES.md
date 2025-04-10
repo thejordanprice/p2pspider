@@ -1,3 +1,31 @@
+# P2P Spider v1.0.11 Release Notes
+
+We're pleased to announce the release of P2P Spider v1.0.11, which improves the directory tree display functionality to work consistently across all data sources.
+
+## What's New
+
+### Directory Tree Display Improvements
+- Fixed directory tree display on search results page to properly show hierarchical file structure
+- Enhanced handling of comma-separated file paths by converting them to proper directory structure
+- Improved file tree processing to work consistently with both Elasticsearch and database results
+- Refactored file processing code for better maintainability and consistency across all pages
+- Enhanced client-side tree initialization to handle different data formats seamlessly
+
+## Benefits
+- Consistent directory tree display across all pages (search, latest, and infohash)
+- Improved user experience when browsing search results with complex file structures
+- More reliable file navigation regardless of data source (Elasticsearch or database)
+- Better visual representation of folder structures
+- Enhanced compatibility across different file path formats
+
+## Upgrading
+This update requires:
+- Pull the latest changes from the repository
+- No database schema changes are required
+- Restart the application
+
+---
+
 # P2P Spider v1.0.10 Release Notes
 
 We're pleased to announce the release of P2P Spider v1.0.10, which focuses on enhancing the directory tree functionality for a more reliable and responsive user experience.

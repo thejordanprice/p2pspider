@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.11] - 2025-04-09
+
+### Directory Tree Improvements
+- Fixed directory tree display on search results page to work with all data sources
+- Enhanced handling of comma-separated file paths in the file tree processing
+- Improved file tree processing with consistent approach for all data formats
+- Added a central processFilesForDisplay helper function for code consistency
+- Enhanced client-side tree initialization to better handle dynamic content
+- Updated Elasticsearch integration to properly process file data for tree display
+- Improved error handling in directory tree rendering when data is incomplete
+
 ## [1.0.10] - 2025-04-09
 
 ### UI Enhancements
