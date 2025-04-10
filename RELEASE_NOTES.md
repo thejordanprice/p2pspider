@@ -1,3 +1,31 @@
+# P2P Spider v1.0.9 Release Notes
+
+We're pleased to announce the release of P2P Spider v1.0.9, which focuses on significant performance improvements to the /latest page for a faster and more responsive user experience.
+
+## What's New
+
+### Latest Page Performance Optimization
+- Reduced default page size from 25 to 15 items for faster initial rendering
+- Increased cache duration for latest page results from 5 to 15 minutes for better resource utilization
+- Implemented optimized database field projection to minimize data transfer
+- Enhanced file display with more efficient handling of large file lists
+- Improved client-side WebSocket handling with delayed initialization
+
+## Benefits
+- Significantly faster loading times for the Latest Discoveries page
+- Reduced server load and improved resource utilization
+- Better performance on mobile devices and slower connections
+- More responsive real-time updates via optimized WebSocket handling
+- Enhanced overall user experience when browsing new content
+
+## Upgrading
+This update requires:
+- Pull the latest changes from the repository
+- No database schema changes are required
+- Restart the application
+
+---
+
 # P2P Spider v1.0.8 Release Notes
 
 We're pleased to announce the release of P2P Spider v1.0.8, which introduces flexible control over the daemon and webserver components, allowing them to run independently or together.
@@ -32,6 +60,8 @@ We're pleased to announce the release of P2P Spider v1.0.8, which introduces fle
    ```bash
    RUN_DAEMON=false node app.js
    ```
+
+---
 
 # P2P Spider v1.0.7 Release Notes
 

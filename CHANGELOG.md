@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.9] - 2025-04-09
+
+### Performance Improvements
+- Optimized /latest page loading speed and rendering performance
+- Reduced default page size from 25 to 15 items for faster initial load
+- Increased cache duration for latest page results from 5 to 15 minutes
+- Improved file display with optimized field projection in database queries
+- Enhanced client-side WebSocket initialization with delayed loading
+
 ## [1.0.8] - 2025-04-09
 
 ### New Features
