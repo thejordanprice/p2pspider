@@ -164,9 +164,32 @@ async function processMetadata(metadata, db, redisClient) {
   
   // Extract data from metadata
   const name = info.name ? info.name.toString() : '';
-  const files = (info.files || []).map(file => {
-    return file.path ? file.path.toString() : '';
-  }).sort();
+  
+  // Extract files with their sizes
+  let files = [];
+  let totalSize = 0;
+  
+  if (info.files && Array.isArray(info.files)) {
+    // Multi-file torrent
+    files = info.files.map(file => {
+      const filePath = file.path ? file.path.toString() : '';
+      const fileSize = file.length || 0;
+      totalSize += fileSize;
+      return { 
+        path: filePath, 
+        size: fileSize 
+      };
+    }).sort((a, b) => a.path.localeCompare(b.path));
+  } else if (info.name) {
+    // Single file torrent
+    const fileSize = info.length || 0;
+    totalSize += fileSize;
+    files = [{ 
+      path: info.name.toString(), 
+      size: fileSize 
+    }];
+  }
+  
   const fetchedAt = Date.now();
 
   try {
@@ -175,7 +198,14 @@ async function processMetadata(metadata, db, redisClient) {
 
     if (!existingMagnet) {
       // Save to database
-      await db.saveMagnet({ name, infohash, magnet, files, fetchedAt });
+      await db.saveMagnet({ 
+        name, 
+        infohash, 
+        magnet, 
+        files, 
+        totalSize,
+        fetchedAt 
+      });
       console.log('Added to database:', name);
 
       // Store in Redis with TTL
@@ -186,6 +216,7 @@ async function processMetadata(metadata, db, redisClient) {
         name, 
         infohash, 
         files,
+        totalSize,
         fetchedAt,
         count: db.totalCount // Include current count from cached counter
       });

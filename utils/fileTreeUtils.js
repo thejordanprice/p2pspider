@@ -5,7 +5,7 @@
 
 /**
  * Build a file tree structure from an array of file paths
- * @param {Array|String} filePaths - Array of file paths or comma-separated string
+ * @param {Array|String} filePaths - Array of file paths/objects or comma-separated string
  * @return {Object} Structured file tree object
  */
 function buildFileTree(filePaths) {
@@ -25,7 +25,17 @@ function buildFileTree(filePaths) {
   }
   
   if (Array.isArray(filePaths)) {
-    filePaths.forEach(filePath => {
+    filePaths.forEach(filePathItem => {
+      // Handle both string paths and {path, size} objects
+      let filePath, fileSize = 0;
+      
+      if (typeof filePathItem === 'object' && filePathItem !== null) {
+        filePath = filePathItem.path || '';
+        fileSize = filePathItem.size || 0;
+      } else {
+        filePath = filePathItem;
+      }
+      
       // Pre-process the path - convert commas to slashes if there are no slashes
       if (filePath.includes(',') && !filePath.includes('/')) {
         filePath = filePath.replace(/,/g, '/');
@@ -50,7 +60,10 @@ function buildFileTree(filePaths) {
         // If this is the last part (file), store as a file
         if (i === parts.length - 1) {
           if (!currentLevel.files) currentLevel.files = [];
-          currentLevel.files.push(part);
+          currentLevel.files.push({
+            name: part,
+            size: fileSize
+          });
         } else {
           // Otherwise it's a directory
           if (!currentLevel.dirs) currentLevel.dirs = {};
@@ -120,6 +133,19 @@ function getFileIconInfo(fileName) {
 }
 
 /**
+ * Format file size in human-readable format
+ * @param {Number} size - File size in bytes
+ * @return {String} Formatted size
+ */
+function formatFileSize(size) {
+  if (size === 0) return '0 B';
+  
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(size) / Math.log(1024));
+  return (size / Math.pow(1024, i)).toFixed(i > 0 ? 2 : 0) + ' ' + units[i];
+}
+
+/**
  * Render file tree as HTML
  * @param {Object} node - File tree node
  * @param {String} path - Current path
@@ -146,14 +172,31 @@ function renderFileTree(node, path = '', level = 0) {
   
   // Then render files
   if (node.files) {
-    node.files.sort().forEach(file => {
-      const { fileIcon, iconColor } = getFileIconInfo(file);
+    // Sort files by name
+    node.files.sort((a, b) => {
+      const nameA = typeof a === 'object' ? a.name : a;
+      const nameB = typeof b === 'object' ? b.name : b;
+      return nameA.localeCompare(nameB);
+    }).forEach(file => {
+      // Handle both string files and {name, size} objects
+      let fileName, fileSize = 0;
+      
+      if (typeof file === 'object' && file !== null) {
+        fileName = file.name || '';
+        fileSize = file.size || 0;
+      } else {
+        fileName = file;
+      }
+      
+      const { fileIcon, iconColor } = getFileIconInfo(fileName);
+      const formattedSize = formatFileSize(fileSize);
       
       html += '<div class="flex items-start py-1" style="padding-left: ' + indent + 'rem; --indent-level: ' + indent + ';">' +
         '<div class="flex-shrink-0 mr-2 ' + iconColor + '">' +
           '<i class="fas ' + fileIcon + '"></i>' +
         '</div>' +
-        '<div class="text-dark-600">' + file + '</div>' +
+        '<div class="flex-grow text-dark-600">' + fileName + '</div>' +
+        '<div class="text-dark-400 text-xs ml-2">' + formattedSize + '</div>' +
       '</div>';
     });
   }
@@ -164,5 +207,6 @@ function renderFileTree(node, path = '', level = 0) {
 module.exports = {
   buildFileTree,
   getFileIconInfo,
-  renderFileTree
+  renderFileTree,
+  formatFileSize
 }; 

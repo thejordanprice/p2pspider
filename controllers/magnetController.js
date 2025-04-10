@@ -290,6 +290,23 @@ function processFilesForDisplay(item, skipLimit = false) {
     // Store original file count to show "more files" link if needed
     const originalCount = item.files.length;
     
+    // Check if the files already have the new format (objects with path and size properties)
+    const hasNewFormat = item.files.length > 0 && 
+                         typeof item.files[0] === 'object' &&
+                         item.files[0] !== null;
+    
+    // Compute total size if it's not already set
+    if (!item.totalSize && hasNewFormat) {
+      item.totalSize = item.files.reduce((sum, file) => sum + (file.size || 0), 0);
+    }
+    
+    // Convert any old format files to the new format if needed
+    if (!hasNewFormat) {
+      item.files = item.files.map(file => {
+        return { path: file, size: 0 };
+      });
+    }
+    
     // Limit to first few files to improve rendering performance
     // Skip this limit if skipLimit is true (for the infohash page)
     if (!skipLimit && item.files.length > 5) {
@@ -298,7 +315,10 @@ function processFilesForDisplay(item, skipLimit = false) {
     }
     
     // Create a simple string representation for the old format
-    item.filestring = item.files.join('\n');
+    item.filestring = item.files.map(file => 
+      typeof file === 'object' ? file.path : file
+    ).join('\n');
+    
     if (!skipLimit && item.filestring.length > 100) {
       item.filestring = item.filestring.substring(0, 100) + '...';
     }
@@ -306,12 +326,23 @@ function processFilesForDisplay(item, skipLimit = false) {
     // Create tree structure for the new format - make sure we're handling paths correctly
     // Convert any comma-separated paths to proper directory structure
     const processedFiles = item.files.map(file => {
+      // Handle both formats
+      const filePath = typeof file === 'object' ? file.path : file;
+      const fileSize = typeof file === 'object' ? file.size : 0;
+      
       // If the file has comma separators, try to convert them to slashes for better tree structure
-      if (file.includes(',') && !file.includes('/')) {
-        return file.replace(/,/g, '/');
+      let processedPath = filePath;
+      if (filePath.includes(',') && !filePath.includes('/')) {
+        processedPath = filePath.replace(/,/g, '/');
       }
-      return file;
+      
+      return { path: processedPath, size: fileSize };
     });
+    
+    // Add formatted total size
+    if (item.totalSize) {
+      item.formattedTotalSize = fileTreeUtils.formatFileSize(item.totalSize);
+    }
     
     item.fileTree = fileTreeUtils.buildFileTree(processedFiles);
     item.treeHtml = fileTreeUtils.renderFileTree(item.fileTree);
