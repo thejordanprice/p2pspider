@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.13] - 2025-04-11
+## [1.0.13] - 2025-04-10
 
 ### Feature Enhancements
 - Added file size extraction from torrent metadata in processMetadata function
