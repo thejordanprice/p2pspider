@@ -79,6 +79,10 @@
                       </div>
                       <div class="directory-tree" data-infohash="<%= item.infohash %>">
                         <%- item.treeHtml %>
+                        <script>
+                          console.log("Tree HTML for <%= item.infohash %>:", 
+                            document.querySelector('.directory-tree[data-infohash="<%= item.infohash %>"]').innerHTML);
+                        </script>
                       </div>
                       <% if (item.hasMoreFiles) { %>
                         <div class="text-xs text-right mt-1 text-primary-600">

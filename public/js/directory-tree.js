@@ -27,12 +27,25 @@ if (window.directoryTreeInitialized) {
           return;
         }
         
+        console.log(`Found ${containers.length} directory tree containers`);
+        
         // Initialize each directory tree container
-        containers.forEach(container => {
+        containers.forEach((container, index) => {
           // Skip if this container has already been initialized
           if (container.dataset.initialized === 'true') {
             return;
           }
+          
+          // Log container content
+          console.log(`Container #${index} contents:`, container.innerHTML.trim().substring(0, 100) + '...');
+          
+          // Check if container has content
+          if (container.innerHTML.trim() === '') {
+            console.log(`Container #${index} is empty, skipping initialization`);
+            return;
+          }
+          
+          console.log(`Initializing container #${index} with ${container.children.length} child elements`);
           
           // Mark as initialized
           container.dataset.initialized = 'true';
@@ -56,6 +69,27 @@ if (window.directoryTreeInitialized) {
       
       if (folderIcons.length === 0) {
         console.log("No folder icons found in container:", container);
+        
+        // Debug the container contents
+        console.log("Container HTML content:", container.innerHTML);
+        
+        // If container is empty but has infohash data, try to retry later
+        if (container.innerHTML.trim() === '' && container.dataset.infohash) {
+          console.log("Container is empty but has infohash data, will try again later");
+          
+          // Reset initialization flag to try again
+          container.dataset.initialized = 'false';
+          
+          // Try again after a delay
+          setTimeout(() => {
+            if (container.innerHTML.trim() !== '') {
+              console.log("Container now has content, re-initializing");
+              initDirectoryTree(container);
+            }
+          }, 500);
+        }
+        
+        return;
       }
       
       folderIcons.forEach(icon => {
@@ -151,7 +185,7 @@ if (window.directoryTreeInitialized) {
         }
       });
       
-      // Initialize collapse/expand all buttons that affect this container
+      // Initialize collapse/expand all buttons
       initCollapseExpandButtons(container);
       
       // Initial update of tree lines
@@ -160,20 +194,24 @@ if (window.directoryTreeInitialized) {
 
     // Initialize collapse/expand all buttons
     function initCollapseExpandButtons(container) {
-      // Find closest page container for the buttons
-      const pageContainer = container.closest('.container') || document;
+      // Find closest parent container that might contain the buttons
+      const directoryTreeContainer = container.closest('.bg-gray-50') || container.closest('.container') || document;
       
-      // Look for buttons by ID or class
-      const collapseAllBtnById = pageContainer.querySelector('#collapse-all');
-      const expandAllBtnById = pageContainer.querySelector('#expand-all');
-      const collapseAllBtnByClass = pageContainer.querySelector('.collapse-all');
-      const expandAllBtnByClass = pageContainer.querySelector('.expand-all');
+      // Look for buttons by ID or class within this container
+      const collapseAllBtnById = directoryTreeContainer.querySelector('#collapse-all');
+      const expandAllBtnById = directoryTreeContainer.querySelector('#expand-all');
+      const collapseAllBtnByClass = directoryTreeContainer.querySelector('.collapse-all');
+      const expandAllBtnByClass = directoryTreeContainer.querySelector('.expand-all');
       
       // Use ID buttons if available, otherwise use class-based buttons
       const collapseAllBtn = collapseAllBtnById || collapseAllBtnByClass;
       const expandAllBtn = expandAllBtnById || expandAllBtnByClass;
       
       if (collapseAllBtn) {
+        // Skip if the button already has a click handler
+        if (collapseAllBtn.hasClickHandler) return;
+        
+        collapseAllBtn.hasClickHandler = true;
         collapseAllBtn.addEventListener('click', function(e) {
           e.preventDefault();
           
@@ -192,6 +230,10 @@ if (window.directoryTreeInitialized) {
       }
       
       if (expandAllBtn) {
+        // Skip if the button already has a click handler
+        if (expandAllBtn.hasClickHandler) return;
+        
+        expandAllBtn.hasClickHandler = true;
         expandAllBtn.addEventListener('click', function(e) {
           e.preventDefault();
           
