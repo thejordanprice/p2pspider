@@ -172,7 +172,6 @@ function renderFileTree(node, path = '', level = 0) {
   
   // Then render files
   if (node.files) {
-    // Sort files by name
     node.files.sort((a, b) => {
       const nameA = typeof a === 'object' ? a.name : a;
       const nameB = typeof b === 'object' ? b.name : b;
@@ -191,7 +190,7 @@ function renderFileTree(node, path = '', level = 0) {
       const { fileIcon, iconColor } = getFileIconInfo(fileName);
       const formattedSize = formatFileSize(fileSize);
       
-      html += '<div class="flex items-start py-1" style="padding-left: ' + indent + 'rem; --indent-level: ' + indent + ';">' +
+      html += '<div class="flex items-center py-1" style="padding-left: ' + indent + 'rem; --indent-level: ' + indent + ';">' +
         '<div class="flex-shrink-0 mr-2 ' + iconColor + '">' +
           '<i class="fas ' + fileIcon + '"></i>' +
         '</div>' +

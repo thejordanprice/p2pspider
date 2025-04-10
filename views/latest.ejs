@@ -407,7 +407,7 @@
               
               const formattedSize = formatFileSize(fileSize);
               
-              html += '<div class="flex items-start py-1" style="padding-left: ' + indent + 'rem; --indent-level: ' + indent + ';">' +
+              html += '<div class="flex items-center py-1" style="padding-left: ' + indent + 'rem; --indent-level: ' + indent + ';">' +
                 '<div class="flex-shrink-0 mr-2 ' + iconColor + '">' +
                   '<i class="fas ' + fileIcon + '"></i>' +
                 '</div>' +
@@ -454,7 +454,7 @@
         
         // Helper for folder toggle functionality
         function handleFolderToggle(folderDiv, treeContainer) {
-          const allItems = Array.from(treeContainer.querySelectorAll('.flex.items-start'));
+          const allItems = Array.from(treeContainer.querySelectorAll('.flex.items-start, .flex.items-center'));
           const folderIndex = allItems.indexOf(folderDiv);
           const folderLevel = parseFloat(folderDiv.style.paddingLeft) || 0;
           

@@ -167,7 +167,7 @@ if (window.directoryTreeInitialized) {
           icon.classList.remove('fa-folder');
           icon.classList.add('fa-folder-open');
           
-          const folderDiv = icon.closest('.flex.items-start');
+          const folderDiv = icon.closest('.flex.items-start, .flex.items-center');
           if (!folderDiv) {
             return;
           }
@@ -178,7 +178,7 @@ if (window.directoryTreeInitialized) {
           
           // Get all direct children until the next folder at the same level
           // Limit the scope to the current directory tree container
-          const allItems = Array.from(container.querySelectorAll('.flex.items-start'));
+          const allItems = Array.from(container.querySelectorAll('.flex.items-start, .flex.items-center'));
           const folderIndex = allItems.indexOf(folderDiv);
           const folderLevel = parseFloat(folderDiv.style.paddingLeft) || 0;
           
@@ -359,7 +359,7 @@ if (window.directoryTreeInitialized) {
     // Helper function to ensure tree line consistency
     function updateTreeLines(container) {
       try {
-        const allItems = container.querySelectorAll('.flex.items-start');
+        const allItems = container.querySelectorAll('.flex.items-start, .flex.items-center');
         allItems.forEach(item => {
           // If this item is the last visible child at its level, add a class
           const level = parseFloat(item.style.paddingLeft) || 0;
@@ -523,18 +523,39 @@ if (window.directoryTreeInitialized) {
       // Then render files
       if (node.files) {
         node.files.sort().forEach(file => {
-          const { fileIcon, iconColor } = getFileIconInfo(file);
+          let fileName, fileSize = 0;
           
-          html += '<div class="flex items-start py-1" style="padding-left: ' + indent + 'rem; --indent-level: ' + indent + ';">' +
+          // Handle both string files and object files with name/size
+          if (typeof file === 'object' && file !== null) {
+            fileName = file.name || '';
+            fileSize = file.size || 0;
+          } else {
+            fileName = file;
+          }
+          
+          const { fileIcon, iconColor } = getFileIconInfo(fileName);
+          const formattedSize = formatFileSize(fileSize);
+          
+          html += '<div class="flex items-center py-1" style="padding-left: ' + indent + 'rem; --indent-level: ' + indent + ';">' +
             '<div class="flex-shrink-0 mr-2 ' + iconColor + '">' +
               '<i class="fas ' + fileIcon + '"></i>' +
             '</div>' +
-            '<div class="text-dark-600">' + file + '</div>' +
+            '<div class="flex-grow text-dark-600">' + fileName + '</div>' +
+            '<div class="text-dark-400 text-xs ml-2">' + formattedSize + '</div>' +
           '</div>';
         });
       }
       
       return html;
+    }
+    
+    // Helper function to format file size
+    function formatFileSize(size) {
+      if (!size || size === 0) return '0 B';
+      
+      const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(size) / Math.log(1024));
+      return (size / Math.pow(1024, i)).toFixed(i > 0 ? 2 : 0) + ' ' + units[i];
     }
 
     // Initialize when DOM is ready
