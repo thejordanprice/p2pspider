@@ -284,21 +284,22 @@ const getTrackers = () => (
 const fileTreeUtils = require('../utils/fileTreeUtils');
 
 // Define a helper function for processing file data consistently
-function processFilesForDisplay(item) {
+function processFilesForDisplay(item, skipLimit = false) {
   // Process files for both display formats - tree view and simple list
   if (item.files && Array.isArray(item.files)) {
     // Store original file count to show "more files" link if needed
     const originalCount = item.files.length;
     
     // Limit to first few files to improve rendering performance
-    if (item.files.length > 5) {
+    // Skip this limit if skipLimit is true (for the infohash page)
+    if (!skipLimit && item.files.length > 5) {
       item.files = item.files.slice(0, 5);
       item.hasMoreFiles = true;
     }
     
     // Create a simple string representation for the old format
     item.filestring = item.files.join('\n');
-    if (item.filestring.length > 100) {
+    if (!skipLimit && item.filestring.length > 100) {
       item.filestring = item.filestring.substring(0, 100) + '...';
     }
     
@@ -550,7 +551,7 @@ exports.infohash = async (req, res) => {
     const [result] = results;
     
     // Process the result with our helper function to ensure consistency
-    processFilesForDisplay(result);
+    processFilesForDisplay(result, true);
     
     // Get the processed data
     const fileTree = result.fileTree;

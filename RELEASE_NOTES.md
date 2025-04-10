@@ -1,3 +1,28 @@
+# P2P Spider v1.0.12 Release Notes
+
+We're pleased to announce the release of P2P Spider v1.0.12, which improves the file listing experience on individual infohash pages.
+
+## What's New
+
+### Enhanced Infohash File Listings
+- Improved file display on infohash detail pages to show all files instead of truncated list
+- Modified processFilesForDisplay function to conditionally skip file limits on infohash pages
+- Enhanced file tree rendering logic for better handling of large file lists
+
+## Benefits
+- Complete file listing for better exploration of torrents on dedicated infohash pages
+- Improved user experience when examining detailed content of specific torrents
+- Better visualization of complex file structures for comprehensive torrent assessment
+- Consistent browsing experience across all pages with appropriate file detail level
+
+## Upgrading
+This update requires:
+- Pull the latest changes from the repository
+- No database schema changes are required
+- Restart the application
+
+---
+
 # P2P Spider v1.0.11 Release Notes
 
 We're pleased to announce the release of P2P Spider v1.0.11, which improves the directory tree display functionality to work consistently across all data sources.
