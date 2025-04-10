@@ -20,24 +20,20 @@ if (window.directoryTreeInitialized) {
     // Main initialization function with retry capability
     function initializeDirectoryTrees(forceReinit = false) {
       try {
-        console.log("Initializing directory trees...");
         const containers = document.querySelectorAll('.directory-tree');
         
         if (containers.length === 0) {
           initAttempts++;
           if (initAttempts > MAX_INIT_ATTEMPTS) {
-            console.log(`Maximum initialization attempts (${MAX_INIT_ATTEMPTS}) reached, giving up.`);
+            console.log(`Maximum directory tree initialization attempts reached.`);
             return;
           }
           
-          console.log(`No directory tree containers found, will retry later (attempt ${initAttempts}/${MAX_INIT_ATTEMPTS})`);
           // Retry after a delay if no containers found
           clearTimeout(initRetryTimeout);
           initRetryTimeout = setTimeout(() => initializeDirectoryTrees(), 300);
           return;
         }
-        
-        console.log(`Found ${containers.length} directory tree containers`);
         
         // Check if any containers need initialization
         let containersInitialized = 0;
@@ -51,16 +47,10 @@ if (window.directoryTreeInitialized) {
             return;
           }
           
-          // Log container content
-          console.log(`Container #${index} contents:`, container.innerHTML.trim().substring(0, 100) + '...');
-          
           // Check if container has content
           if (container.innerHTML.trim() === '') {
-            console.log(`Container #${index} is empty, skipping initialization`);
             return;
           }
-          
-          console.log(`Initializing container #${index} with ${container.children.length} child elements`);
           
           // Mark as initialized
           container.dataset.initialized = 'true';
@@ -70,11 +60,8 @@ if (window.directoryTreeInitialized) {
           containersInitialized++;
         });
         
-        console.log(`Directory trees initialization complete: ${containersInitialized} initialized, ${containersSkipped} skipped`);
-        
         // If we found containers but couldn't initialize any, try once more with force=true
         if (containersInitialized === 0 && containersSkipped > 0 && !forceReinit) {
-          console.log("No containers were initialized but some were found, attempting force reinitialization...");
           setTimeout(() => initializeDirectoryTrees(true), 500);
           return;
         }
@@ -92,22 +79,14 @@ if (window.directoryTreeInitialized) {
       const folderIcons = container.querySelectorAll('.fa-folder');
       
       if (folderIcons.length === 0) {
-        console.log("No folder icons found in container:", container);
-        
-        // Debug the container contents
-        console.log("Container HTML content:", container.innerHTML);
-        
         // If container is empty but has infohash data, try to retry later
         if (container.innerHTML.trim() === '' && container.dataset.infohash) {
-          console.log("Container is empty but has infohash data, will try again later");
-          
           // Reset initialization flag to try again
           container.dataset.initialized = 'false';
           
           // Try again after a delay
           setTimeout(() => {
             if (container.innerHTML.trim() !== '') {
-              console.log("Container now has content, re-initializing");
               initDirectoryTree(container);
             }
           }, 500);
@@ -124,7 +103,6 @@ if (window.directoryTreeInitialized) {
           
           const folderDiv = icon.closest('.flex.items-start');
           if (!folderDiv) {
-            console.warn("Could not find parent folder div for icon:", icon);
             return;
           }
           
@@ -205,11 +183,11 @@ if (window.directoryTreeInitialized) {
             setTimeout(() => updateTreeLines(container), 300);
           });
         } catch (err) {
-          console.error("Error processing folder icon:", err, icon);
+          console.error("Error processing folder icon:", err);
         }
       });
       
-      // Initialize collapse/expand all buttons
+      // Initialize collapse/expand all buttons that affect this container
       initCollapseExpandButtons(container);
       
       // Initial update of tree lines
@@ -486,7 +464,15 @@ if (window.directoryTreeInitialized) {
     });
     
     // Start observing the document with the configured parameters
-    observer.observe(document.body, { childList: true, subtree: true });
+    // Only observe if body is available
+    if (document.body) {
+      observer.observe(document.body, { childList: true, subtree: true });
+    } else {
+      // If body isn't available yet, wait for it
+      document.addEventListener('DOMContentLoaded', function() {
+        observer.observe(document.body, { childList: true, subtree: true });
+      });
+    }
 
     // Provide a global function that can be called manually if needed
     window.reinitializeDirectoryTrees = initializeDirectoryTrees;

@@ -67,46 +67,42 @@
                   <% if (item.fileTree && Object.keys(item.fileTree).length > 0 && 
                         ((item.files && Array.isArray(item.files) && item.files.length > 0) || 
                          (typeof item.files === 'string' && item.files.trim() !== ''))) { %>
-                    <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm border border-gray-200 shadow-inner">
-                      <div class="flex justify-end items-center space-x-2 mb-2">
-                        <button class="text-xs bg-primary-50 hover:bg-primary-100 text-primary-700 py-1 px-2 rounded-md transition-colors duration-200 flex items-center border border-primary-100 shadow-sm collapse-all">
-                          <i class="fas fa-compress-alt mr-1 text-primary-500"></i>
-                          <span>Collapse All</span>
-                        </button>
-                        <button class="text-xs bg-primary-50 hover:bg-primary-100 text-primary-700 py-1 px-2 rounded-md transition-colors duration-200 flex items-center border border-primary-100 shadow-sm expand-all">
-                          <i class="fas fa-expand-alt mr-1 text-primary-500"></i>
-                          <span>Expand All</span>
-                        </button>
-                      </div>
-                      <div class="directory-tree" data-infohash="<%= item.infohash %>">
-                        <%- item.treeHtml %>
-                        <script>
-                          // Log tree HTML content for debugging
-                          console.log("Tree HTML for <%= item.infohash %>:", 
-                            document.querySelector('.directory-tree[data-infohash="<%= item.infohash %>"]').innerHTML);
-                            
-                          // Ensure this specific tree is initialized after a slight delay
-                          setTimeout(function() {
-                            const container = document.querySelector('.directory-tree[data-infohash="<%= item.infohash %>"]');
-                            if (container && container.dataset.initialized !== 'true' && typeof window.reinitializeDirectoryTrees === 'function') {
-                              console.log("Directly initializing tree for <%= item.infohash %>");
-                              window.reinitializeDirectoryTrees();
-                            }
-                          }, 1500);
-                        </script>
-                      </div>
-                      <% if (item.hasMoreFiles) { %>
-                        <div class="text-xs text-right mt-1 text-primary-600">
-                          <a href="/infohash?q=<%= item.infohash %>">
-                            <i class="fas fa-ellipsis-h mr-1"></i>
-                            <% if (item.moreFilesCount) { %>
-                              <%= item.moreFilesCount %> more files...
-                            <% } else { %>
-                              More files...
-                            <% } %>
-                          </a>
+                    <div class="mb-4">
+                      <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-semibold text-dark-600 uppercase flex items-center">
+                          <div class="w-8 h-8 bg-primary-500/10 rounded-full flex items-center justify-center mr-2">
+                            <i class="fas fa-folder-open text-primary-600"></i>
+                          </div>
+                          <span>Files</span>
+                        </h3>
+                        <div class="flex items-center space-x-4">
+                          <button class="collapse-all text-xs bg-primary-50 hover:bg-primary-100 text-primary-700 py-2 px-4 rounded-md transition-colors duration-200 flex items-center border border-primary-100 shadow-sm">
+                            <i class="fas fa-compress-alt mr-2 text-primary-500"></i>
+                            <span>Collapse All</span>
+                          </button>
+                          <button class="expand-all text-xs bg-primary-50 hover:bg-primary-100 text-primary-700 py-2 px-4 rounded-md transition-colors duration-200 flex items-center border border-primary-100 shadow-sm">
+                            <i class="fas fa-expand-alt mr-2 text-primary-500"></i>
+                            <span>Expand All</span>
+                          </button>
                         </div>
-                      <% } %>
+                      </div>
+                      <div class="bg-gray-50 rounded-lg p-5 overflow-auto max-h-96 text-sm border border-gray-200 shadow-inner">
+                        <div class="directory-tree" data-infohash="<%= item.infohash %>">
+                          <%- item.treeHtml %>
+                        </div>
+                        <% if (item.hasMoreFiles) { %>
+                          <div class="text-xs text-right mt-1 text-primary-600">
+                            <a href="/infohash?q=<%= item.infohash %>">
+                              <i class="fas fa-ellipsis-h mr-1"></i>
+                              <% if (item.moreFilesCount) { %>
+                                <%= item.moreFilesCount %> more files...
+                              <% } else { %>
+                                More files...
+                              <% } %>
+                            </a>
+                          </div>
+                        <% } %>
+                      </div>
                     </div>
                   <% } else if (item.files && 
                                ((Array.isArray(item.files) && item.files.length > 0) || 
