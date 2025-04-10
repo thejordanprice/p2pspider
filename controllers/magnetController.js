@@ -597,6 +597,63 @@ exports.search = async (req, res) => {
           const esResults = await elasticsearch.search(query, page, limit);
           
           if (esResults) {
+            // Process the Elasticsearch results to include file tree data
+            if (esResults.results && Array.isArray(esResults.results)) {
+              // Apply the same file tree processing to Elasticsearch results
+              esResults.results.forEach(item => {
+                // Process files for both display formats - tree view and simple list
+                if (item.files && Array.isArray(item.files)) {
+                  // Store original file count to show "more files" link if needed
+                  const originalCount = item.files.length;
+                  
+                  // Limit to first few files to improve rendering performance
+                  if (item.files.length > 5) {
+                    item.files = item.files.slice(0, 5);
+                    item.hasMoreFiles = true;
+                  }
+                  
+                  // Create a simple string representation for the old format
+                  item.filestring = item.files.join('\n');
+                  if (item.filestring.length > 100) {
+                    item.filestring = item.filestring.substring(0, 100) + '...';
+                  }
+                  
+                  // Create tree structure for the new format - make sure we're handling paths correctly
+                  // Convert any comma-separated paths to proper directory structure
+                  const processedFiles = item.files.map(file => {
+                    // If the file has comma separators, try to convert them to slashes for better tree structure
+                    if (file.includes(',') && !file.includes('/')) {
+                      return file.replace(/,/g, '/');
+                    }
+                    return file;
+                  });
+                  
+                  item.fileTree = fileTreeUtils.buildFileTree(processedFiles);
+                  item.treeHtml = fileTreeUtils.renderFileTree(item.fileTree);
+                  
+                  // Add a note about truncated files
+                  if (item.hasMoreFiles) {
+                    item.moreFilesCount = originalCount - 5;
+                  }
+                } else if (typeof item.files === 'string') {
+                  // Handle string representation
+                  let fileString = item.files;
+                  let formatString = fileString.split(',').join('\n');
+                  if (formatString.length > 100) {
+                    formatString = formatString.substring(0, 100) + '...';
+                  }
+                  item.filestring = formatString;
+                  
+                  // Create tree structure for string format as well
+                  // Convert comma-separated paths to slash-separated for better tree structure
+                  const processedFiles = fileString.replace(/,/g, '/');
+                  
+                  item.fileTree = fileTreeUtils.buildFileTree(processedFiles);
+                  item.treeHtml = fileTreeUtils.renderFileTree(item.fileTree);
+                }
+              });
+            }
+            
             return {
               count: esResults.count,
               results: esResults.results,
