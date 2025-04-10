@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.12] - 2025-04-10
+
+### UI Enhancements
+- Improved file display on infohash detail pages to show all files instead of truncated list
+- Modified processFilesForDisplay function to conditionally skip file limits on infohash pages
+- Enhanced file tree rendering logic for better handling of large file lists
+
 ## [1.0.11] - 2025-04-09
 
 ### Directory Tree Improvements
