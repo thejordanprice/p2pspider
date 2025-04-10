@@ -70,17 +70,20 @@ if (window.directoryTreeInitialized) {
               return;
             }
             
-            // Skip if empty container
-            if (container.innerHTML.trim() === '') {
-              return;
+            // Process non-empty containers
+            if (container.innerHTML.trim() !== '') {
+              // Mark as initialized
+              container.dataset.initialized = 'true';
+              initializedContainers.add(container);
+              
+              // Initialize the folder structure
+              initDirectoryTree(container);
+            } 
+            // If container is empty but has infohash, we may need to fetch data
+            else if (container.dataset.infohash) {
+              console.log(`Directory tree for ${container.dataset.infohash} is empty, may need to fetch data`);
+              // We'll leave it uninitialized so we can try again later
             }
-            
-            // Mark as initialized
-            container.dataset.initialized = 'true';
-            initializedContainers.add(container);
-            
-            // Initialize the folder structure
-            initDirectoryTree(container);
           });
           
           // Mark global initialization as complete
@@ -397,6 +400,11 @@ if (window.directoryTreeInitialized) {
       
       if (Array.isArray(filePaths)) {
         filePaths.forEach(filePath => {
+          // Convert comma-separated paths to slashes if no slashes exist
+          if (filePath.includes(',') && !filePath.includes('/')) {
+            filePath = filePath.replace(/,/g, '/');
+          }
+          
           // Check if we have comma-separated paths instead of slashes
           const hasCommas = filePath.includes(',');
           const hasPaths = filePath.includes('/');
@@ -427,7 +435,15 @@ if (window.directoryTreeInitialized) {
         });
       } else if (typeof filePaths === 'string') {
         // Handle string representation
-        const fileArray = filePaths.split(',').map(f => f.trim()).filter(f => f);
+        // First convert commas to slashes if there are no slashes
+        if (filePaths.includes(',') && !filePaths.includes('/')) {
+          filePaths = filePaths.replace(/,/g, '/');
+        }
+        
+        const fileArray = filePaths.includes('/') 
+          ? filePaths.split(/[\/\\]/).map(f => f.trim()).filter(f => f)
+          : filePaths.split(',').map(f => f.trim()).filter(f => f);
+        
         return buildFileTree(fileArray);
       }
       
@@ -586,6 +602,31 @@ if (window.directoryTreeInitialized) {
 
     // Provide a global function that can be called manually if needed
     window.reinitializeDirectoryTrees = initializeDirectoryTrees;
+
+    // Make initializeDirectoryTrees and initializeTreesInElement available globally
+    // This ensures other scripts can access these functions
+    window.initializeDirectoryTrees = initializeDirectoryTrees;
+    window.initializeTreesInElement = function(element) {
+      if (!element) return;
+      
+      const treeDivs = element.querySelectorAll('.directory-tree');
+      treeDivs.forEach(container => {
+        // Skip if already initialized
+        if (initializedContainers.has(container) || container.dataset.initialized === 'true') {
+          return;
+        }
+        
+        // Only process non-empty containers
+        if (container.innerHTML.trim() !== '') {
+          // Mark as initialized
+          container.dataset.initialized = 'true';
+          initializedContainers.add(container);
+          
+          // Initialize the folder structure
+          initDirectoryTree(container);
+        }
+      });
+    };
 
   })(); // End IIFE 
 } 

@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
   <%- include('includes/header') %>
-  <link rel="stylesheet" href="public/css/directory-tree.css">
-  <script src="public/js/directory-tree.js"></script>
   <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col">
     <%- include('includes/navbar') %>
     
@@ -78,7 +76,11 @@
                       </div>
                       <div class="bg-gray-50 rounded-lg p-5 overflow-auto max-h-96 text-sm border border-gray-200 shadow-inner">
                         <div class="directory-tree" data-infohash="<%= item.infohash %>">
-                          <%- item.treeHtml %>
+                          <% if (item.treeHtml && item.treeHtml.trim() !== '') { %>
+                            <%- item.treeHtml %>
+                          <% } else { %>
+                            <div class="text-dark-500 italic">Processing directory tree...</div>
+                          <% } %>
                         </div>
                         <% if (item.hasMoreFiles) { %>
                           <div class="text-xs text-right mt-1 text-primary-600">
@@ -177,5 +179,20 @@
     </main>
 
     <%- include('includes/footer') %>
+    <script src="public/js/directory-tree.js"></script>
+    <script>
+      // Ensure directory trees are properly initialized
+      document.addEventListener('DOMContentLoaded', function() {
+        // Initialize directory trees
+        const directoryTrees = document.querySelectorAll('.directory-tree');
+        if (directoryTrees.length > 0) {
+          if (typeof initializeDirectoryTrees === 'function') {
+            initializeDirectoryTrees();
+          } else {
+            console.warn('Directory tree initialization function not found');
+          }
+        }
+      });
+    </script>
   </body>
 </html> 

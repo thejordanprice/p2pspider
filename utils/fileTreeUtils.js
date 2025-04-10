@@ -13,11 +13,24 @@ function buildFileTree(filePaths) {
   
   // Convert string to array if needed
   if (typeof filePaths === 'string') {
-    filePaths = filePaths.split(',').map(f => f.trim()).filter(f => f);
+    // First check if we should convert commas to slashes
+    if (filePaths.includes(',') && !filePaths.includes('/')) {
+      filePaths = filePaths.replace(/,/g, '/');
+    }
+    
+    // Then split by separator
+    filePaths = filePaths.includes('/') 
+      ? filePaths.split(/[\/\\]/).map(f => f.trim()).filter(f => f)
+      : filePaths.split(',').map(f => f.trim()).filter(f => f);
   }
   
   if (Array.isArray(filePaths)) {
     filePaths.forEach(filePath => {
+      // Pre-process the path - convert commas to slashes if there are no slashes
+      if (filePath.includes(',') && !filePath.includes('/')) {
+        filePath = filePath.replace(/,/g, '/');
+      }
+      
       // Check if we have comma-separated paths instead of slashes
       const hasCommas = filePath.includes(',');
       const hasPaths = filePath.includes('/');

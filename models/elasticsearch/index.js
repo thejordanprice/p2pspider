@@ -98,6 +98,30 @@ async function indexDocument(document) {
       return null;
     }
     
+    // Process files to ensure they're in a consistent format for indexing
+    let processedFiles;
+    
+    if (document.files) {
+      if (Array.isArray(document.files)) {
+        // If already an array, keep as is
+        processedFiles = document.files;
+      } else if (typeof document.files === 'string') {
+        // If JSON string, try to parse it
+        try {
+          const parsed = JSON.parse(document.files);
+          processedFiles = Array.isArray(parsed) ? parsed : document.files.split(',').map(f => f.trim()).filter(f => f);
+        } catch (e) {
+          // If not valid JSON, treat as comma-separated string
+          processedFiles = document.files.split(',').map(f => f.trim()).filter(f => f);
+        }
+      } else {
+        // Fallback
+        processedFiles = [String(document.files)];
+      }
+    } else {
+      processedFiles = [];
+    }
+    
     // Make sure infohash is used as the document ID for deduplication
     const result = await client.index({
       index: ELASTICSEARCH_INDEX,
@@ -106,8 +130,7 @@ async function indexDocument(document) {
         name: document.name || '',
         infohash: document.infohash,
         magnet: document.magnet || '',
-        files: Array.isArray(document.files) ? document.files : 
-              (typeof document.files === 'string' ? [document.files] : []),
+        files: processedFiles,
         fetchedAt: document.fetchedAt || Date.now()
       },
       refresh: true // Make document immediately searchable
@@ -167,12 +190,42 @@ async function search(query, page = 0, size = 10) {
       size: size
     });
     
+    // Process results to ensure file data is in the right format
+    const processedResults = result.hits.hits.map(hit => {
+      const source = hit._source;
+      
+      // Ensure files is always an array
+      if (source.files) {
+        if (!Array.isArray(source.files)) {
+          // If files is not an array, try to parse it or convert it
+          if (typeof source.files === 'string') {
+            // If it's a JSON string, try to parse it
+            try {
+              const parsed = JSON.parse(source.files);
+              source.files = Array.isArray(parsed) ? parsed : [source.files];
+            } catch (e) {
+              // If parsing fails, treat it as a comma-separated string
+              source.files = source.files.split(',').map(f => f.trim()).filter(f => f);
+            }
+          } else {
+            // Fallback to a simple array with the original value
+            source.files = [String(source.files)];
+          }
+        }
+      } else {
+        // If files is missing or null, initialize as empty array
+        source.files = [];
+      }
+      
+      return {
+        ...source,
+        score: hit._score
+      };
+    });
+    
     return {
       count: result.hits.total.value,
-      results: result.hits.hits.map(hit => ({
-        ...hit._source,
-        score: hit._score
-      }))
+      results: processedResults
     };
   } catch (error) {
     console.error('Elasticsearch search error:', error);
