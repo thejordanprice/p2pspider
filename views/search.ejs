@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <%- include('includes/header') %>
+  <link rel="stylesheet" href="public/css/directory-tree.css">
   <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col">
     <%- include('includes/navbar') %>
     
@@ -66,6 +67,16 @@
                         ((item.files && Array.isArray(item.files) && item.files.length > 0) || 
                          (typeof item.files === 'string' && item.files.trim() !== ''))) { %>
                     <div class="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden text-sm border border-gray-200 shadow-inner">
+                      <div class="flex justify-end items-center space-x-2 mb-2">
+                        <button class="text-xs bg-primary-50 hover:bg-primary-100 text-primary-700 py-1 px-2 rounded-md transition-colors duration-200 flex items-center border border-primary-100 shadow-sm collapse-all">
+                          <i class="fas fa-compress-alt mr-1 text-primary-500"></i>
+                          <span>Collapse All</span>
+                        </button>
+                        <button class="text-xs bg-primary-50 hover:bg-primary-100 text-primary-700 py-1 px-2 rounded-md transition-colors duration-200 flex items-center border border-primary-100 shadow-sm expand-all">
+                          <i class="fas fa-expand-alt mr-1 text-primary-500"></i>
+                          <span>Expand All</span>
+                        </button>
+                      </div>
                       <div class="directory-tree" data-infohash="<%= item.infohash %>">
                         <%- item.treeHtml %>
                       </div>
