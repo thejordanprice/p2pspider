@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2024-04-11
+
+### Major Refactoring
+- Deconstructed monolithic `app.js` into modular components:
+  - `config/env.js`: Centralized environment variable loading, constants, and validation.
+  - `lib/database.js`: Handles database initialization logic.
+  - `lib/redis.js`: Manages Redis client initialization, connection, helpers, and shutdown.
+  - `lib/p2p.js`: Encapsulates P2P Spider initialization, event handling (`metadata`, `error`), processing, and shutdown.
+  - `services/websocket.js`: Manages WebSocket server setup, connection handling, broadcasting, and client updates.
+  - `config/express.js`: Configures the Express application, middleware (compression, cache, logging, static files, body parsing), view engine, and routing setup.
+- Refactored `app.js` to serve as the main application bootstrap file, orchestrating the initialization and startup of the different modules (Database, Redis, P2P, WebSocket, Express).
+- Improved modularity and separation of concerns across the codebase.
+- Enhanced graceful shutdown logic in `app.js` to properly close P2P connections, Redis clients, and the HTTP server.
+
+### Improvements
+- Enhanced code organization, readability, and maintainability.
+- Simplified the main application entry point (`app.js`).
+- Clearer responsibility delegation to dedicated modules.
+
 ## [1.0.13] - 2025-04-10
 
 ### Feature Enhancements

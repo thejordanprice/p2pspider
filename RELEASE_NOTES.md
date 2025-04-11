@@ -1,3 +1,46 @@
+# P2P Spider v1.1.0 Release Notes
+
+This release focuses on a major internal refactoring of the codebase to improve modularity, maintainability, and overall structure. While there are no significant new user-facing features, these changes lay a foundation for future development and enhance the project's robustness.
+
+## Major Refactoring
+
+The core `app.js` file, which previously handled many different responsibilities, has been significantly refactored. Its logic has been broken down and moved into dedicated modules:
+
+- **Configuration (`config/`)**: Environment variables (`env.js`) and Express app setup (`express.js`) are now centralized in the `config` directory.
+- **Core Libraries (`lib/`)**: Database initialization (`database.js`), Redis client management (`redis.js`), and P2P Spider logic (`p2p.js`, `index.js`) are now organized within the `lib` directory.
+- **Services (`services/`)**: WebSocket server logic (`websocket.js`) is now handled by a dedicated service module.
+
+The main `app.js` file now acts as a streamlined orchestrator, responsible for initializing these modules and starting the application services (Web Server, P2P Daemon) based on the configuration.
+
+## Key Benefits of the Refactoring
+
+- **Improved Modularity**: Code is now organized into logical, single-responsibility modules.
+- **Enhanced Maintainability**: Easier to understand, modify, and debug specific parts of the application.
+- **Better Readability**: The codebase structure is clearer and the main entry point is simplified.
+- **Increased Robustness**: Clearer separation of concerns reduces the chance of unintended side effects.
+- **Improved Shutdown**: Graceful shutdown process has been enhanced to reliably close all components (HTTP server, P2P Spider, Redis client).
+
+## Upgrading
+
+This update involves significant changes to the internal file structure.
+
+1.  Pull the latest changes from the repository:
+    ```bash
+    git pull origin master # Or your main branch name
+    ```
+2.  Install/update dependencies (if any changes were made to package.json, although none were in this refactor):
+    ```bash
+    npm install
+    ```
+3.  Restart the application:
+    ```bash
+    npm start # Or your usual start command (e.g., pm2 restart app)
+    ```
+
+No database schema changes or manual configuration updates are required for this version.
+
+---
+
 # P2P Spider v1.0.13 Release Notes
 
 We're pleased to announce the release of P2P Spider v1.0.13, which enhances the metadata extraction capabilities with file size tracking and improves the file tree display UI.
