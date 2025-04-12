@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.1] - 2024-04-12
+
+### Refactoring & Enhancements
+- Refactored `reset_data.sh` to simplify Elasticsearch index deletion logic, improve URL handling (escaping and quoting), and enhance status reporting for clearer output.
+- Improved file handling logic for Elasticsearch indexing, transforming `processedFiles` into a string of file paths for better data consistency.
+- Refactored WebSocket message handling in `index.ejs` to differentiate between event types ('new_magnet', 'count_update') and improve logging.
+
 ## [1.1.0] - 2024-04-11
 
 ### Major Refactoring
