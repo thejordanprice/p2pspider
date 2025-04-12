@@ -94,23 +94,26 @@ echo "---"
 
 # 3. Delete Elasticsearch Index
 echo "3. Deleting Elasticsearch index: ${ELASTICSEARCH_NODE}/${ELASTICSEARCH_INDEX}..."
+# Quote the URL to prevent shell interpretation of [ ] and ?
 DELETE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -XDELETE "${ELASTICSEARCH_NODE}/${ELASTICSEARCH_INDEX}?ignore=[404]")
 if [ "$DELETE_STATUS" = "200" ] || [ "$DELETE_STATUS" = "404" ]; then
   echo "Elasticsearch index deleted (or did not exist). Status: $DELETE_STATUS"
 else
   echo "Error deleting Elasticsearch index. Status: $DELETE_STATUS"
+  # Quote the URL here too for the error output command
   curl -XDELETE "${ELASTICSEARCH_NODE}/${ELASTICSEARCH_INDEX}?ignore=[404]" # Show error output
 fi
 echo "---"
 
 # 4. Recreate Elasticsearch Index
 echo "4. Recreating Elasticsearch index: ${ELASTICSEARCH_NODE}/${ELASTICSEARCH_INDEX}..."
+# Quote the URL and data payload
 CREATE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -XPUT "${ELASTICSEARCH_NODE}/${ELASTICSEARCH_INDEX}" -H 'Content-Type: application/json' -d "$ES_MAPPING")
 if [ "$CREATE_STATUS" = "200" ]; then
   echo "Elasticsearch index recreated successfully. Status: $CREATE_STATUS"
 else
   echo "Error recreating Elasticsearch index. Status: $CREATE_STATUS"
-  # Show error output from ES
+  # Quote the URL and data payload here too for the error output command
   curl -XPUT "${ELASTICSEARCH_NODE}/${ELASTICSEARCH_INDEX}" -H 'Content-Type: application/json' -d "$ES_MAPPING"
 fi
 echo "---"
