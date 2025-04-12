@@ -122,6 +122,22 @@ async function indexDocument(document) {
       processedFiles = [];
     }
     
+    // Transform processedFiles into a single string of paths for indexing
+    let filesString = '';
+    if (Array.isArray(processedFiles)) {
+        // Check if the first element looks like a file object (has path/size)
+        if (processedFiles.length > 0 && typeof processedFiles[0] === 'object' && processedFiles[0] !== null && ('path' in processedFiles[0] || 'size' in processedFiles[0])) {
+            // Extract paths and join with newline
+            filesString = processedFiles.map(file => (typeof file === 'object' && file !== null && file.path) ? file.path : String(file)).join('\n'); 
+        } else {
+            // Assume it's an array of strings already (or simple values)
+            filesString = processedFiles.map(String).join('\n');
+        }
+    } else if (typeof processedFiles === 'string') {
+        // It might already be a string from the previous processing steps
+        filesString = processedFiles;
+    } // If processedFiles was something else (e.g., empty array), filesString remains ''
+
     // Make sure infohash is used as the document ID for deduplication
     const result = await client.index({
       index: ELASTICSEARCH_INDEX,
@@ -130,7 +146,7 @@ async function indexDocument(document) {
         name: document.name || '',
         infohash: document.infohash,
         magnet: document.magnet || '',
-        files: processedFiles,
+        files: filesString, // Use the transformed string here
         fetchedAt: document.fetchedAt || Date.now()
       },
       refresh: true // Make document immediately searchable
