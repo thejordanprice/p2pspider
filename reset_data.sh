@@ -94,16 +94,19 @@ echo "---"
 
 # 3. Delete Elasticsearch Index
 echo "3. Deleting Elasticsearch index: ${ELASTICSEARCH_NODE}/${ELASTICSEARCH_INDEX}..."
-# Escape the [ and ] characters with backslashes
-DELETE_URL="${ELASTICSEARCH_NODE}/${ELASTICSEARCH_INDEX}?ignore=\[404\]"
-# Pass the variable with double quotes and add -g (--globoff) flag
-DELETE_STATUS=$(curl -s -g -o /dev/null -w "%{http_code}" -XDELETE "$DELETE_URL")
-if [ "$DELETE_STATUS" = "200" ] || [ "$DELETE_STATUS" = "404" ]; then
-  echo "Elasticsearch index deleted (or did not exist). Status: $DELETE_STATUS"
+# Define the simple delete URL
+DELETE_URL="${ELASTICSEARCH_NODE}/${ELASTICSEARCH_INDEX}"
+# Pass the variable with double quotes (no -g needed now)
+DELETE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -XDELETE "$DELETE_URL")
+# Check only for 200 (success) or allow 404 (already deleted) as acceptable
+if [ "$DELETE_STATUS" = "200" ]; then
+  echo "Elasticsearch index deleted successfully. Status: $DELETE_STATUS"
+elif [ "$DELETE_STATUS" = "404" ]; then 
+  echo "Elasticsearch index did not exist. Status: $DELETE_STATUS"
 else
   echo "Error deleting Elasticsearch index. Status: $DELETE_STATUS"
-  # Use double quotes and -g flag here too
-  curl -g -XDELETE "$DELETE_URL" # Show error output
+  # Use double quotes here too
+  curl -XDELETE "$DELETE_URL" # Show error output
 fi
 echo "---"
 
