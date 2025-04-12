@@ -114,15 +114,20 @@
         
         // Handle different message types
         if (data.eventType === 'new_magnet') {
-          // Use the server's count instead of incrementing locally
+          // Use the server's count included in the new_magnet event
           if (data.data && data.data.count !== undefined) {
             currentCount = data.data.count;
-            updateCounterWithPulse(counter, currentCount);
+            updateCounterWithPulse(counter, currentCount); // Use pulse for new magnets
           }
-        } else if (data.count !== undefined) {
-          // Regular count update
-          currentCount = data.count;
-          updateCounter(counter, currentCount);
+        } else if (data.eventType === 'count_update') {
+          // Handle initial count or periodic updates
+          if (data.data && data.data.count !== undefined) {
+            currentCount = data.data.count;
+            updateCounter(counter, currentCount); // Use regular update for initial/periodic counts
+          }
+        } else {
+            // Optional: Log unexpected message types
+            console.warn("Received unknown WebSocket message type:", data.eventType, data);
         }
       };
       
