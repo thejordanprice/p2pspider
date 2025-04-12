@@ -1,3 +1,41 @@
+# P2P Spider v1.1.1 Release Notes
+
+This release includes several refactoring efforts and enhancements focused on improving script robustness, data consistency in indexing, and WebSocket communication clarity.
+
+## Key Enhancements
+
+- **`reset_data.sh` Improvements**: 
+  - Simplified the logic for deleting Elasticsearch indices.
+  - Improved handling of URLs by properly escaping special characters and using double quotes, enhancing command execution consistency and error handling.
+  - Enhanced status messages to clearly differentiate between successful index deletions and attempts to delete non-existent indices.
+- **Elasticsearch Indexing**: 
+  - Refactored file handling logic to better process file paths.
+  - Transformed the `processedFiles` data into a structured string of file paths before indexing, ensuring better data consistency within Elasticsearch documents.
+- **WebSocket Handling**: 
+  - Updated the client-side logic (`index.ejs`) to more clearly distinguish between 'new_magnet' and 'count_update' message types.
+  - Added logging for unexpected message types to aid debugging.
+
+## Benefits
+
+- Increased robustness and clarity of the `reset_data.sh` script.
+- Improved data consistency for file paths stored in Elasticsearch.
+- Clearer and more maintainable WebSocket message handling on the client-side.
+
+## Upgrading
+
+No database schema changes or manual configuration updates are required for this version.
+
+1.  Pull the latest changes from the repository:
+    ```bash
+    git pull origin master # Or your main branch name
+    ```
+2.  Restart the application:
+    ```bash
+    npm start # Or your usual start command (e.g., pm2 restart app)
+    ```
+
+---
+
 # P2P Spider v1.1.0 Release Notes
 
 This release focuses on a major internal refactoring of the codebase to improve modularity, maintainability, and overall structure. While there are no significant new user-facing features, these changes lay a foundation for future development and enhance the project's robustness.
